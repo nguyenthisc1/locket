@@ -39,8 +39,10 @@ dependencies:
   firebase_storage: ^11.5.0
   image_picker: ^1.1.0
   google_fonts: ^6.1.0
-  cloud_firestore:
-  firebase_auth:
+  cloud_firestore: ^4.15.9
+  firebase_auth: ^4.17.9
+  dartz: ^0.10.1
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:
