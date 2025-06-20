@@ -1,10 +1,10 @@
 class AppImages {
-  static const basePath = 'assets/images/';
+  static const basePath = 'assets';
+  static const basePathImages = '$basePath/images';
+  static const basePathIcons = '$basePath/icons';
+  static const basePathLotties = '$basePath/lotties';
 
-  static const movieImageBasePath = 'https://image.tmdb.org/t/p/w500';
+  static const logo = '$basePathImages/logo.webp';
 
-  static const splashBackground = '${basePath}splash-bg.png';
-
-  static const defaultImage =
-      'https://coffective.com/wp-content/uploads/2018/06/default-featured-image.png.jpg';
+  static const hiLottie = '$basePathLotties/hi.json';
 }
