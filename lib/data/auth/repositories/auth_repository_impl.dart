@@ -120,19 +120,19 @@ class AuthRepositoryImpl implements AuthRepository {
   Exception _handleAuthException(firebase_auth.FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
-        return Exception('No user found with this email.');
-      case 'wrong-password':
-        return Exception('Wrong password provided.');
-      case 'email-already-in-use':
-        return Exception('Email is already in use.');
+        return Exception('Không tìm thấy người dùng với email này.');
       case 'invalid-email':
-        return Exception('Email address is invalid.');
+        return Exception('Địa chỉ email không hợp lệ.');
+      case 'wrong-password':
+        return Exception('Mật khẩu không đúng.');
+      case 'email-already-in-use':
+        return Exception('Email đã được sử dụng.');
       case 'weak-password':
-        return Exception('Password is too weak.');
+        return Exception('Mật khẩu quá yếu.');
       case 'requires-recent-login':
-        return Exception('Please log in again to perform this action.');
+        return Exception('Vui lòng đăng nhập lại để thực hiện hành động này.');
       default:
-        return Exception(e.message ?? 'An error occurred.');
+        return Exception(e.message ?? 'Đã xảy ra lỗi.');
     }
   }
 }
