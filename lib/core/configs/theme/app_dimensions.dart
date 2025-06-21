@@ -48,7 +48,7 @@ class AppDimensions {
   static const double bottomNavIconSize = 24.0;
 
   // App bar
-  static const double appBarHeight = 56.0;
+  static const double appBarHeight = 80.0;
 
   // Widget specific
   static const double widgetSpacing = 16.0;
