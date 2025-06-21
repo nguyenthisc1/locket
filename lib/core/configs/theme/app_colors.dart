@@ -15,10 +15,11 @@ class AppColors {
   static const Color background = Color(0xFFF8F9FA);
   static const Color surface = Colors.white;
   static const Color surfaceVariant = Color(0xFFF3F4F6);
+  static const Color dark = Color.fromARGB(255, 56, 56, 56);
 
   // Text Colors
-  static const Color textPrimary = Color(0xFF1A1A1A);
-  static const Color textSecondary = Color(0xFF666666);
+  static const Color textPrimary = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color.fromARGB(255, 168, 168, 168);
   static const Color textTertiary = Color(0xFF999999);
 
   // Status Colors

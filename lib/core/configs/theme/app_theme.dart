@@ -1,51 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
+import 'package:locket/core/configs/theme/index.dart';
 import 'app_colors.dart';
 
 class AppTheme {
   static ThemeData light() {
     final base = ThemeData.light(useMaterial3: true);
-    final textTheme = GoogleFonts.poppinsTextTheme(base.textTheme).copyWith(
-      displayLarge: GoogleFonts.poppins(
+    final textTheme = base.textTheme.copyWith(
+      displayLarge: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
       ),
-      displayMedium: GoogleFonts.poppins(
+      displayMedium: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 28,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
       ),
-      displaySmall: GoogleFonts.poppins(
+      displaySmall: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 24,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
       ),
-      headlineMedium: GoogleFonts.poppins(
+      headlineMedium: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      headlineSmall: GoogleFonts.poppins(
+      headlineSmall: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      titleLarge: GoogleFonts.poppins(
+      titleLarge: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      bodyLarge: GoogleFonts.poppins(
+      bodyLarge: const TextStyle(
+        fontFamily: 'SF-Pro-Text',
         fontSize: 16,
         color: AppColors.textPrimary,
       ),
-      bodyMedium: GoogleFonts.poppins(
+      bodyMedium: const TextStyle(
+        fontFamily: 'SF-Pro-Text',
         fontSize: 14,
         color: AppColors.textSecondary,
       ),
-      labelLarge: GoogleFonts.poppins(
+      labelLarge: const TextStyle(
+        fontFamily: 'SF-Pro-Text',
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
@@ -53,22 +61,21 @@ class AppTheme {
     );
 
     return base.copyWith(
-      useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: AppColors.surface,
-        background: AppColors.background,
         error: AppColors.error,
       ),
       textTheme: textTheme,
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        titleTextStyle: GoogleFonts.poppins(
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        titleTextStyle: TextStyle(
+          fontFamily: 'SF-Pro-Rounded',
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -84,13 +91,14 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: Colors.black,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
           ),
-          textStyle: GoogleFonts.poppins(
+          textStyle: const TextStyle(
+            fontFamily: 'SF-Pro-Rounded',
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -130,40 +138,55 @@ class AppTheme {
 
   static ThemeData dark() {
     final base = ThemeData.dark(useMaterial3: true);
-    final textTheme = GoogleFonts.poppinsTextTheme(base.textTheme).copyWith(
-      displayLarge: GoogleFonts.poppins(
+    final textTheme = base.textTheme.copyWith(
+      displayLarge: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      displayMedium: GoogleFonts.poppins(
+      displayMedium: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 28,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      displaySmall: GoogleFonts.poppins(
+      displaySmall: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 24,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      headlineMedium: GoogleFonts.poppins(
+      headlineMedium: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: Colors.white,
       ),
-      headlineSmall: GoogleFonts.poppins(
+      headlineSmall: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: Colors.white,
       ),
-      titleLarge: GoogleFonts.poppins(
+      titleLarge: const TextStyle(
+        fontFamily: 'SF-Pro-Rounded',
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: Colors.white,
       ),
-      bodyLarge: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
-      bodyMedium: GoogleFonts.poppins(fontSize: 14, color: Colors.white70),
-      labelLarge: GoogleFonts.poppins(
+      bodyLarge: const TextStyle(
+        fontFamily: 'SF-Pro-Text',
+        fontSize: 16,
+        color: Colors.white,
+      ),
+      bodyMedium: const TextStyle(
+        fontFamily: 'SF-Pro-Text',
+        fontSize: 14,
+        color: Colors.white70,
+      ),
+      labelLarge: const TextStyle(
+        fontFamily: 'SF-Pro-Text',
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: Colors.white,
@@ -176,17 +199,17 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: Color(0xFF1E1E1E),
-        background: Color(0xFF121212),
         error: AppColors.error,
       ),
-      scaffoldBackgroundColor: const Color(0xFF121212),
+      scaffoldBackgroundColor: Colors.black,
       textTheme: textTheme,
-      appBarTheme: AppBarTheme(
-        backgroundColor: const Color(0xFF1E1E1E),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF1E1E1E),
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: GoogleFonts.poppins(
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
+          fontFamily: 'SF-Pro-Rounded',
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: Colors.white,

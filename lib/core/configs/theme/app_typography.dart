@@ -3,31 +3,31 @@ import 'app_colors.dart';
 
 class AppTypography {
   static const TextStyle displayLarge = TextStyle(
-    fontFamily: 'Poppins',
-    fontSize: 32,
-    fontWeight: FontWeight.bold,
+    fontFamily: 'SF-Pro-Rounded',
+    fontSize: 40,
+    fontWeight: FontWeight.w800,
     color: AppColors.textPrimary,
-    height: 1.2,
+    height: 1.5,
   );
 
   static const TextStyle displayMedium = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'SF-Pro-Rounded',
     fontSize: 28,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
-    height: 1.2,
+    height: 1.5,
   );
 
   static const TextStyle displaySmall = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'SF-Pro-Rounded',
     fontSize: 24,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
-    height: 1.2,
+    height: 1.5,
   );
 
   static const TextStyle headlineLarge = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'SF-Pro-Rounded',
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
@@ -35,7 +35,7 @@ class AppTypography {
   );
 
   static const TextStyle headlineMedium = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'SF-Pro-Rounded',
     fontSize: 18,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
@@ -43,7 +43,7 @@ class AppTypography {
   );
 
   static const TextStyle titleLarge = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'SF-Pro-Rounded',
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
@@ -51,7 +51,7 @@ class AppTypography {
   );
 
   static const TextStyle titleMedium = TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'SF-Pro-Text',
     fontSize: 14,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
@@ -59,7 +59,7 @@ class AppTypography {
   );
 
   static const TextStyle bodyLarge = TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'SF-Pro-Text',
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: AppColors.textPrimary,
@@ -67,7 +67,7 @@ class AppTypography {
   );
 
   static const TextStyle bodyMedium = TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'SF-Pro-Text',
     fontSize: 14,
     fontWeight: FontWeight.normal,
     color: AppColors.textSecondary,
@@ -75,7 +75,7 @@ class AppTypography {
   );
 
   static const TextStyle bodySmall = TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'SF-Pro-Text',
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: AppColors.textTertiary,
@@ -83,7 +83,7 @@ class AppTypography {
   );
 
   static const TextStyle labelLarge = TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'SF-Pro-Text',
     fontSize: 14,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
@@ -91,7 +91,7 @@ class AppTypography {
   );
 
   static const TextStyle labelMedium = TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'SF-Pro-Text',
     fontSize: 12,
     fontWeight: FontWeight.w600,
     color: AppColors.textSecondary,
@@ -99,7 +99,7 @@ class AppTypography {
   );
 
   static const TextStyle buttonLarge = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'SF-Pro-Rounded',
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: Colors.white,
@@ -107,7 +107,7 @@ class AppTypography {
   );
 
   static const TextStyle buttonMedium = TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'SF-Pro-Rounded',
     fontSize: 14,
     fontWeight: FontWeight.w600,
     color: Colors.white,
