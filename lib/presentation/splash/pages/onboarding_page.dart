@@ -3,28 +3,9 @@ import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/core/configs/assets/app_images.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/presentation/auth/pages/login_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class OnboardingPage extends StatefulWidget {
+class OnboardingPage extends StatelessWidget {
   const OnboardingPage({super.key});
-
-  @override
-  State<OnboardingPage> createState() => _OnboardingPageState();
-}
-
-class _OnboardingPageState extends State<OnboardingPage> {
-  Future<void> _completeOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('onboarding_complete', true);
-
-    if (!mounted) return;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _completeOnboarding();
-  }
 
   @override
   Widget build(BuildContext context) {
