@@ -44,6 +44,7 @@ dependencies:
   firebase_core: ^3.14.0
   cloud_firestore: ^5.6.9
   shared_preferences: ^2.5.3
+  mockito: ^5.4.4
   logger:
 
 dev_dependencies:
@@ -56,6 +57,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  build_runner: ^2.4.12
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -113,8 +115,6 @@ flutter:
           weight: 500
         - asset: assets/fonts/SF-Pro-Text-Semibold.ttf
           weight: 600
-        - asset: assets/fonts/SF-Pro-Text-Heavu.ttf
-          weight: 800
     - family: SF-Pro-Rounded
       fonts:
         - asset: assets/fonts/SF-Pro-Rounded-Regular.ttf
@@ -122,3 +122,5 @@ flutter:
           weight: 600
         - asset: assets/fonts/SF-Pro-Rounded-Bold.ttf
           weight: 700
+        - asset: assets/fonts/SF-Pro-Rounded-Heavy.ttf
+          weight: 800
