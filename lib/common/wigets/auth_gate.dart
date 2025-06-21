@@ -3,6 +3,7 @@ import 'package:locket/domain/auth/entities/user_entity.dart';
 import 'package:locket/presentation/auth/pages/login_page.dart';
 import 'package:locket/presentation/home/pages/home_page.dart';
 import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
+import 'package:locket/presentation/splash/pages/onboarding_page.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -15,14 +16,12 @@ class AuthGate extends StatelessWidget {
       stream: authRepository.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasData && snapshot.data != null) {
           return const HomePage();
         } else {
-          return const LoginPage();
+          return const OnboardingPage();
         }
       },
     );
