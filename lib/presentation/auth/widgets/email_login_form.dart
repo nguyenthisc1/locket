@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/messages/display_message.dart';
+import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/helper/validation.dart';
+import 'package:locket/common/wigets/auth_gate.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
 import 'package:locket/domain/auth/usecases/email_login_usecase.dart';
@@ -40,7 +42,11 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
           DisplayMessage.error(context, failure.message);
         },
         (user) {
-          DisplayMessage.success(context, 'Đăng nhập thành công!');
+          DisplayMessage.success(
+            context,
+            'Đăng nhập thành công! Chuyển hướng đến trang chủ...',
+          );
+          AppNavigator.pushReplacement(context, const AuthGate());
         },
       );
     } catch (e) {
