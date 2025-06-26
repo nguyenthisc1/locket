@@ -1,9 +1,25 @@
 import 'package:dio/dio.dart';
+import 'package:locket/core/constants/api_url.dart';
+import 'package:locket/core/network/interceptors.dart';
 
 class DioClient {
   final Dio _dio;
 
-  DioClient({BaseOptions? options}) : _dio = Dio(options ?? BaseOptions());
+  DioClient({BaseOptions? options})
+    : _dio = Dio(
+        options ??
+            BaseOptions(
+              baseUrl: ApiUrl.api,
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                // Add more default headers here if needed
+              },
+            ),
+      ) {
+    // Add interceptors (e.g., logging, auth, etc.)
+    addInterceptors(_dio);
+  }
 
   /// Generic GET request
   Future<Response<T>> get<T>(
