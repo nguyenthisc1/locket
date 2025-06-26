@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// LoggingInterceptor for debugging network requests and responses.
 /// Uses the `logger` package for structured logging.
@@ -41,11 +42,12 @@ class LoggingInterceptor extends Interceptor {
 }
 
 /// AuthInterceptor for adding Authorization token to requests.
-/// Replace the token retrieval logic with your actual implementation.
+/// Uses flutter_secure_storage to retrieve the token with key 'auth_token'.
 class AuthInterceptor extends Interceptor {
-  final Future<String?> Function() getToken;
+  final FlutterSecureStorage _storage;
 
-  AuthInterceptor({required this.getToken});
+  AuthInterceptor({FlutterSecureStorage? storage})
+    : _storage = storage ?? const FlutterSecureStorage();
 
   @override
   void onRequest(
@@ -53,7 +55,7 @@ class AuthInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     try {
-      final token = await getToken();
+      final token = await _storage.read(key: 'auth_token');
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
       }
@@ -67,11 +69,15 @@ class AuthInterceptor extends Interceptor {
 /// Helper function to add interceptors to a Dio instance.
 /// Extend this to add more interceptors as needed.
 ///
-/// [getToken] should be a function that returns a Future<String?> for the auth token.
-void addInterceptors(Dio dio, {Future<String?> Function()? getToken}) {
+/// If [useAuth] is true, adds AuthInterceptor using flutter_secure_storage.
+void addInterceptors(
+  Dio dio, {
+  bool useAuth = false,
+  FlutterSecureStorage? storage,
+}) {
   dio.interceptors.add(LoggingInterceptor());
-  if (getToken != null) {
-    dio.interceptors.add(AuthInterceptor(getToken: getToken));
+  if (useAuth) {
+    dio.interceptors.add(AuthInterceptor(storage: storage));
   }
   // Add more interceptors here if needed
 }
