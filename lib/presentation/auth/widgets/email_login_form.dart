@@ -5,7 +5,7 @@ import 'package:locket/common/helper/validation.dart';
 import 'package:locket/common/wigets/auth_gate_firebase.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/domain/auth/usecases/email_login_usecase.dart';
+import 'package:locket/domain/auth/usecases_firebase/email_login_usecase.dart';
 
 class EmailLoginForm extends StatefulWidget {
   final EmailLoginUseCase emailLoginUseCase;

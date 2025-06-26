@@ -5,7 +5,7 @@ import 'package:mockito/mockito.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/domain/auth/entities/user_entity.dart';
 import 'package:locket/domain/auth/repositories/auth_firebase_repository.dart';
-import 'package:locket/domain/auth/usecases/email_login_usecase.dart';
+import 'package:locket/domain/auth/usecases_firebase/email_login_usecase.dart';
 
 import 'sign_in_usecase_test.mocks.dart';
 

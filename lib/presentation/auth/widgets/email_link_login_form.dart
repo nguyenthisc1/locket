@@ -5,7 +5,7 @@ import 'package:locket/common/helper/validation.dart';
 import 'package:locket/core/configs/theme/app_colors.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/domain/auth/usecases/email_link_send_usecase.dart';
+import 'package:locket/domain/auth/usecases_firebase/email_link_send_usecase.dart';
 import 'package:locket/presentation/auth/pages/email_link_verification_page.dart';
 import 'package:locket/presentation/auth/pages/phone_login_page.dart';
 
