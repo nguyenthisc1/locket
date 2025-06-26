@@ -1,46 +1,61 @@
 import 'package:locket/domain/auth/entities/user_entity.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class UserModel extends UserEntity {
-  const UserModel({
-    required super.uid,
+  UserModel({
+    required super.id,
+    required super.username,
     super.email,
     super.phoneNumber,
-    super.displayName,
-    super.photoUrl,
-    super.isEmailVerified,
+    required super.passwordHash,
+    super.avatarUrl,
+    super.isVerified,
+    super.lastActiveAt,
+    super.friends,
+    super.chatRooms,
+    super.createdAt,
   });
 
-  factory UserModel.fromFirebaseUser(User user) {
-    return UserModel(
-      uid: user.uid,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      displayName: user.displayName,
-      photoUrl: user.photoURL,
-      isEmailVerified: user.emailVerified,
-    );
-  }
-
+  /// Create a UserModel from a map (e.g., from API or database).
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      uid: map['uid'] ?? '',
+      id: map['id'] ?? '',
+      username: map['username'] ?? '',
       email: map['email'],
       phoneNumber: map['phoneNumber'],
-      displayName: map['displayName'],
-      photoUrl: map['photoUrl'],
-      isEmailVerified: map['isEmailVerified'] ?? false,
+      passwordHash: map['passwordHash'] ?? '',
+      avatarUrl: map['avatarUrl'],
+      isVerified: map['isVerified'] ?? false,
+      lastActiveAt:
+          map['lastActiveAt'] != null
+              ? DateTime.tryParse(map['lastActiveAt'])
+              : null,
+      friends:
+          map['friends'] != null ? List<String>.from(map['friends']) : const [],
+      chatRooms:
+          map['chatRooms'] != null
+              ? List<String>.from(map['chatRooms'])
+              : const [],
+      createdAt:
+          map['createdAt'] != null
+              ? DateTime.tryParse(map['createdAt'])
+              : DateTime.now(),
     );
   }
 
+  /// Convert the UserModel to a map for storage or transmission.
   Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
+      'id': id,
+      'username': username,
       'email': email,
       'phoneNumber': phoneNumber,
-      'displayName': displayName,
-      'photoUrl': photoUrl,
-      'isEmailVerified': isEmailVerified,
+      'passwordHash': passwordHash,
+      'avatarUrl': avatarUrl,
+      'isVerified': isVerified,
+      'lastActiveAt': lastActiveAt?.toIso8601String(),
+      'friends': friends,
+      'chatRooms': chatRooms,
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 }

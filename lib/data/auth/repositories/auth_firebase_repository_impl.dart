@@ -325,12 +325,13 @@ class AuthFirebaseRepositoryImpl implements AuthFirebaseRepository {
 
   UserEntity _mapFirebaseUser(firebase_auth.User firebaseUser) {
     return UserModel(
-      uid: firebaseUser.uid,
+      id: firebaseUser.uid,
       email: firebaseUser.email,
       phoneNumber: firebaseUser.phoneNumber,
-      displayName: firebaseUser.displayName,
-      photoUrl: firebaseUser.photoURL,
-      isEmailVerified: firebaseUser.emailVerified,
+      username: firebaseUser.displayName!,
+      avatarUrl: firebaseUser.photoURL,
+      isVerified: firebaseUser.emailVerified,
+      passwordHash: '',
     );
   }
 

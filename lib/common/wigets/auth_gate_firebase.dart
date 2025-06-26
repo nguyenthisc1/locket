@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/data/auth/repositories/auth_firebase_repository_impl.dart';
 import 'package:locket/domain/auth/entities/user_entity.dart';
-import 'package:locket/domain/auth/usecases/watch_auth_state_usecase.dart';
+import 'package:locket/domain/auth/usecases_firebase/watch_auth_state_usecase.dart';
 import 'package:locket/presentation/home/pages/home_page.dart';
 import 'package:locket/presentation/splash/pages/onboarding_page.dart';
 

@@ -1,44 +1,88 @@
-class UserEntity {
-  final String uid;
+import 'package:equatable/equatable.dart';
+
+class UserEntity extends Equatable {
+  final String id;
+  final String username;
   final String? email;
   final String? phoneNumber;
-  final String? displayName;
-  final String? photoUrl;
-  final bool isEmailVerified;
+  final String? passwordHash;
+  final String? avatarUrl;
+  final bool isVerified;
+  final DateTime? lastActiveAt;
+  final List<String> friends;
+  final List<String> chatRooms;
+  final DateTime createdAt;
 
-  const UserEntity({
-    required this.uid,
+  UserEntity({
+    required this.id,
+    required this.username,
     this.email,
     this.phoneNumber,
-    this.displayName,
-    this.photoUrl,
-    this.isEmailVerified = false,
-  });
+    this.passwordHash,
+    this.avatarUrl,
+    this.isVerified = false,
+    this.lastActiveAt,
+    List<String>? friends,
+    List<String>? chatRooms,
+    DateTime? createdAt,
+  }) : friends = friends ?? const [],
+       chatRooms = chatRooms ?? const [],
+       createdAt = createdAt ?? DateTime.now();
 
-  factory UserEntity.empty() => const UserEntity(
-    uid: '',
+  factory UserEntity.empty() => UserEntity(
+    id: '',
+    username: '',
     email: null,
     phoneNumber: null,
-    displayName: null,
-    photoUrl: null,
-    isEmailVerified: false,
+    passwordHash: '',
+    avatarUrl: null,
+    isVerified: false,
+    lastActiveAt: null,
+    friends: const [],
+    chatRooms: const [],
+    createdAt: DateTime.now(),
   );
 
   UserEntity copyWith({
-    String? uid,
+    String? id,
+    String? username,
     String? email,
     String? phoneNumber,
-    String? displayName,
-    String? photoUrl,
-    bool? isEmailVerified,
+    String? passwordHash,
+    String? avatarUrl,
+    bool? isVerified,
+    DateTime? lastActiveAt,
+    List<String>? friends,
+    List<String>? chatRooms,
+    DateTime? createdAt,
   }) {
     return UserEntity(
-      uid: uid ?? this.uid,
+      id: id ?? this.id,
+      username: username ?? this.username,
       email: email ?? this.email,
       phoneNumber: phoneNumber ?? this.phoneNumber,
-      displayName: displayName ?? this.displayName,
-      photoUrl: photoUrl ?? this.photoUrl,
-      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
+      passwordHash: passwordHash ?? this.passwordHash,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      isVerified: isVerified ?? this.isVerified,
+      lastActiveAt: lastActiveAt ?? this.lastActiveAt,
+      friends: friends ?? List<String>.from(this.friends),
+      chatRooms: chatRooms ?? List<String>.from(this.chatRooms),
+      createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    id,
+    username,
+    email,
+    phoneNumber,
+    passwordHash,
+    avatarUrl,
+    isVerified,
+    lastActiveAt,
+    friends,
+    chatRooms,
+    createdAt,
+  ];
 }
