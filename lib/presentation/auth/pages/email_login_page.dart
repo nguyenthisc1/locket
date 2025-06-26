@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
-import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
-import 'package:locket/domain/auth/repositories/auth_repository.dart';
-import 'package:locket/domain/auth/usecases/email_link_send_usecase.dart';
+import 'package:locket/data/auth/repositories/auth_firebase_repository_impl.dart';
+import 'package:locket/domain/auth/repositories/auth_firebase_repository.dart';
 import 'package:locket/domain/auth/usecases/email_login_usecase.dart';
-import 'package:locket/presentation/auth/widgets/email_link_login_form.dart';
 import 'package:locket/presentation/auth/widgets/email_login_form.dart';
 
 class EmailLoginPage extends StatelessWidget {
@@ -13,12 +11,13 @@ class EmailLoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthRepository authRepository = AuthRepositoryImpl();
+    final AuthFirebaseRepository authFirebaseRepository =
+        AuthFirebaseRepositoryImpl();
     // final EmailLinkSendUsecase emailLinkSendUsecase = EmailLinkSendUsecase(
-    //   authRepository,
+    //   AuthFirebaseRepository,
     // );
     final EmailLoginUseCase emailLoginUseCase = EmailLoginUseCase(
-      authRepository,
+      authFirebaseRepository,
     );
 
     return Scaffold(

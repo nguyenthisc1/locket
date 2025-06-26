@@ -1,17 +1,17 @@
 import 'package:dartz/dartz.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/domain/auth/entities/user_entity.dart';
-import 'package:locket/domain/auth/repositories/auth_repository.dart';
+import 'package:locket/domain/auth/repositories/auth_firebase_repository.dart';
 
 class EmailLinkLoginUsecase {
-  final AuthRepository authRepository;
+  final AuthFirebaseRepository authFirebaseRepository;
 
-  EmailLinkLoginUsecase(this.authRepository);
+  EmailLinkLoginUsecase(this.authFirebaseRepository);
 
   Future<Either<Failure, UserEntity>> call(
     String email,
     String emailLink,
   ) async {
-    return authRepository.signInWithEmailLink(email, emailLink);
+    return authFirebaseRepository.signInWithEmailLink(email, emailLink);
   }
 }

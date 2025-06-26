@@ -1,14 +1,14 @@
 import 'package:dartz/dartz.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/services/dynamic_links_service.dart';
-import 'package:locket/domain/auth/repositories/auth_repository.dart';
+import 'package:locket/domain/auth/repositories/auth_firebase_repository.dart';
 
 class EmailLinkSendUsecase {
-  final AuthRepository authRepository;
+  final AuthFirebaseRepository authFirebaseRepository;
   final DynamicLinksService _dynamicLinksService;
 
   EmailLinkSendUsecase(
-    this.authRepository, {
+    this.authFirebaseRepository, {
     DynamicLinksService? dynamicLinksService,
   }) : _dynamicLinksService = dynamicLinksService ?? DynamicLinksService();
 
@@ -18,7 +18,7 @@ class EmailLinkSendUsecase {
       await _dynamicLinksService.saveEmailForLink(email);
 
       // Send email link
-      return await authRepository.sendEmailLink(email);
+      return await authFirebaseRepository.sendEmailLink(email);
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }

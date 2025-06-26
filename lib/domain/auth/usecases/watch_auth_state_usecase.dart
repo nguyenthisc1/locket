@@ -1,10 +1,10 @@
 import 'package:dartz/dartz.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/domain/auth/entities/user_entity.dart';
-import 'package:locket/domain/auth/repositories/auth_repository.dart';
+import 'package:locket/domain/auth/repositories/auth_firebase_repository.dart';
 
 class WatchAuthStateUseCase {
-  final AuthRepository repository;
+  final AuthFirebaseRepository repository;
 
   WatchAuthStateUseCase(this.repository);
 

@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/domain/auth/entities/user_entity.dart';
 
-abstract class AuthRepository {
+abstract class AuthFirebaseRepository {
   Stream<Either<Failure, UserEntity?>> get authStateChanges;
   Future<Either<Failure, UserEntity?>> getCurrentUser();
   Future<Either<Failure, UserEntity>> signInWithEmailAndPassword(

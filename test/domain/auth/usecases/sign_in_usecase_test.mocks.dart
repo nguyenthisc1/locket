@@ -6,7 +6,8 @@
 import 'dart:async' as _i4;
 
 import 'package:locket/domain/auth/entities/user_entity.dart' as _i2;
-import 'package:locket/domain/auth/repositories/auth_repository.dart' as _i3;
+import 'package:locket/domain/auth/repositories/auth_firebase_repository.dart'
+    as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -28,11 +29,12 @@ class _FakeUserEntity_0 extends _i1.SmartFake implements _i2.UserEntity {
     : super(parent, parentInvocation);
 }
 
-/// A class which mocks [AuthRepository].
+/// A class which mocks [AuthFirebaseRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAuthRepository extends _i1.Mock implements _i3.AuthRepository {
-  MockAuthRepository() {
+class MockAuthFirebaseRepository extends _i1.Mock
+    implements _i3.AuthFirebaseRepository {
+  MockAuthFirebaseRepository() {
     _i1.throwOnMissingStub(this);
   }
 

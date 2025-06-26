@@ -1,13 +1,13 @@
 import 'package:dartz/dartz.dart';
 import 'package:locket/core/error/failures.dart';
-import 'package:locket/domain/auth/repositories/auth_repository.dart';
+import 'package:locket/domain/auth/repositories/auth_firebase_repository.dart';
 
 class VerifyPhoneUsecase {
-  final AuthRepository authRepository;
+  final AuthFirebaseRepository authFirebaseRepository;
 
-  VerifyPhoneUsecase(this.authRepository);
+  VerifyPhoneUsecase(this.authFirebaseRepository);
 
   Future<Either<Failure, String>> call(String phoneNumber) async {
-    return await authRepository.verifyPhone(phoneNumber);
+    return await authFirebaseRepository.verifyPhone(phoneNumber);
   }
 }

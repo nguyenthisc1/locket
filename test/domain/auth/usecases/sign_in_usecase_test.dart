@@ -4,19 +4,19 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/domain/auth/entities/user_entity.dart';
-import 'package:locket/domain/auth/repositories/auth_repository.dart';
+import 'package:locket/domain/auth/repositories/auth_firebase_repository.dart';
 import 'package:locket/domain/auth/usecases/email_login_usecase.dart';
 
 import 'sign_in_usecase_test.mocks.dart';
 
-@GenerateMocks([AuthRepository])
+@GenerateMocks([AuthFirebaseRepository])
 void main() {
   late EmailLoginUseCase emailLoginUseCase;
-  late MockAuthRepository mockAuthRepository;
+  late MockAuthFirebaseRepository mockAuthFirebaseRepository;
 
   setUp(() {
-    mockAuthRepository = MockAuthRepository();
-    emailLoginUseCase = EmailLoginUseCase(mockAuthRepository);
+    mockAuthFirebaseRepository = MockAuthFirebaseRepository();
+    emailLoginUseCase = EmailLoginUseCase(mockAuthFirebaseRepository);
   });
 
   const email = 'test@example.com';
@@ -34,7 +34,7 @@ void main() {
     test('should return UserEntity when login is successful', () async {
       // Arrange
       when(
-        mockAuthRepository.signInWithEmailAndPassword(email, password),
+        mockAuthFirebaseRepository.signInWithEmailAndPassword(email, password),
       ).thenAnswer((_) async => user);
 
       // Act
@@ -43,9 +43,9 @@ void main() {
       // Assert
       expect(result, Right(user));
       verify(
-        mockAuthRepository.signInWithEmailAndPassword(email, password),
+        mockAuthFirebaseRepository.signInWithEmailAndPassword(email, password),
       ).called(1);
-      verifyNoMoreInteractions(mockAuthRepository);
+      verifyNoMoreInteractions(mockAuthFirebaseRepository);
     });
 
     test('should return AuthFailure when email is empty', () async {
@@ -57,7 +57,9 @@ void main() {
         result,
         Left(AuthFailure(message: 'Email and password cannot be empty')),
       );
-      verifyNever(mockAuthRepository.signInWithEmailAndPassword(any, any));
+      verifyNever(
+        mockAuthFirebaseRepository.signInWithEmailAndPassword(any, any),
+      );
     });
 
     test('should return AuthFailure when password is empty', () async {
@@ -69,7 +71,9 @@ void main() {
         result,
         Left(AuthFailure(message: 'Email and password cannot be empty')),
       );
-      verifyNever(mockAuthRepository.signInWithEmailAndPassword(any, any));
+      verifyNever(
+        mockAuthFirebaseRepository.signInWithEmailAndPassword(any, any),
+      );
     });
 
     test(
@@ -83,7 +87,9 @@ void main() {
           result,
           Left(AuthFailure(message: 'Email and password cannot be empty')),
         );
-        verifyNever(mockAuthRepository.signInWithEmailAndPassword(any, any));
+        verifyNever(
+          mockAuthFirebaseRepository.signInWithEmailAndPassword(any, any),
+        );
       },
     );
 
@@ -98,7 +104,9 @@ void main() {
           result,
           Left(AuthFailure(message: 'Email and password cannot be empty')),
         );
-        verifyNever(mockAuthRepository.signInWithEmailAndPassword(any, any));
+        verifyNever(
+          mockAuthFirebaseRepository.signInWithEmailAndPassword(any, any),
+        );
       },
     );
 
@@ -113,14 +121,16 @@ void main() {
           result,
           Left(AuthFailure(message: 'Email and password cannot be empty')),
         );
-        verifyNever(mockAuthRepository.signInWithEmailAndPassword(any, any));
+        verifyNever(
+          mockAuthFirebaseRepository.signInWithEmailAndPassword(any, any),
+        );
       },
     );
 
     test('should trim email and password before calling repository', () async {
       // Arrange
       when(
-        mockAuthRepository.signInWithEmailAndPassword(email, password),
+        mockAuthFirebaseRepository.signInWithEmailAndPassword(email, password),
       ).thenAnswer((_) async => user);
 
       // Act
@@ -129,9 +139,9 @@ void main() {
       // Assert
       expect(result, Right(user));
       verify(
-        mockAuthRepository.signInWithEmailAndPassword(email, password),
+        mockAuthFirebaseRepository.signInWithEmailAndPassword(email, password),
       ).called(1);
-      verifyNoMoreInteractions(mockAuthRepository);
+      verifyNoMoreInteractions(mockAuthFirebaseRepository);
     });
 
     test(
@@ -139,7 +149,10 @@ void main() {
       () async {
         // Arrange
         when(
-          mockAuthRepository.signInWithEmailAndPassword(email, password),
+          mockAuthFirebaseRepository.signInWithEmailAndPassword(
+            email,
+            password,
+          ),
         ).thenThrow(Exception('Login failed'));
 
         // Act
@@ -148,9 +161,12 @@ void main() {
         // Assert
         expect(result, Left(AuthFailure(message: 'Đăng nhập thất bại')));
         verify(
-          mockAuthRepository.signInWithEmailAndPassword(email, password),
+          mockAuthFirebaseRepository.signInWithEmailAndPassword(
+            email,
+            password,
+          ),
         ).called(1);
-        verifyNoMoreInteractions(mockAuthRepository);
+        verifyNoMoreInteractions(mockAuthFirebaseRepository);
       },
     );
 
@@ -159,7 +175,10 @@ void main() {
       () async {
         // Arrange
         when(
-          mockAuthRepository.signInWithEmailAndPassword(email, password),
+          mockAuthFirebaseRepository.signInWithEmailAndPassword(
+            email,
+            password,
+          ),
         ).thenThrow(StateError('User not found'));
 
         // Act
@@ -168,9 +187,12 @@ void main() {
         // Assert
         expect(result, Left(AuthFailure(message: 'Đăng nhập thất bại')));
         verify(
-          mockAuthRepository.signInWithEmailAndPassword(email, password),
+          mockAuthFirebaseRepository.signInWithEmailAndPassword(
+            email,
+            password,
+          ),
         ).called(1);
-        verifyNoMoreInteractions(mockAuthRepository);
+        verifyNoMoreInteractions(mockAuthFirebaseRepository);
       },
     );
 
@@ -180,7 +202,10 @@ void main() {
         // Arrange
         final authFailure = AuthFailure(message: 'Custom auth error');
         when(
-          mockAuthRepository.signInWithEmailAndPassword(email, password),
+          mockAuthFirebaseRepository.signInWithEmailAndPassword(
+            email,
+            password,
+          ),
         ).thenThrow(authFailure);
 
         // Act
@@ -189,9 +214,12 @@ void main() {
         // Assert
         expect(result, Left(authFailure));
         verify(
-          mockAuthRepository.signInWithEmailAndPassword(email, password),
+          mockAuthFirebaseRepository.signInWithEmailAndPassword(
+            email,
+            password,
+          ),
         ).called(1);
-        verifyNoMoreInteractions(mockAuthRepository);
+        verifyNoMoreInteractions(mockAuthFirebaseRepository);
       },
     );
 
@@ -207,7 +235,7 @@ void main() {
       );
 
       when(
-        mockAuthRepository.signInWithEmailAndPassword(email, password),
+        mockAuthFirebaseRepository.signInWithEmailAndPassword(email, password),
       ).thenAnswer((_) async => minimalUser);
 
       // Act
@@ -218,9 +246,9 @@ void main() {
       expect(result.fold((l) => null, (r) => r.uid), 'minimal123');
       expect(result.fold((l) => null, (r) => r.isEmailVerified), false);
       verify(
-        mockAuthRepository.signInWithEmailAndPassword(email, password),
+        mockAuthFirebaseRepository.signInWithEmailAndPassword(email, password),
       ).called(1);
-      verifyNoMoreInteractions(mockAuthRepository);
+      verifyNoMoreInteractions(mockAuthFirebaseRepository);
     });
   });
 }

@@ -4,7 +4,7 @@ import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/core/configs/theme/app_colors.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
+import 'package:locket/data/auth/repositories/auth_firebase_repository_impl.dart';
 import 'package:locket/domain/auth/entities/user_entity.dart';
 
 class HomePage extends StatefulWidget {
@@ -15,7 +15,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final AuthRepositoryImpl _authRepository = AuthRepositoryImpl();
+  final AuthFirebaseRepositoryImpl _AuthFirebaseRepository =
+      AuthFirebaseRepositoryImpl();
   UserEntity? _currentUser;
   bool _isLoading = true;
 
@@ -27,7 +28,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadCurrentUser() async {
     try {
-      final result = await _authRepository.getCurrentUser();
+      final result = await _AuthFirebaseRepository.getCurrentUser();
       result.fold(
         (failure) {
           DisplayMessage.error(context, failure.message);
@@ -49,7 +50,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _signOut() async {
     try {
-      final result = await _authRepository.signOut();
+      final result = await _AuthFirebaseRepository.signOut();
       result.fold(
         (failure) {
           DisplayMessage.error(context, failure.message);
