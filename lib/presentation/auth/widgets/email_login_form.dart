@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:locket/common/helper/messages/display_message.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/helper/validation.dart';
-import 'package:locket/common/wigets/auth_gate_firebase.dart';
+import 'package:locket/common/wigets/auth_gate.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
 

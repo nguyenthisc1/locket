@@ -22,6 +22,11 @@ abstract class AuthApiService {
   Future<Either<Failure, String>> getToken();
   Future<Either<Failure, String>> refreshToken();
   Future<Either<Failure, bool>> isTokenExpired();
+
+  // Current user management
+  Future<Either<Failure, UserEntity>> getCurrentUser();
+  Future<Either<Failure, UserEntity>> updateUserProfile(UserEntity user);
+  Future<Either<Failure, void>> deleteAccount();
 }
 
 class AuthApiServiceImpl extends AuthApiService {
@@ -120,6 +125,102 @@ class AuthApiServiceImpl extends AuthApiService {
     } catch (e) {
       logger.e('🔥 Token expiration check exception: $e');
       return Right(true); // Assume expired on error
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> getCurrentUser() async {
+    try {
+      logger.d('👤 Fetching current user');
+
+      final response = await dioClient.get(ApiUrl.userMe);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final userMap = response.data as Map<String, dynamic>;
+        final user = UserMapper.toEntity(UserModel.fromMap(userMap));
+
+        logger.d('✅ Current user fetched: ${user.username}');
+        return Right(user);
+      } else if (response.statusCode == 401) {
+        logger.e('❌ Unauthorized - user not authenticated');
+        return Left(AuthFailure(message: 'User not authenticated'));
+      } else {
+        logger.e('❌ Failed to fetch current user: ${response.statusMessage}');
+        return Left(
+          AuthFailure(
+            message: response.statusMessage ?? 'Failed to fetch current user',
+          ),
+        );
+      }
+    } catch (e) {
+      logger.e('🔥 Get current user exception: $e');
+      return Left(
+        AuthFailure(message: 'Failed to fetch current user: ${e.toString()}'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> updateUserProfile(UserEntity user) async {
+    try {
+      logger.d('📝 Updating user profile for: ${user.username}');
+
+      final userData = {
+        'username': user.username,
+        'email': user.email,
+        'phoneNumber': user.phoneNumber,
+        'avatarUrl': user.avatarUrl,
+      };
+
+      final response = await dioClient.put(ApiUrl.userProfile, data: userData);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final userMap = response.data as Map<String, dynamic>;
+        final updatedUser = UserMapper.toEntity(UserModel.fromMap(userMap));
+
+        logger.d('✅ User profile updated successfully');
+        return Right(updatedUser);
+      } else {
+        logger.e('❌ Failed to update user profile: ${response.statusMessage}');
+        return Left(
+          AuthFailure(
+            message: response.statusMessage ?? 'Failed to update user profile',
+          ),
+        );
+      }
+    } catch (e) {
+      logger.e('🔥 Update user profile exception: $e');
+      return Left(
+        AuthFailure(message: 'Failed to update user profile: ${e.toString()}'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteAccount() async {
+    try {
+      logger.d('🗑️ Deleting user account');
+
+      final response = await dioClient.delete(ApiUrl.userAccount);
+
+      if (response.statusCode == 200) {
+        // Clear tokens after successful account deletion
+        await TokenManager.clearTokens();
+        logger.d('✅ Account deleted successfully');
+        return const Right(null);
+      } else {
+        logger.e('❌ Failed to delete account: ${response.statusMessage}');
+        return Left(
+          AuthFailure(
+            message: response.statusMessage ?? 'Failed to delete account',
+          ),
+        );
+      }
+    } catch (e) {
+      logger.e('🔥 Delete account exception: $e');
+      return Left(
+        AuthFailure(message: 'Failed to delete account: ${e.toString()}'),
+      );
     }
   }
 

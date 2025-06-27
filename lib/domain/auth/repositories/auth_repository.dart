@@ -12,4 +12,12 @@ abstract class AuthRepository {
   Future<Either<Failure, String>> getToken();
   Future<Either<Failure, String>> refreshToken();
   Future<Either<Failure, bool>> isTokenExpired();
+
+  // Current user management
+  Future<Either<Failure, UserEntity?>> getCurrentUser();
+  Future<Either<Failure, bool>> isAuthenticated();
+  Future<Either<Failure, void>> updateUserProfile(UserEntity user);
+
+  // Auth state stream
+  Stream<Either<Failure, UserEntity?>> watchAuthState();
 }

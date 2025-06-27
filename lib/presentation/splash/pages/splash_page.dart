@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/helper/share/app_preferences.dart';
-import 'package:locket/common/wigets/auth_gate_firebase.dart';
+import 'package:locket/common/wigets/auth_gate.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
@@ -74,7 +74,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       if (isFirstLaunch) {
         AppNavigator.pushReplacement(context, const OnboardingPage());
       } else {
-        AppNavigator.pushReplacement(context, const AuthGateFirebase());
+        AppNavigator.pushReplacement(context, const AuthGate());
       }
     }
   }
