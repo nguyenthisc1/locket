@@ -10,4 +10,6 @@ abstract class AuthRepository {
     required String password,
   });
   Future<Either<Failure, String>> getToken();
+  Future<Either<Failure, String>> refreshToken();
+  Future<Either<Failure, bool>> isTokenExpired();
 }

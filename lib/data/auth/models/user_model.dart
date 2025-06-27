@@ -6,7 +6,6 @@ class UserModel extends UserEntity {
     required super.username,
     super.email,
     super.phoneNumber,
-    required super.passwordHash,
     super.avatarUrl,
     super.isVerified,
     super.lastActiveAt,
@@ -22,7 +21,6 @@ class UserModel extends UserEntity {
       username: map['username'] ?? '',
       email: map['email'],
       phoneNumber: map['phoneNumber'],
-      passwordHash: map['passwordHash'] ?? '',
       avatarUrl: map['avatarUrl'],
       isVerified: map['isVerified'] ?? false,
       lastActiveAt:
@@ -49,7 +47,6 @@ class UserModel extends UserEntity {
       'username': username,
       'email': email,
       'phoneNumber': phoneNumber,
-      'passwordHash': passwordHash,
       'avatarUrl': avatarUrl,
       'isVerified': isVerified,
       'lastActiveAt': lastActiveAt?.toIso8601String(),

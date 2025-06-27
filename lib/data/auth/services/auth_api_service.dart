@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:locket/core/constants/api_url.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/mappers/user_mapper.dart';
 import 'package:locket/core/network/dio_client.dart';
+import 'package:locket/data/auth/models/auth_token_model.dart';
 import 'package:locket/data/auth/models/user_model.dart';
 import 'package:locket/domain/auth/entities/user_entity.dart';
 import 'package:logger/web.dart';
@@ -17,6 +20,8 @@ abstract class AuthApiService {
   Future<void> logout();
 
   Future<Either<Failure, String>> getToken();
+  Future<Either<Failure, String>> refreshToken();
+  Future<Either<Failure, bool>> isTokenExpired();
 }
 
 class AuthApiServiceImpl extends AuthApiService {
@@ -30,17 +35,91 @@ class AuthApiServiceImpl extends AuthApiService {
   @override
   Future<Either<Failure, String>> getToken() async {
     try {
-      // Attempt to read the access token from secure storage
-      final accessToken = await storage.read(key: 'accessToken');
-      if (accessToken == null || accessToken.isEmpty) {
-        logger.e('❌ No access token found in secure storage');
-        return Left(AuthFailure(message: 'No access token found'));
+      final tokens = await TokenManager.loadTokens();
+      if (tokens == null) {
+        logger.e('❌ No tokens found in secure storage');
+        return Left(AuthFailure(message: 'No tokens found'));
       }
+
+      if (tokens.isExpired) {
+        logger.d('🔄 Token expired, attempting refresh');
+        return await refreshToken();
+      }
+
       logger.d('✅ Access token retrieved successfully');
-      return Right(accessToken.toString());
+      return Right(tokens.accessToken);
     } catch (e) {
-      logger.e('❌ Failed to get tokens: $e');
+      logger.e('❌ Failed to get token: $e');
       return Left(AuthFailure(message: 'Failed to get token: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> refreshToken() async {
+    try {
+      logger.d('🔄 Attempting to refresh token');
+
+      final tokens = await TokenManager.loadTokens();
+      if (tokens == null) {
+        logger.e('❌ No tokens found in secure storage');
+        return Left(AuthFailure(message: 'No tokens found'));
+      }
+
+      // Prepare request body
+      final Map<String, dynamic> body = {'refreshToken': tokens.refreshToken};
+
+      // Send refresh token request
+      final response = await dioClient.post(ApiUrl.refreshToken, data: body);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+
+        // Create new token model
+        final newTokens = AuthTokenModel(
+          accessToken: data['accessToken'] as String,
+          refreshToken: data['refreshToken'] as String? ?? tokens.refreshToken,
+        );
+
+        // Save new tokens securely
+        await TokenManager.saveTokens(newTokens);
+        logger.d('✅ Token refresh successful');
+
+        return Right(newTokens.accessToken);
+      } else if (response.statusCode == 401) {
+        logger.e('❌ Refresh token expired or invalid');
+        // Clear tokens on refresh failure
+        await TokenManager.clearTokens();
+        return Left(AuthFailure(message: 'Refresh token expired or invalid'));
+      } else {
+        logger.e('❌ Token refresh failed: ${response.statusMessage}');
+        return Left(
+          AuthFailure(
+            message: response.statusMessage ?? 'Token refresh failed',
+          ),
+        );
+      }
+    } catch (e) {
+      logger.e('🔥 Token refresh exception: $e');
+      return Left(
+        AuthFailure(message: 'Token refresh failed: ${e.toString()}'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTokenExpired() async {
+    try {
+      final tokens = await TokenManager.loadTokens();
+      if (tokens == null) {
+        return Right(true); // No tokens means "expired"
+      }
+
+      final isExpired = tokens.isExpired;
+      logger.d('🔍 Token expiration check: ${isExpired ? 'expired' : 'valid'}');
+      return Right(isExpired);
+    } catch (e) {
+      logger.e('🔥 Token expiration check exception: $e');
+      return Right(true); // Assume expired on error
     }
   }
 
@@ -66,15 +145,14 @@ class AuthApiServiceImpl extends AuthApiService {
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
 
-        // Save tokens securely
-        final accessToken = data['accessToken'] as String?;
-        final refreshToken = data['refreshToken'] as String?;
-        if (accessToken != null) {
-          await storage.write(key: 'accessToken', value: accessToken);
-        }
-        if (refreshToken != null) {
-          await storage.write(key: 'refreshToken', value: refreshToken);
-        }
+        // Create and save tokens using TokenManager
+        final tokens = AuthTokenModel(
+          accessToken: data['accessToken'] as String,
+          refreshToken: data['refreshToken'] as String,
+        );
+
+        await TokenManager.saveTokens(tokens);
+        logger.d('✅ Tokens saved successfully');
 
         // Parse user info
         final userMap = data['user'] as Map<String, dynamic>?;
@@ -131,15 +209,13 @@ class AuthApiServiceImpl extends AuthApiService {
       }
 
       // Always clear tokens locally, regardless of API response
-      await storage.delete(key: 'accessToken');
-      await storage.delete(key: 'refreshToken');
+      await TokenManager.clearTokens();
       logger.d('🧹 Tokens cleared from secure storage');
     } catch (e) {
       logger.e('🔥 Logout exception: $e');
       // Still attempt to clear tokens in case of error
       try {
-        await storage.delete(key: 'accessToken');
-        await storage.delete(key: 'refreshToken');
+        await TokenManager.clearTokens();
         logger.d('🧹 Tokens cleared from secure storage after exception');
       } catch (storageError) {
         logger.e('❌ Failed to clear tokens: $storageError');

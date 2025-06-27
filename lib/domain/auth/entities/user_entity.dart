@@ -5,7 +5,6 @@ class UserEntity extends Equatable {
   final String username;
   final String? email;
   final String? phoneNumber;
-  final String? passwordHash;
   final String? avatarUrl;
   final bool isVerified;
   final DateTime? lastActiveAt;
@@ -18,7 +17,6 @@ class UserEntity extends Equatable {
     required this.username,
     this.email,
     this.phoneNumber,
-    this.passwordHash,
     this.avatarUrl,
     this.isVerified = false,
     this.lastActiveAt,
@@ -34,7 +32,6 @@ class UserEntity extends Equatable {
     username: '',
     email: null,
     phoneNumber: null,
-    passwordHash: '',
     avatarUrl: null,
     isVerified: false,
     lastActiveAt: null,
@@ -61,7 +58,6 @@ class UserEntity extends Equatable {
       username: username ?? this.username,
       email: email ?? this.email,
       phoneNumber: phoneNumber ?? this.phoneNumber,
-      passwordHash: passwordHash ?? this.passwordHash,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       isVerified: isVerified ?? this.isVerified,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
@@ -77,7 +73,6 @@ class UserEntity extends Equatable {
     username,
     email,
     phoneNumber,
-    passwordHash,
     avatarUrl,
     isVerified,
     lastActiveAt,

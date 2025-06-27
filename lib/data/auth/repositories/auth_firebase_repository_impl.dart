@@ -331,7 +331,6 @@ class AuthFirebaseRepositoryImpl implements AuthFirebaseRepository {
       username: firebaseUser.displayName!,
       avatarUrl: firebaseUser.photoURL,
       isVerified: firebaseUser.emailVerified,
-      passwordHash: '',
     );
   }
 

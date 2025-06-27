@@ -17,8 +17,12 @@ class DioClient {
               },
             ),
       ) {
-    // Add interceptors (e.g., logging, auth, etc.)
-    addInterceptors(_dio);
+    // Add interceptors with enhanced auth support
+    addInterceptors(
+      _dio,
+      useEnhancedAuth: true,
+      refreshTokenUrl: ApiUrl.refreshToken,
+    );
   }
 
   /// Generic GET request

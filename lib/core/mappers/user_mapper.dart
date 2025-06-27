@@ -8,6 +8,12 @@ class UserMapper {
       username: model.username,
       email: model.email,
       phoneNumber: model.phoneNumber,
+      avatarUrl: model.avatarUrl,
+      isVerified: model.isVerified,
+      lastActiveAt: model.lastActiveAt,
+      friends: model.friends,
+      chatRooms: model.chatRooms,
+      createdAt: model.createdAt,
     );
   }
 }

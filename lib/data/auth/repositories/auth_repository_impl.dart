@@ -31,6 +31,44 @@ class AuthRepositoryImpl extends AuthRepository {
   }
 
   @override
+  Future<Either<Failure, String>> refreshToken() async {
+    final response = await _authApiService.refreshToken();
+
+    return response.fold(
+      (failure) {
+        logger.e('refresh token failed: ${failure.toString()}');
+        return Left(
+          AuthFailure(message: 'refresh token failed: ${failure.toString()}'),
+        );
+      },
+      (data) {
+        logger.d('refresh token successful');
+        return Right(data.toString());
+      },
+    );
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTokenExpired() async {
+    final response = await _authApiService.isTokenExpired();
+
+    return response.fold(
+      (failure) {
+        logger.e('token expiration check failed: ${failure.toString()}');
+        return Left(
+          AuthFailure(
+            message: 'token expiration check failed: ${failure.toString()}',
+          ),
+        );
+      },
+      (isExpired) {
+        logger.d('token expiration check: ${isExpired ? 'expired' : 'valid'}');
+        return Right(isExpired);
+      },
+    );
+  }
+
+  @override
   Future<Either<Failure, UserEntity>> login({
     required String identifier,
     required String password,

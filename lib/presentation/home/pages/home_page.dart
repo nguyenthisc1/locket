@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/messages/display_message.dart';
-import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/core/configs/theme/app_colors.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
@@ -15,7 +14,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final AuthFirebaseRepositoryImpl _AuthFirebaseRepository =
+  final AuthFirebaseRepositoryImpl _authFirebaseRepository =
       AuthFirebaseRepositoryImpl();
   UserEntity? _currentUser;
   bool _isLoading = true;
@@ -28,7 +27,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadCurrentUser() async {
     try {
-      final result = await _AuthFirebaseRepository.getCurrentUser();
+      final result = await _authFirebaseRepository.getCurrentUser();
       result.fold(
         (failure) {
           DisplayMessage.error(context, failure.message);
@@ -50,7 +49,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _signOut() async {
     try {
-      final result = await _AuthFirebaseRepository.signOut();
+      final result = await _authFirebaseRepository.signOut();
       result.fold(
         (failure) {
           DisplayMessage.error(context, failure.message);
@@ -91,7 +90,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: AppDimensions.md),
                       Text(
-                        'ID: ${_currentUser!.uid}',
+                        'ID: ${_currentUser!.id}',
                         style: AppTypography.bodyMedium,
                         textAlign: TextAlign.center,
                       ),
