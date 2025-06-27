@@ -5,12 +5,9 @@ import 'package:locket/common/helper/validation.dart';
 import 'package:locket/common/wigets/auth_gate_firebase.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/domain/auth/usecases_firebase/email_login_usecase.dart';
 
 class EmailLoginForm extends StatefulWidget {
-  final EmailLoginUseCase emailLoginUseCase;
-
-  const EmailLoginForm({super.key, required this.emailLoginUseCase});
+  const EmailLoginForm({super.key});
 
   @override
   State<EmailLoginForm> createState() => _EmailLoginFormState();
@@ -31,37 +28,37 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
       _isLoading = true;
     });
 
-    try {
-      final result = await widget.emailLoginUseCase(
-        _emailController.text,
-        _passwordController.text,
-      );
+    // try {
+    //   final result = await widget.emailLoginUseCase(
+    //     _emailController.text,
+    //     _passwordController.text,
+    //   );
 
-      result.fold(
-        (failure) {
-          DisplayMessage.error(context, failure.message);
-        },
-        (user) {
-          DisplayMessage.success(
-            context,
-            'Đăng nhập thành công! Chuyển hướng đến trang chủ...',
-          );
-          AppNavigator.pushReplacement(context, const AuthGateFirebase());
-        },
-      );
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
+    //   result.fold(
+    //     (failure) {
+    //       DisplayMessage.error(context, failure.message);
+    //     },
+    //     (user) {
+    //       DisplayMessage.success(
+    //         context,
+    //         'Đăng nhập thành công! Chuyển hướng đến trang chủ...',
+    //       );
+    //       AppNavigator.pushReplacement(context, const AuthGateFirebase());
+    //     },
+    //   );
+    // } catch (e) {
+    //   if (!mounted) {
+    //     return;
+    //   }
 
-      DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    //   DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
+    // } finally {
+    //   if (mounted) {
+    //     setState(() {
+    //       _isLoading = false;
+    //     });
+    //   }
+    // }
   }
 
   @override

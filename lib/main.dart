@@ -1,8 +1,5 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:locket/core/constants/routes.dart';
-import 'package:locket/core/services/dynamic_links_service.dart';
-import 'package:locket/firebase_option.dart';
 import 'package:locket/presentation/splash/pages/splash_page.dart';
 
 import 'core/configs/theme/index.dart';
@@ -10,11 +7,11 @@ import 'core/configs/theme/index.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize dynamic links service for email link authentication
-  final dynamicLinksService = DynamicLinksService();
-  await dynamicLinksService.initDynamicLinks();
+  // // Initialize dynamic links service for email link authentication
+  // final dynamicLinksService = DynamicLinksServiceR();
+  // await dynamicLinksService.initDynamicLinks();
 
   runApp(MyApp());
 }

@@ -5,14 +5,13 @@ import 'package:locket/common/helper/validation.dart';
 import 'package:locket/core/configs/theme/app_colors.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/domain/auth/usecases_firebase/email_link_send_usecase.dart';
 import 'package:locket/presentation/auth/pages/email_link_verification_page.dart';
 import 'package:locket/presentation/auth/pages/phone_login_page.dart';
 
 class EmailLinkLoginForm extends StatefulWidget {
-  final EmailLinkSendUsecase emailLinkSendUsecase;
+  // final EmailLinkSendUsecase emailLinkSendUsecase;
 
-  const EmailLinkLoginForm({super.key, required this.emailLinkSendUsecase});
+  const EmailLinkLoginForm({super.key});
 
   @override
   State<EmailLinkLoginForm> createState() => EmailLinkLoginFormState();
@@ -28,29 +27,29 @@ class EmailLinkLoginFormState extends State<EmailLinkLoginForm> {
 
     setState(() => _isLoading = true);
 
-    try {
-      final result = await widget.emailLinkSendUsecase(_emailController.text);
+    // try {
+    //   final result = await widget.emailLinkSendUsecase(_emailController.text);
 
-      result.fold((failure) => DisplayMessage.error(context, failure.message), (
-        _,
-      ) {
-        DisplayMessage.success(
-          context,
-          'Đã gửi liên kết đăng nhập đến ${_emailController.text}. Kiểm tra hộp thư và nhấp vào liên kết để đăng nhập.',
-        );
-        AppNavigator.push(
-          context,
-          EmailLinkVerificationPage(email: _emailController.text),
-        );
-      });
-    } catch (e) {
-      if (!mounted) return;
-      DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    //   result.fold((failure) => DisplayMessage.error(context, failure.message), (
+    //     _,
+    //   ) {
+    //     DisplayMessage.success(
+    //       context,
+    //       'Đã gửi liên kết đăng nhập đến ${_emailController.text}. Kiểm tra hộp thư và nhấp vào liên kết để đăng nhập.',
+    //     );
+    //     AppNavigator.push(
+    //       context,
+    //       EmailLinkVerificationPage(email: _emailController.text),
+    //     );
+    //   });
+    // } catch (e) {
+    //   if (!mounted) return;
+    //   DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
+    // } finally {
+    //   if (mounted) {
+    //     setState(() => _isLoading = false);
+    //   }
+    // }
   }
 
   @override

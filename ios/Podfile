@@ -34,11 +34,11 @@ use_modular_headers!
 
 target 'Runner' do
   use_frameworks! :linkage => :static
-  pod 'gRPC-Core', :modular_headers => true
-  pod 'FirebaseCoreInternal', :modular_headers => true
-  pod 'FirebaseFirestore', :modular_headers => true
-  pod 'FirebaseStorage', :modular_headers => true
-  pod 'GoogleUtilities', :modular_headers => true
+  # pod 'gRPC-Core', :modular_headers => true
+  # pod 'FirebaseCoreInternal', :modular_headers => true
+  # pod 'FirebaseFirestore', :modular_headers => true
+  # pod 'FirebaseStorage', :modular_headers => true
+  # pod 'GoogleUtilities', :modular_headers => true
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 

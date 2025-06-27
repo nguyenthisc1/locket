@@ -3,7 +3,6 @@ import 'package:locket/common/helper/messages/display_message.dart';
 import 'package:locket/core/configs/theme/app_colors.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/data/auth/repositories/auth_firebase_repository_impl.dart';
 import 'package:locket/domain/auth/entities/user_entity.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,8 +13,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final AuthFirebaseRepositoryImpl _authFirebaseRepository =
-      AuthFirebaseRepositoryImpl();
   UserEntity? _currentUser;
   bool _isLoading = true;
 
@@ -26,41 +23,41 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadCurrentUser() async {
-    try {
-      final result = await _authFirebaseRepository.getCurrentUser();
-      result.fold(
-        (failure) {
-          DisplayMessage.error(context, failure.message);
-        },
-        (user) {
-          setState(() {
-            _currentUser = user;
-            _isLoading = false;
-          });
-        },
-      );
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
-    }
+    // try {
+    //   // final result = await _authFirebaseRepository.getCurrentUser();
+    //   result.fold(
+    //     (failure) {
+    //       DisplayMessage.error(context, failure.message);
+    //     },
+    //     (user) {
+    //       setState(() {
+    //         _currentUser = user;
+    //         _isLoading = false;
+    //       });
+    //     },
+    //   );
+    // } catch (e) {
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
+    //   DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
+    // }
   }
 
   Future<void> _signOut() async {
-    try {
-      final result = await _authFirebaseRepository.signOut();
-      result.fold(
-        (failure) {
-          DisplayMessage.error(context, failure.message);
-        },
-        (_) {
-          DisplayMessage.success(context, 'Đăng xuất thành công!');
-        },
-      );
-    } catch (e) {
-      DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
-    }
+    // try {
+    //   final result = await _authFirebaseRepository.signOut();
+    //   result.fold(
+    //     (failure) {
+    //       DisplayMessage.error(context, failure.message);
+    //     },
+    //     (_) {
+    //       DisplayMessage.success(context, 'Đăng xuất thành công!');
+    //     },
+    //   );
+    // } catch (e) {
+    //   DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
+    // }
   }
 
   @override

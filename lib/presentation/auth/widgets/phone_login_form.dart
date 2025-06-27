@@ -6,14 +6,11 @@ import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/core/configs/theme/app_colors.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/domain/auth/usecases_firebase/verify_phone_usecase.dart';
 import 'package:locket/presentation/auth/pages/email_login_page.dart';
 import 'package:locket/presentation/auth/pages/verify_phone_page.dart';
 
 class PhoneLoginForm extends StatefulWidget {
-  final VerifyPhoneUsecase verifyPhoneUsecase;
-
-  const PhoneLoginForm({super.key, required this.verifyPhoneUsecase});
+  const PhoneLoginForm({super.key});
 
   @override
   State<PhoneLoginForm> createState() => PhoneLoginFormState();
@@ -42,35 +39,35 @@ class PhoneLoginFormState extends State<PhoneLoginForm> {
       _isLoading = true;
     });
 
-    try {
-      final result = await widget.verifyPhoneUsecase(_completePhoneNumber);
+    // try {
+    //   final result = await widget.verifyPhoneUsecase(_completePhoneNumber);
 
-      result.fold(
-        (failure) {
-          DisplayMessage.error(context, failure.message);
-        },
-        (verificationId) {
-          DisplayMessage.success(context, 'Mã xác thực đã được gửi!');
-          // Navigate to OTP verification screen
-          AppNavigator.push(
-            context,
-            VerifyPhonePage(
-              phoneNumber: _completePhoneNumber,
-              verificationId: verificationId,
-            ),
-          );
-        },
-      );
-    } catch (e) {
-      if (!mounted) return;
-      DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    //   result.fold(
+    //     (failure) {
+    //       DisplayMessage.error(context, failure.message);
+    //     },
+    //     (verificationId) {
+    //       DisplayMessage.success(context, 'Mã xác thực đã được gửi!');
+    //       // Navigate to OTP verification screen
+    //       AppNavigator.push(
+    //         context,
+    //         VerifyPhonePage(
+    //           phoneNumber: _completePhoneNumber,
+    //           verificationId: verificationId,
+    //         ),
+    //       );
+    //     },
+    //   );
+    // } catch (e) {
+    //   if (!mounted) return;
+    //   DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
+    // } finally {
+    //   if (mounted) {
+    //     setState(() {
+    //       _isLoading = false;
+    //     });
+    //   }
+    // }
   }
 
   @override

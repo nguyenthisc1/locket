@@ -1,5 +1,5 @@
 class ApiUrl {
-  static const api = 'http://localhost:8000/api';
+  static const api = 'http://localhost:8000/api/v1';
 
   static const auth = '$api/auth';
   static const login = '$auth/login';
