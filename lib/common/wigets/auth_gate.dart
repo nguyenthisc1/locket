@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/app_colors.dart';
@@ -19,14 +21,12 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   late final AuthRepository _authRepository;
   late final WatchAuthStateUseCase _watchAuthStateUseCase;
-  late final GetCurrentUserUseCase _getCurrentUserUseCase;
 
   @override
   void initState() {
     super.initState();
     _authRepository = AuthRepositoryImpl();
     _watchAuthStateUseCase = WatchAuthStateUseCase(_authRepository);
-    _getCurrentUserUseCase = GetCurrentUserUseCase(_authRepository);
   }
 
   @override
@@ -43,9 +43,6 @@ class _AuthGateState extends State<AuthGate> {
     return StreamBuilder<dartz.Either<Failure, UserEntity?>>(
       stream: _watchAuthStateUseCase(),
       builder: (context, snapshot) {
-        print('AuthGate - ConnectionState: ${snapshot.connectionState}');
-        print('AuthGate - HasData: ${snapshot.hasData}');
-        print('AuthGate - HasError: ${snapshot.hasError}');
         if (snapshot.hasData) {
           print('AuthGate - Data: ${snapshot.data}');
         }

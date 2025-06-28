@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/presentation/auth/pages/email_login_page.dart';
 import 'package:locket/presentation/auth/pages/phone_login_page.dart';
 
 class OnboardingPage extends StatelessWidget {
@@ -37,7 +38,7 @@ class OnboardingPage extends StatelessWidget {
 
               ElevatedButton(
                 onPressed:
-                    () => AppNavigator.push(context, const PhoneLoginPage()),
+                    () => AppNavigator.push(context, const EmailLoginPage()),
                 style: ElevatedButton.styleFrom(
                   textStyle: TextStyle(
                     fontSize: 24,

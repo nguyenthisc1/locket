@@ -133,7 +133,7 @@ class AuthApiServiceImpl extends AuthApiService {
     try {
       logger.d('👤 Fetching current user');
 
-      final response = await dioClient.get(ApiUrl.userMe);
+      final response = await dioClient.get(ApiUrl.user);
 
       if (response.statusCode == 200 && response.data != null) {
         final userMap = response.data as Map<String, dynamic>;
@@ -172,7 +172,7 @@ class AuthApiServiceImpl extends AuthApiService {
         'avatarUrl': user.avatarUrl,
       };
 
-      final response = await dioClient.put(ApiUrl.userProfile, data: userData);
+      final response = await dioClient.put(ApiUrl.user, data: userData);
 
       if (response.statusCode == 200 && response.data != null) {
         final userMap = response.data as Map<String, dynamic>;
@@ -201,7 +201,7 @@ class AuthApiServiceImpl extends AuthApiService {
     try {
       logger.d('🗑️ Deleting user account');
 
-      final response = await dioClient.delete(ApiUrl.userAccount);
+      final response = await dioClient.delete(ApiUrl.user);
 
       if (response.statusCode == 200) {
         // Clear tokens after successful account deletion

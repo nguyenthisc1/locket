@@ -9,7 +9,4 @@ class ApiUrl {
   static const refreshToken = '$auth/refresh';
 
   static const user = '$api/user';
-  static const userMe = '$user/me';
-  static const userProfile = '$user/profile';
-  static const userAccount = '$user/account';
 }

@@ -112,27 +112,27 @@ class AuthRepositoryImpl extends AuthRepository {
   @override
   Future<Either<Failure, bool>> isAuthenticated() async {
     try {
-      print('AuthRepository - isAuthenticated: Starting');
+      logger.d('AuthRepository - isAuthenticated: Starting');
       final tokenResult = await getToken();
-      print('AuthRepository - isAuthenticated: Token result: $tokenResult');
+      logger.d('AuthRepository - isAuthenticated: Token result: $tokenResult');
 
       return tokenResult.fold(
         (failure) {
-          print(
+          logger.e(
             'AuthRepository - isAuthenticated: Token failed, returning false',
           );
           return Right(false);
         },
         (token) {
           final hasToken = token.isNotEmpty;
-          print(
+          logger.d(
             'AuthRepository - isAuthenticated: Token length: ${token.length}, returning: $hasToken',
           );
           return Right(hasToken);
         },
       );
     } catch (e) {
-      print('AuthRepository - isAuthenticated: Exception: $e');
+      logger.e('AuthRepository - isAuthenticated: Exception: $e');
       return Right(false);
     }
   }
@@ -157,20 +157,17 @@ class AuthRepositoryImpl extends AuthRepository {
 
   @override
   Stream<Either<Failure, UserEntity?>> watchAuthState() async* {
-    print('AuthRepository - watchAuthState: Starting');
+    logger.d('AuthRepository - watchAuthState: Starting');
 
-    // First, emit a loading state
-    print('AuthRepository - watchAuthState: Emitting loading state');
     yield const Right(null);
 
     // Then check authentication status and emit the actual state
     try {
-      print('AuthRepository - watchAuthState: Checking authentication');
       final isAuthResult = await isAuthenticated();
-      print('AuthRepository - watchAuthState: Auth result: $isAuthResult');
+      logger.d('AuthRepository - watchAuthState: Auth result: $isAuthResult');
 
       if (isAuthResult.isLeft()) {
-        print('AuthRepository - watchAuthState: Auth failed');
+        logger.e('AuthRepository - watchAuthState: Auth failed');
         yield Left(
           isAuthResult.fold(
             (failure) => failure,
@@ -181,12 +178,9 @@ class AuthRepositoryImpl extends AuthRepository {
       }
 
       final isUserAuthenticated = isAuthResult.getOrElse(() => false);
-      print(
-        'AuthRepository - watchAuthState: Is authenticated: $isUserAuthenticated',
-      );
 
       if (!isUserAuthenticated) {
-        print(
+        logger.e(
           'AuthRepository - watchAuthState: Not authenticated, emitting null',
         );
         yield const Right(null);
@@ -194,12 +188,11 @@ class AuthRepositoryImpl extends AuthRepository {
       }
 
       // If authenticated, try to get current user
-      print('AuthRepository - watchAuthState: Getting current user');
       final userResult = await getCurrentUser();
-      print('AuthRepository - watchAuthState: User result: $userResult');
+      logger.d('AuthRepository - watchAuthState: User result: $userResult');
 
       if (userResult.isLeft()) {
-        print('AuthRepository - watchAuthState: Get user failed');
+        logger.e('AuthRepository - watchAuthState: Get user failed');
         yield Left(
           userResult.fold(
             (failure) => failure,
@@ -210,16 +203,16 @@ class AuthRepositoryImpl extends AuthRepository {
       }
 
       final user = userResult.getOrElse(() => null);
-      print(
+      logger.d(
         'AuthRepository - watchAuthState: Emitting user: ${user?.username}',
       );
       yield Right(user);
     } catch (e) {
-      print('AuthRepository - watchAuthState: Exception: $e');
+      logger.e('AuthRepository - watchAuthState: Exception: $e');
       yield Left(AuthFailure(message: 'Failed to check auth state: $e'));
     }
 
-    print('AuthRepository - watchAuthState: Continuing with stream updates');
+    logger.d('AuthRepository - watchAuthState: Continuing with stream updates');
     // Continue listening to the stream for updates
     yield* _authStateController.stream;
   }

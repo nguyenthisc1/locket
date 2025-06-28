@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locket/core/configs/theme/app_colors.dart';
 
 class DisplayMessage {
   static void error(BuildContext context, String message) {
@@ -14,7 +15,7 @@ class DisplayMessage {
     var snackbar = SnackBar(
       content: Text(message),
       behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.green,
+      backgroundColor: AppColors.primary,
     );
     ScaffoldMessenger.of(context).showSnackBar(snackbar);
   }

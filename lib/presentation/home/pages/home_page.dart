@@ -8,7 +8,7 @@ import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
 import 'package:locket/domain/auth/entities/user_entity.dart';
 import 'package:locket/domain/auth/repositories/auth_repository.dart';
 import 'package:locket/domain/auth/usecase/auth_usecases.dart';
-import 'package:locket/presentation/auth/pages/phone_login_page.dart';
+import 'package:locket/presentation/auth/pages/email_login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     if (_authRepository is AuthRepositoryImpl) {
-      (_authRepository as AuthRepositoryImpl).dispose();
+      (_authRepository).dispose();
     }
     super.dispose();
   }
@@ -61,6 +61,8 @@ class _HomePageState extends State<HomePage> {
         },
       );
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
       });
@@ -84,10 +86,12 @@ class _HomePageState extends State<HomePage> {
         (_) {
           DisplayMessage.success(context, 'Đăng xuất thành công!');
           // Navigate to login page
-          AppNavigator.pushReplacement(context, const PhoneLoginPage());
+          AppNavigator.pushReplacement(context, const EmailLoginPage());
         },
       );
     } catch (e) {
+      if (!mounted) return;
+
       DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
     } finally {
       setState(() {

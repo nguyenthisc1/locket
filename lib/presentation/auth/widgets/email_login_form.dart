@@ -5,9 +5,12 @@ import 'package:locket/common/helper/validation.dart';
 import 'package:locket/common/wigets/auth_gate.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
+import 'package:locket/domain/auth/usecase/auth_usecases.dart';
 
 class EmailLoginForm extends StatefulWidget {
-  const EmailLoginForm({super.key});
+  final LoginUseCase loginUseCase;
+
+  const EmailLoginForm({super.key, required this.loginUseCase});
 
   @override
   State<EmailLoginForm> createState() => _EmailLoginFormState();
@@ -19,7 +22,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  Future<void> _emailLogin() async {
+  Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -28,37 +31,40 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
       _isLoading = true;
     });
 
-    // try {
-    //   final result = await widget.emailLoginUseCase(
-    //     _emailController.text,
-    //     _passwordController.text,
-    //   );
+    try {
+      final result = await widget.loginUseCase(
+        identifier: _emailController.text,
+        password: _passwordController.text,
+      );
 
-    //   result.fold(
-    //     (failure) {
-    //       DisplayMessage.error(context, failure.message);
-    //     },
-    //     (user) {
-    //       DisplayMessage.success(
-    //         context,
-    //         'Đăng nhập thành công! Chuyển hướng đến trang chủ...',
-    //       );
-    //       AppNavigator.pushReplacement(context, const AuthGateFirebase());
-    //     },
-    //   );
-    // } catch (e) {
-    //   if (!mounted) {
-    //     return;
-    //   }
+      result.fold(
+        (failure) {
+          DisplayMessage.error(
+            context,
+            'Tài khoản hoặc mật khẩu không đúng',
+          );
+        },
+        (user) {
+          DisplayMessage.success(
+            context,
+            'Đăng nhập thành công!',
+          );
+          AppNavigator.pushReplacement(context, const AuthGate());
+        },
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
 
-    //   DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
-    // } finally {
-    //   if (mounted) {
-    //     setState(() {
-    //       _isLoading = false;
-    //     });
-    //   }
-    // }
+      DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -89,7 +95,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
           ),
           const SizedBox(height: AppDimensions.xl),
           ElevatedButton(
-            onPressed: _isLoading ? null : _emailLogin,
+            onPressed: _isLoading ? null : _handleLogin,
             style: ElevatedButton.styleFrom(
               textStyle: const TextStyle(
                 fontSize: 24,
