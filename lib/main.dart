@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/constants/routes.dart';
+import 'package:locket/presentation/home/pages/home_page.dart';
 import 'package:locket/presentation/splash/pages/splash_page.dart';
 
 import 'core/configs/theme/index.dart';
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.dark,
-      home: const SplashPage(),
+      home: const HomePage(),
       debugShowCheckedModeBanner: false,
       routes: appRoutes,
     );
