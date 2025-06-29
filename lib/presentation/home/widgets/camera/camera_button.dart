@@ -18,19 +18,6 @@ class CameraButton extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        GestureDetector(
-          onTap: onTap,
-          onLongPressStart: (_) => onLongPressStart(),
-          onLongPressEnd: (_) => onLongPressEnd(),
-          child: Container(
-            width: AppDimensions.xxl * 2,
-            height: AppDimensions.xxl * 2,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
         Positioned(
           top: -8,
           left: -8,
@@ -43,6 +30,19 @@ class CameraButton extends StatelessWidget {
                 color: AppColors.primary,
                 width: AppDimensions.xs,
               ),
+            ),
+          ),
+        ),
+        GestureDetector(
+          onTap: onTap,
+          onLongPressStart: (_) => onLongPressStart(),
+          onLongPressEnd: (_) => onLongPressEnd(),
+          child: Container(
+            width: AppDimensions.xxl * 2,
+            height: AppDimensions.xxl * 2,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
             ),
           ),
         ),

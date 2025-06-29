@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'camera_controls.dart';
+import 'dart:io';
 
 class CameraPreviewWidget extends StatelessWidget {
   final CameraController controller;
@@ -10,6 +11,8 @@ class CameraPreviewWidget extends StatelessWidget {
   final VoidCallback onFlashToggle;
   final VoidCallback onZoomIn;
   final VoidCallback onZoomOut;
+  final XFile? imageFile;
+  final bool isPictureTaken;
 
   const CameraPreviewWidget({
     super.key,
@@ -19,6 +22,8 @@ class CameraPreviewWidget extends StatelessWidget {
     required this.onFlashToggle,
     required this.onZoomIn,
     required this.onZoomOut,
+    this.imageFile,
+    this.isPictureTaken = false,
   });
 
   @override
@@ -30,13 +35,22 @@ class CameraPreviewWidget extends StatelessWidget {
           height: MediaQuery.of(context).size.height * 0.45,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-            child: Transform.scale(
-              scaleY: 2,
-              scaleX: 1.1,
-              child: CameraPreview(controller),
-            ),
+            child:
+                imageFile != null
+                    ? Image.file(
+                      File(imageFile!.path),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    )
+                    : Transform.scale(
+                      scaleY: 2,
+                      scaleX: 1.1,
+                      child: CameraPreview(controller),
+                    ),
           ),
         ),
+
         Positioned(
           child: Padding(
             padding: const EdgeInsets.symmetric(
