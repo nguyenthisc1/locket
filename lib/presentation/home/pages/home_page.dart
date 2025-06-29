@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
+import 'package:locket/presentation/home/widgets/camera/camera.dart';
 import 'package:locket/presentation/home/widgets/friend_bar.dart';
 import 'package:locket/presentation/home/widgets/mess_button.dart';
 import 'package:locket/presentation/home/widgets/user_image.dart';
@@ -34,7 +35,7 @@ class HomePage extends StatelessWidget {
           right: AppDimensions.md,
           bottom: AppDimensions.appBarHeight,
         ),
-        child: Column(children: []),
+        child: Column(children: [SizedBox(height: AppDimensions.lg), Camera()]),
       ),
     );
   }

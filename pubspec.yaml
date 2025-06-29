@@ -48,6 +48,8 @@ dependencies:
   logger:
   dio: ^5.8.0+1
   flutter_secure_storage: ^4.2.1
+  camera: ^0.11.1
+  photofilters: ^3.0.1
 
 dev_dependencies:
   flutter_test:

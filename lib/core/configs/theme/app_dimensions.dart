@@ -12,8 +12,8 @@ class AppDimensions {
   static const double radiusSm = 8.0;
   static const double radiusMd = 12.0;
   static const double radiusLg = 16.0;
-  static const double radiusXl = 24.0;
-  static const double radiusXxl = 32.0;
+  static const double radiusXl = 32.0;
+  static const double radiusXxl = 48.0;
 
   // Icon sizes
   static const double iconXs = 16.0;

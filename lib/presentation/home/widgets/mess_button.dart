@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 class MessButton extends StatelessWidget {
@@ -34,23 +33,22 @@ class MessButton extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        GestureDetector(
-          onTap: () => _showMessBottomSheet(context),
-          child: Container(
+        IconButton(
+          onPressed: () => _showMessBottomSheet(context),
+          style: IconButton.styleFrom(
             padding: EdgeInsets.symmetric(
               horizontal: AppDimensions.sm,
               vertical: AppDimensions.sm,
             ),
-            decoration: BoxDecoration(
-              // ignore: deprecated_member_use
-              color: Colors.white.withOpacity(0.2),
+            backgroundColor: Colors.white.withOpacity(0.2),
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
             ),
-            child: const Icon(
-              Icons.chat_sharp,
-              size: 28,
-              color: Colors.white70,
-            ),
+          ),
+          icon: const Icon(
+            Icons.cloud_outlined,
+            size: 28,
+            color: Colors.white70,
           ),
         ),
         Positioned(
