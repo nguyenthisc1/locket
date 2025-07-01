@@ -5,16 +5,12 @@ class CameraControls extends StatelessWidget {
   final bool isFlashOn;
   final double currentZoomLevel;
   final VoidCallback onFlashToggle;
-  final VoidCallback onZoomIn;
-  final VoidCallback onZoomOut;
 
   const CameraControls({
     super.key,
     required this.isFlashOn,
     required this.currentZoomLevel,
     required this.onFlashToggle,
-    required this.onZoomIn,
-    required this.onZoomOut,
   });
 
   @override
@@ -34,24 +30,7 @@ class CameraControls extends StatelessWidget {
             ),
 
             // ZOOM CONTROLS
-            Row(
-              children: [
-                _buildControlButton(
-                  onTap: onZoomOut,
-                  icon: Icons.remove,
-                  iconColor: Colors.white70,
-                ),
-                const SizedBox(width: AppDimensions.sm),
-                _buildZoomDisplay(),
-                const SizedBox(width: AppDimensions.sm),
-                _buildControlButton(
-                  onTap: onZoomIn,
-                  icon: Icons.add,
-                  iconColor: Colors.white70,
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                ),
-              ],
-            ),
+            _buildZoomDisplay(),
           ],
         ),
       ],

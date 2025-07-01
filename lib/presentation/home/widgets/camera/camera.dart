@@ -65,8 +65,9 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
               isFlashOn: _cameraController.isFlashOn,
               currentZoomLevel: _cameraController.currentZoomLevel,
               onFlashToggle: _cameraController.toggleFlash,
-              onZoomIn: _cameraController.zoomIn,
-              onZoomOut: _cameraController.zoomOut,
+              onZoomlevel: _cameraController.setZoomLevel,
+              isPictureTaken: _cameraController.isPictureTaken,
+              imageFile: _cameraController.imageFile,
             ),
 
             const SizedBox(height: AppDimensions.xxl),
@@ -74,9 +75,11 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
             CameraBottomControls(
               onLibraryTap: _onLibraryTap,
               onTakePicture: _cameraController.takePicture,
+              onCancelPicture: _cameraController.cancelPicture,
               onStartRecording: _cameraController.startRecording,
               onStopRecording: _cameraController.stopRecording,
               onSwitchCamera: _cameraController.switchCamera,
+              isPictureTaken: _cameraController.isPictureTaken,
             ),
           ],
         );

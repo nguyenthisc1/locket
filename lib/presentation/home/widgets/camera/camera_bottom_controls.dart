@@ -5,9 +5,11 @@ import 'camera_button.dart';
 class CameraBottomControls extends StatelessWidget {
   final VoidCallback onLibraryTap;
   final VoidCallback onTakePicture;
+  final VoidCallback onCancelPicture;
   final VoidCallback onStartRecording;
   final VoidCallback onStopRecording;
   final VoidCallback onSwitchCamera;
+  final bool isPictureTaken;
 
   const CameraBottomControls({
     super.key,
@@ -16,6 +18,8 @@ class CameraBottomControls extends StatelessWidget {
     required this.onStartRecording,
     required this.onStopRecording,
     required this.onSwitchCamera,
+    required this.isPictureTaken,
+    required this.onCancelPicture,
   });
 
   @override
@@ -24,21 +28,38 @@ class CameraBottomControls extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // LIBRARY BUTTON
-        _buildIconButton(
-          onPressed: onLibraryTap,
-          icon: Icons.photo_library_outlined,
-        ),
+        if (!isPictureTaken) ...[
+          // LIBRARY BUTTON
+          _buildIconButton(
+            onPressed: onLibraryTap,
+            icon: Icons.photo_library_outlined,
+          ),
+          // TAKE PICTURE BUTTON
+          CameraButton(
+            onTap: onTakePicture,
+            onLongPressStart: onStartRecording,
+            onLongPressEnd: onStopRecording,
+          ),
+          // CHANGE CAMERA
+          _buildIconButton(onPressed: onSwitchCamera, icon: Icons.loop),
+        ] else ...[
+          _buildIconButton(onPressed: onCancelPicture, icon: Icons.close),
 
-        // TAKE PICTURE BUTTON
-        CameraButton(
-          onTap: onTakePicture,
-          onLongPressStart: onStartRecording,
-          onLongPressEnd: onStopRecording,
-        ),
+          SizedBox(
+            width: AppDimensions.xxl * 2,
+            height: AppDimensions.xxl * 2,
+            child: Transform.rotate(
+              angle: -0.785398,
+              child: _buildIconButton(
+                onPressed: onCancelPicture,
+                icon: Icons.send,
+                color: AppColors.dark,
+              ),
+            ),
+          ),
 
-        // CHANGE CAMERA
-        _buildIconButton(onPressed: onSwitchCamera, icon: Icons.loop),
+          _buildIconButton(onPressed: onSwitchCamera, icon: Icons.edit_note),
+        ],
       ],
     );
   }
@@ -46,11 +67,12 @@ class CameraBottomControls extends StatelessWidget {
   Widget _buildIconButton({
     required VoidCallback onPressed,
     required IconData icon,
+    Color? color,
   }) {
     return IconButton(
       onPressed: onPressed,
       style: IconButton.styleFrom(
-        backgroundColor: Colors.transparent,
+        backgroundColor: color ?? Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
         ),

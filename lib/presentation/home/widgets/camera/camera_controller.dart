@@ -168,25 +168,14 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     }
   }
 
-  Future<void> zoomIn() async {
+  Future<void> setZoomLevel(double zoomLevel) async {
     if (_controller == null) return;
 
-    final newZoomLevel = _currentZoomLevel + 0.5;
-    if (newZoomLevel <= 8.0) {
-      _currentZoomLevel = newZoomLevel;
+    final clampedZoomLevel = zoomLevel.clamp(1.0, 3.0);
+    if (_currentZoomLevel != clampedZoomLevel) {
+      _currentZoomLevel = clampedZoomLevel;
       notifyListeners();
-      await _controller!.setZoomLevel(newZoomLevel);
-    }
-  }
-
-  Future<void> zoomOut() async {
-    if (_controller == null) return;
-
-    final newZoomLevel = _currentZoomLevel - 0.5;
-    if (newZoomLevel >= 1.0) {
-      _currentZoomLevel = newZoomLevel;
-      notifyListeners();
-      await _controller!.setZoomLevel(newZoomLevel);
+      await _controller!.setZoomLevel(clampedZoomLevel);
     }
   }
 
@@ -205,6 +194,13 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     } on CameraException catch (e) {
       _logError(e.code, e.description);
     }
+  }
+
+  void cancelPicture() async {
+    _imageFile = null;
+    _isPictureTaken = false;
+    _pictureTakenAt = null;
+    notifyListeners();
   }
 
   void resetPictureTakenState() {
