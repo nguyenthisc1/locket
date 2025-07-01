@@ -5,7 +5,7 @@ import 'camera_button.dart';
 class CameraBottomControls extends StatelessWidget {
   final VoidCallback onLibraryTap;
   final VoidCallback onTakePicture;
-  final VoidCallback onCancelPicture;
+  final VoidCallback onResetPicture;
   final VoidCallback onStartRecording;
   final VoidCallback onStopRecording;
   final VoidCallback onSwitchCamera;
@@ -19,7 +19,7 @@ class CameraBottomControls extends StatelessWidget {
     required this.onStopRecording,
     required this.onSwitchCamera,
     required this.isPictureTaken,
-    required this.onCancelPicture,
+    required this.onResetPicture,
   });
 
   @override
@@ -43,7 +43,7 @@ class CameraBottomControls extends StatelessWidget {
           // CHANGE CAMERA
           _buildIconButton(onPressed: onSwitchCamera, icon: Icons.loop),
         ] else ...[
-          _buildIconButton(onPressed: onCancelPicture, icon: Icons.close),
+          _buildIconButton(onPressed: onResetPicture, icon: Icons.close),
 
           SizedBox(
             width: AppDimensions.xxl * 2,
@@ -51,7 +51,7 @@ class CameraBottomControls extends StatelessWidget {
             child: Transform.rotate(
               angle: -0.785398,
               child: _buildIconButton(
-                onPressed: onCancelPicture,
+                onPressed: () {},
                 icon: Icons.send,
                 color: AppColors.dark,
               ),

@@ -7,7 +7,7 @@ import 'package:locket/core/configs/theme/index.dart';
 
 import 'camera_controls.dart';
 
-class CameraPreviewWidget extends StatefulWidget {
+class CameraPrevieWrapper extends StatefulWidget {
   final CameraController controller;
   final bool isFlashOn;
   final VoidCallback onFlashToggle;
@@ -16,7 +16,7 @@ class CameraPreviewWidget extends StatefulWidget {
   final XFile? imageFile;
   final bool isPictureTaken;
 
-  const CameraPreviewWidget({
+  const CameraPrevieWrapper({
     super.key,
     required this.controller,
     required this.isFlashOn,
@@ -28,10 +28,10 @@ class CameraPreviewWidget extends StatefulWidget {
   });
 
   @override
-  State<CameraPreviewWidget> createState() => _CameraPreviewWidgetState();
+  State<CameraPrevieWrapper> createState() => _CameraPrevieWrapperState();
 }
 
-class _CameraPreviewWidgetState extends State<CameraPreviewWidget> {
+class _CameraPrevieWrapperState extends State<CameraPrevieWrapper> {
   late double _currentZoomLevel;
   double _baseScale = 1.0;
 

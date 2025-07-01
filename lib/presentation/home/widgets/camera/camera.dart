@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'camera_controller.dart';
-import 'camera_preview_widget.dart';
+import 'camera_preview.dart';
 import 'camera_bottom_controls.dart';
 
 class Camera extends StatefulWidget {
@@ -60,7 +60,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
 
         return Column(
           children: [
-            CameraPreviewWidget(
+            CameraPrevieWrapper(
               controller: _cameraController.controller!,
               isFlashOn: _cameraController.isFlashOn,
               currentZoomLevel: _cameraController.currentZoomLevel,
@@ -75,7 +75,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
             CameraBottomControls(
               onLibraryTap: _onLibraryTap,
               onTakePicture: _cameraController.takePicture,
-              onCancelPicture: _cameraController.cancelPicture,
+              onResetPicture: _cameraController.resetPictureTakenState,
               onStartRecording: _cameraController.startRecording,
               onStopRecording: _cameraController.stopRecording,
               onSwitchCamera: _cameraController.switchCamera,

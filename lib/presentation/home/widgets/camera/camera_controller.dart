@@ -196,14 +196,8 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     }
   }
 
-  void cancelPicture() async {
-    _imageFile = null;
-    _isPictureTaken = false;
-    _pictureTakenAt = null;
-    notifyListeners();
-  }
-
   void resetPictureTakenState() {
+    _imageFile = null;
     _isPictureTaken = false;
     _pictureTakenAt = null;
     notifyListeners();
