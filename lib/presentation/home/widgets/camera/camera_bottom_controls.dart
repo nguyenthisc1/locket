@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
-import 'package:locket/presentation/home/widgets/icon_button.dart';
+import 'package:locket/presentation/home/widgets/build_icon_button.dart';
 import 'camera_button.dart';
 
 class CameraBottomControls extends StatelessWidget {
