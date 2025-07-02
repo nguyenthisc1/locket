@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
-class FriendBar extends StatelessWidget {
-  const FriendBar({Key? key}) : super(key: key);
+class FriendTopbar extends StatelessWidget {
+  const FriendTopbar({super.key});
 
   void _showFriendBottomSheet(BuildContext context) {
     showModalBottomSheet(

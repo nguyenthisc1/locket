@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
-import 'package:locket/presentation/home/widgets/camera/camera.dart';
-import 'package:locket/presentation/home/widgets/friend_bar.dart';
+import 'package:locket/presentation/home/widgets/feed/feed.dart';
+import 'package:locket/presentation/home/widgets/friend_toolbar.dart';
+import 'package:locket/presentation/home/widgets/friend_topbar.dart';
 import 'package:locket/presentation/home/widgets/mess_button.dart';
 import 'package:locket/presentation/home/widgets/user_image.dart';
 
@@ -12,6 +13,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: const BasicAppbar(
         hideBack: true,
         action: Expanded(
@@ -24,18 +26,46 @@ class HomePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               spacing: AppDimensions.md,
-              children: [UserImage(), FriendBar(), MessButton()],
+              children: [UserImage(), FriendTopbar(), MessButton()],
             ),
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(
-          left: AppDimensions.md,
-          right: AppDimensions.md,
-          bottom: AppDimensions.appBarHeight,
+      body: SizedBox.expand(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: PageView.builder(
+                scrollDirection: Axis.vertical,
+                itemCount: 5,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      left: AppDimensions.md,
+                      right: AppDimensions.md,
+                      top: AppDimensions.appBarHeight + AppDimensions.xl,
+                    ),
+                    child: Feed(),
+                  );
+                },
+              ),
+            ),
+
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: AppDimensions.md,
+                  right: AppDimensions.md,
+                  bottom: AppDimensions.xl,
+                ),
+                child: FriendToolbar(),
+              ),
+            ),
+          ],
         ),
-        child: Column(children: [SizedBox(height: AppDimensions.lg), Camera()]),
       ),
     );
   }
