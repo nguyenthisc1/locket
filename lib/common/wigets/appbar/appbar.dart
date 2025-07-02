@@ -24,6 +24,7 @@ class BasicAppbar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: backgroundColor ?? Colors.transparent,
       elevation: 0,
+      shadowColor: Colors.transparent,
       centerTitle: true,
       automaticallyImplyLeading: false,
       toolbarHeight: height ?? 80,
