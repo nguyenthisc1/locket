@@ -76,7 +76,7 @@ class _CameraPrevieWrapperState extends State<CameraPrevieWrapper> {
                     )
                     : Transform.scale(
                       scaleY: 2,
-                      scaleX: 1,
+                      scaleX: 1.2,
                       child: GestureDetector(
                         onScaleStart: (details) {
                           _baseScale = _currentZoomLevel;

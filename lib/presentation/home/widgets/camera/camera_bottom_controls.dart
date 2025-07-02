@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/presentation/home/widgets/icon_button.dart';
 import 'camera_button.dart';
 
 class CameraBottomControls extends StatelessWidget {
@@ -30,10 +31,11 @@ class CameraBottomControls extends StatelessWidget {
       children: [
         if (!isPictureTaken) ...[
           // LIBRARY BUTTON
-          _buildIconButton(
+          BuildIconButton(
             onPressed: onLibraryTap,
             icon: Icons.photo_library_outlined,
           ),
+
           // TAKE PICTURE BUTTON
           CameraButton(
             onTap: onTakePicture,
@@ -41,16 +43,16 @@ class CameraBottomControls extends StatelessWidget {
             onLongPressEnd: onStopRecording,
           ),
           // CHANGE CAMERA
-          _buildIconButton(onPressed: onSwitchCamera, icon: Icons.loop),
+          BuildIconButton(onPressed: onSwitchCamera, icon: Icons.loop),
         ] else ...[
-          _buildIconButton(onPressed: onResetPicture, icon: Icons.close),
+          BuildIconButton(onPressed: onResetPicture, icon: Icons.close),
 
           SizedBox(
             width: AppDimensions.xxl * 2,
             height: AppDimensions.xxl * 2,
             child: Transform.rotate(
               angle: -0.785398,
-              child: _buildIconButton(
+              child: BuildIconButton(
                 onPressed: () {},
                 icon: Icons.send,
                 color: AppColors.dark,
@@ -58,26 +60,9 @@ class CameraBottomControls extends StatelessWidget {
             ),
           ),
 
-          _buildIconButton(onPressed: onSwitchCamera, icon: Icons.edit_note),
+          BuildIconButton(onPressed: onSwitchCamera, icon: Icons.edit_note),
         ],
       ],
-    );
-  }
-
-  Widget _buildIconButton({
-    required VoidCallback onPressed,
-    required IconData icon,
-    Color? color,
-  }) {
-    return IconButton(
-      onPressed: onPressed,
-      style: IconButton.styleFrom(
-        backgroundColor: color ?? Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-        ),
-      ),
-      icon: Icon(icon, color: Colors.white, size: AppDimensions.xxl),
     );
   }
 }
