@@ -4,6 +4,7 @@ import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/presentation/home/widgets/camera/index.dart';
 import 'package:locket/presentation/home/widgets/feed/feed.dart';
 import 'package:locket/presentation/home/widgets/friend_topbar.dart';
+import 'package:locket/presentation/home/widgets/history_feed.dart';
 import 'package:locket/presentation/home/widgets/mess_button.dart';
 import 'package:locket/presentation/home/widgets/user_image.dart';
 
@@ -18,10 +19,40 @@ class _HomePageState extends State<HomePage> {
   final PageController _outerController = PageController();
   final PageController _innerController = PageController();
 
-  void _scrollFeedToTop() {
+  int _currentOuterPage = 0;
+  bool _enteredFeed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _outerController.addListener(_outerPageListener);
+  }
+
+  void _outerPageListener() {
+    final int newPage =
+        _outerController.hasClients ? _outerController.page?.round() ?? 0 : 0;
+
+    if (newPage != _currentOuterPage) {
+      if (_currentOuterPage == 0 && newPage == 1) {
+        setState(() {
+          _enteredFeed = true;
+        });
+      }
+
+      if (_currentOuterPage == 1 && newPage == 0) {
+        setState(() {
+          _enteredFeed = false;
+        });
+      }
+
+      _currentOuterPage = newPage;
+    }
+  }
+
+  void _handleScrollPageViewOuter(int page) {
     if (_outerController.hasClients) {
       _outerController.animateToPage(
-        0,
+        page,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
@@ -30,6 +61,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _outerController.removeListener(_outerPageListener);
     _outerController.dispose();
     _innerController.dispose();
     super.dispose();
@@ -50,9 +82,11 @@ class _HomePageState extends State<HomePage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
-              // ignore: prefer_const_constructors
-              spacing: AppDimensions.md,
-              children: const [UserImage(), FriendTopbar(), MessButton()],
+              children: [
+                const UserImage(),
+                FriendTopbar(isEnteredFeed: _enteredFeed),
+                const MessButton(),
+              ],
             ),
           ),
         ),
@@ -62,15 +96,30 @@ class _HomePageState extends State<HomePage> {
         scrollDirection: Axis.vertical,
         itemCount: 2,
         itemBuilder: (context, index) {
-          // CAMERA REVIEW
           if (index == 0) {
-            return Padding(
-              padding: const EdgeInsets.only(
-                left: AppDimensions.md,
-                right: AppDimensions.md,
-                top: AppDimensions.appBarHeight + AppDimensions.xl,
-              ),
-              child: Camera(),
+            return Stack(
+              children: [
+                // CAMERA REVIEW
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: AppDimensions.md,
+                    right: AppDimensions.md,
+                    top: AppDimensions.appBarHeight + AppDimensions.xl,
+                  ),
+                  child: Camera(),
+                ),
+
+                // HISTORY BUTTON
+                Positioned(
+                  bottom: AppDimensions.xl,
+                  left: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () => _handleScrollPageViewOuter(1),
+                    child: Center(child: HistoryFeed()),
+                  ),
+                ),
+              ],
             );
           }
 
@@ -78,7 +127,7 @@ class _HomePageState extends State<HomePage> {
           return Feed(
             innerController: _innerController,
             outerController: _outerController,
-            onScrollToTop: _scrollFeedToTop,
+            handleScrollFeedToTop: () => _handleScrollPageViewOuter(0),
           );
         },
       ),

@@ -7,13 +7,13 @@ import 'package:locket/presentation/home/widgets/friend_toolbar.dart';
 class Feed extends StatelessWidget {
   final PageController innerController;
   final PageController outerController;
-  final void Function() onScrollToTop;
+  final void Function() handleScrollFeedToTop;
 
   const Feed({
     super.key,
     required this.innerController,
     required this.outerController,
-    required this.onScrollToTop,
+    required this.handleScrollFeedToTop,
   });
 
   @override
@@ -68,7 +68,7 @@ class Feed extends StatelessWidget {
                 right: AppDimensions.md,
                 bottom: AppDimensions.xl,
               ),
-              child: FriendToolbar(onScrollToTop: onScrollToTop),
+              child: FriendToolbar(onScrollToTop: handleScrollFeedToTop),
             ),
           ),
         ],
