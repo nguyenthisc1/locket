@@ -3,10 +3,11 @@ import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/presentation/home/widgets/camera/index.dart';
 import 'package:locket/presentation/home/widgets/feed/feed.dart';
+import 'package:locket/presentation/home/widgets/friend_select.dart';
 import 'package:locket/presentation/home/widgets/friend_topbar.dart';
 import 'package:locket/presentation/home/widgets/history_feed.dart';
 import 'package:locket/presentation/home/widgets/mess_button.dart';
-import 'package:locket/presentation/home/widgets/user_image.dart';
+import 'package:locket/common/wigets/user_image.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -77,6 +78,7 @@ class _HomePageState extends State<HomePage> {
           child: Padding(
             padding: const EdgeInsets.only(
               left: AppDimensions.md,
+
               right: AppDimensions.md,
             ),
             child: Row(
@@ -84,7 +86,8 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const UserImage(),
-                FriendTopbar(isEnteredFeed: _enteredFeed),
+                // FriendTopbar(isEnteredFeed: _enteredFeed),
+                FriendSelect(),
                 const MessButton(),
               ],
             ),
