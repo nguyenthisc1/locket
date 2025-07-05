@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 class FriendTopbar extends StatelessWidget {
@@ -41,13 +42,17 @@ class FriendTopbar extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           // ignore: deprecated_member_use
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.safeOpacity(0.2),
           borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
         ),
         child: Row(
           children: [
             // Icon double user
-            const Icon(Icons.people, size: 28, color: Colors.white70),
+            const Icon(
+              Icons.people,
+              size: AppDimensions.iconLg,
+              color: Colors.white70,
+            ),
             const SizedBox(width: AppDimensions.sm),
             // Count friend
             Text(

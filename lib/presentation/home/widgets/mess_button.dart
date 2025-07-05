@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 class MessButton extends StatelessWidget {
@@ -40,14 +41,14 @@ class MessButton extends StatelessWidget {
               horizontal: AppDimensions.sm,
               vertical: AppDimensions.sm,
             ),
-            backgroundColor: Colors.white.withOpacity(0.2),
+            backgroundColor: Colors.white.safeOpacity(0.2),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
             ),
           ),
           icon: const Icon(
             Icons.cloud_outlined,
-            size: 28,
+            size: AppDimensions.iconLg,
             color: Colors.white70,
           ),
         ),

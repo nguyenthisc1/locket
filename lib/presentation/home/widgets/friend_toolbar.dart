@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/presentation/home/widgets/build_icon_button.dart';
@@ -24,7 +25,7 @@ class FriendToolbar extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: 'Gửi tin nhắn...',
                 filled: true,
-                fillColor: AppColors.dark.withOpacity(0.8),
+                fillColor: AppColors.dark.safeOpacity(0.8),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
                   borderSide: BorderSide.none,

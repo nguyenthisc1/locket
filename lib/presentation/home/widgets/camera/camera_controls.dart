@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 class CameraControls extends StatelessWidget {
@@ -49,7 +50,7 @@ class CameraControls extends StatelessWidget {
         width: AppDimensions.xl,
         height: AppDimensions.xl,
         decoration: BoxDecoration(
-          color: backgroundColor ?? Colors.black.withOpacity(0.5),
+          color: backgroundColor ?? Colors.black.safeOpacity(0.5),
           borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
         ),
         child: Icon(icon, size: 24, color: iconColor),
@@ -62,7 +63,7 @@ class CameraControls extends StatelessWidget {
       width: AppDimensions.xl,
       height: AppDimensions.xl,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.safeOpacity(0.2),
         borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
       ),
       child: Center(
