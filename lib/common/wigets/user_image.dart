@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart';
 
 class UserImage extends StatelessWidget {
   final String? imageUrl;
@@ -27,7 +28,7 @@ class UserImage extends StatelessWidget {
                 )
                 : null,
         // ignore: deprecated_member_use
-        color: imageUrl == null ? Colors.white.withOpacity(0.2) : null,
+        color: imageUrl == null ? Colors.white.safeOpacity(0.2) : null,
       ),
       child:
           imageUrl == null
