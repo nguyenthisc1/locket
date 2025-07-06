@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
 
@@ -13,14 +14,11 @@ class HistoryFeed extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-              child: Image.network(
-                'https://images.unsplash.com/photo-1751217052634-cd51e3519355?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyNHx8fGVufDB8fHx8fA%3D%3D',
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
-              ),
+            UserImage(
+              imageUrl:
+                  'https://images.unsplash.com/photo-1751217052634-cd51e3519355?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyNHx8fGVufDB8fHx8fA%3D%3D',
+              size: AppDimensions.avatarSm,
+              borderRadius: AppDimensions.radiusMd,
             ),
             const SizedBox(width: AppDimensions.sm),
             Text(
