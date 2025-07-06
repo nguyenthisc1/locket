@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/theme/index.dart';
@@ -49,58 +51,28 @@ class PressedStateButton extends State<PressedButton>
   Widget build(BuildContext context) {
     return ScaleTransition(
       scale: Tween<double>(begin: 1.0, end: 0.9).animate(_controller),
-      child: ElevatedButton(
-        onPressed: _onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor:
-              widget.backgroundColor ?? Colors.white.safeOpacity(0.2),
-          foregroundColor: widget.foregroundColor ?? Colors.white70,
-          padding: EdgeInsets.symmetric(
-            horizontal: AppDimensions.md,
-            vertical: AppDimensions.sm,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: ElevatedButton(
+            onPressed: _onTap,
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  widget.backgroundColor ?? Colors.white.safeOpacity(0.2),
+              foregroundColor: widget.foregroundColor ?? Colors.white70,
+              padding: EdgeInsets.symmetric(
+                horizontal: AppDimensions.md,
+                vertical: AppDimensions.sm,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+              ),
+            ),
+            child: widget.child,
           ),
         ),
-        child: widget.child,
       ),
     );
   }
 }
-
-
-// GestureDetector(
-//       onTap: _onTap,
-
-//       child: Container(
-//         padding: const EdgeInsets.symmetric(
-//           horizontal: AppDimensions.md,
-//           vertical: AppDimensions.sm,
-//         ),
-//         decoration: BoxDecoration(
-//           color: Colors.transparent,
-//           borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-//         ),
-//         child: ScaleTransition(
-//           scale: Tween<double>(begin: 1.0, end: 0.9).animate(_controller),
-//           child: Row(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               // Icon double user
-//               const Icon(Icons.people, size: AppDimensions.iconLg, color: Colors.white70),
-//               const SizedBox(width: AppDimensions.sm),
-//               // Count friend
-//               Text(
-//                 '0 người bạn',
-//                 style: AppTypography.headlineMedium.copyWith(
-//                   fontWeight: FontWeight.w800,
-//                   color: Colors.white70,
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-
