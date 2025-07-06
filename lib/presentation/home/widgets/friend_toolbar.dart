@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/utils.dart';
+import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/presentation/home/widgets/build_icon_button.dart';
@@ -16,24 +17,7 @@ class FriendToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: TextField(
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Gửi tin nhắn...',
-                filled: true,
-                fillColor: Colors.white.safeOpacity(0.2),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-        ),
+        MessageField(),
         const SizedBox(height: AppDimensions.lg),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
