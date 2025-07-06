@@ -1,33 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/presentation/conversation/pages/conversation_page.dart';
 
 class MessButton extends StatelessWidget {
   const MessButton({super.key});
-
-  void _showMessBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: 300,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              const Text('Messages', style: AppTypography.bodyLarge),
-              const SizedBox(height: 16),
-              // Add your message list content here
-              const Expanded(
-                child: Center(
-                  child: Text('Message list will be displayed here'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +13,7 @@ class MessButton extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         IconButton(
-          onPressed: () => _showMessBottomSheet(context),
+          onPressed: () => AppNavigator.push(context, const ConversationPage()),
           style: IconButton.styleFrom(
             padding: EdgeInsets.symmetric(
               horizontal: AppDimensions.sm,
