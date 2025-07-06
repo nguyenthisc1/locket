@@ -5,12 +5,14 @@ class UserImage extends StatelessWidget {
   final String? imageUrl;
   final double? size;
   final BoxShape shape;
+  final double? borderRadius;
 
   const UserImage({
     super.key,
     this.imageUrl,
     this.size = 40,
     this.shape = BoxShape.circle,
+    this.borderRadius,
   });
 
   @override
@@ -19,7 +21,9 @@ class UserImage extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        shape: shape,
+        shape: borderRadius != null ? BoxShape.rectangle : shape,
+        borderRadius:
+            borderRadius != null ? BorderRadius.circular(borderRadius!) : null,
         image:
             imageUrl != null
                 ? DecorationImage(
