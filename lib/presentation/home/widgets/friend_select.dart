@@ -22,7 +22,7 @@ class _FriendSelectState extends State<FriendSelect> {
         print('Chọn: $value');
       },
       dropdownChildBuilder:
-          (index, item) => Padding(
+          (index, item, selectedItem) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
@@ -48,46 +48,3 @@ class _FriendSelectState extends State<FriendSelect> {
     );
   }
 }
-
-
-  // Container(
-          //   decoration: BoxDecoration(
-          //     color: Colors.white.safeOpacity(0.2),
-          //     borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-          //   ),
-          //   child:
-          //   // child: CustomDropdown(
-          //   //   items: ['mọi người', 'chỉ bạn bè', 'tùy chỉnh'],
-          //   //   initialValue: 'mọi người',
-          //   //   onChanged: (value) {
-          //   //     print('Selected: $value');
-          //   //   },
-          //   // ),
-          //   // child: Material(
-          //   //   color: Colors.transparent,
-          //   //   child: InkWell(
-          //   //     borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-          //   //     onTap: _showDropdown,
-          //   //     child: Padding(
-          //   //       padding: EdgeInsets.symmetric(
-          //   //         horizontal: AppDimensions.md,
-          //   //         vertical: AppDimensions.sm,
-          //   //       ),
-          //   //       child: Row(
-          //   //         mainAxisSize: MainAxisSize.min,
-          //   //         children: [
-          //   //           Text(
-          //   //             _selectedValue,
-          //   //             style: AppTypography.headlineMedium.copyWith(
-          //   //               fontWeight: FontWeight.w800,
-          //   //               color: Colors.white70,
-          //   //             ),
-          //   //           ),
-          //   //           const SizedBox(width: 8),
-          //   //           const Icon(Icons.keyboard_arrow_down, color: Colors.white70),
-          //   //         ],
-          //   //       ),
-          //   //     ),
-          //   //   ),
-          //   // ),
-          // ),

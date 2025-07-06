@@ -3,9 +3,7 @@ import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 class FriendTopbar extends StatelessWidget {
-  final bool isEnteredFeed;
-
-  const FriendTopbar({super.key, required this.isEnteredFeed});
+  const FriendTopbar({super.key});
 
   void _showFriendBottomSheet(BuildContext context) {
     showModalBottomSheet(

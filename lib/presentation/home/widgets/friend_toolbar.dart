@@ -19,13 +19,13 @@ class FriendToolbar extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: TextField(
               obscureText: true,
               decoration: InputDecoration(
                 labelText: 'Gửi tin nhắn...',
                 filled: true,
-                fillColor: AppColors.dark.safeOpacity(0.8),
+                fillColor: Colors.white.safeOpacity(0.2),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
                   borderSide: BorderSide.none,
