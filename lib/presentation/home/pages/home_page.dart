@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/appbar/appbar.dart';
+import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/presentation/home/widgets/camera/index.dart';
 import 'package:locket/presentation/home/widgets/feed/feed.dart';
@@ -7,7 +8,6 @@ import 'package:locket/presentation/home/widgets/friend_select.dart';
 import 'package:locket/presentation/home/widgets/friend_topbar.dart';
 import 'package:locket/presentation/home/widgets/history_feed.dart';
 import 'package:locket/presentation/home/widgets/mess_button.dart';
-import 'package:locket/common/wigets/user_image.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -86,8 +86,7 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const UserImage(),
-                // FriendTopbar(isEnteredFeed: _enteredFeed),
-                FriendSelect(),
+                _enteredFeed ? const FriendSelect() : const FriendTopbar(),
                 const MessButton(),
               ],
             ),
