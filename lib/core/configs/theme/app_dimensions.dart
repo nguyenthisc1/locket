@@ -37,7 +37,7 @@ class AppDimensions {
   static const double avatarSm = 32.0;
   static const double avatarMd = 40.0;
   static const double avatarLg = 56.0;
-  static const double avatarXl = 72.0;
+  static const double avatarXl = 64.0;
 
   // Card sizes
   static const double cardRadius = 16.0;
