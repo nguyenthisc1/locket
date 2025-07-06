@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
-import 'camera_controller.dart';
+import '../../controllers/camera_controller.dart';
 import 'camera_preview.dart';
 import 'camera_bottom_controls.dart';
 
