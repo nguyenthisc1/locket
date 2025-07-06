@@ -10,7 +10,11 @@ class CustomDropdown extends StatefulWidget {
   final String initialLabel;
   final List<Map<String, String>> items;
   final void Function(String) onChanged;
-  final Widget Function(int index, Map<String, String> item)
+  final Widget Function(
+    int index,
+    Map<String, String> item,
+    String selectedItem,
+  )
   dropdownChildBuilder;
 
   const CustomDropdown({
@@ -164,7 +168,11 @@ class _CustomDropdownState extends State<CustomDropdown>
 class _DropdownItemsMenu extends StatefulWidget {
   final List<Map<String, String>> items;
   final void Function(String) onSelect;
-  final Widget Function(int index, Map<String, String> item)
+  final Widget Function(
+    int index,
+    Map<String, String> item,
+    String selectedItem,
+  )
   dropdownChildBuilder;
   final VoidCallback onDismissed;
   final void Function(VoidCallback close) registerClose;
@@ -240,9 +248,14 @@ class _DropdownItemsMenuState extends State<_DropdownItemsMenu>
                   widget.items.asMap().entries.map((entry) {
                     final index = entry.key;
                     final item = entry.value;
+                    final selectedItem = item.values.first;
                     return InkWell(
-                      onTap: () => _select(item.values.first),
-                      child: widget.dropdownChildBuilder(index, item),
+                      onTap: () => _select(selectedItem),
+                      child: widget.dropdownChildBuilder(
+                        index,
+                        item,
+                        selectedItem,
+                      ),
                     );
                   }).toList(),
             ),
