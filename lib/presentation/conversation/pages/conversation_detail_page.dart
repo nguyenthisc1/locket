@@ -381,6 +381,10 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
             action: Icon(Icons.more_horiz, size: AppDimensions.iconLg),
           ),
           body: Container(
+            padding: const EdgeInsets.only(
+              left: AppDimensions.md,
+              right: AppDimensions.md,
+            ),
             decoration: BoxDecoration(
               gradient: _controller.currentBackgroundGradient,
             ),
@@ -391,26 +395,22 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
               ),
               child: Stack(
                 children: [
-                  Padding(
+                  ListView.builder(
+                    controller: _controller.scrollController,
+                    itemCount: _conversationData.length,
                     padding: const EdgeInsets.only(
-                      left: AppDimensions.md,
-                      right: AppDimensions.md,
                       top: AppDimensions.lg,
                       bottom: AppDimensions.xxl * 2,
                     ),
-                    child: ListView.builder(
-                      controller: _controller.scrollController,
-                      itemCount: _conversationData.length,
-                      itemBuilder: (context, index) {
-                        final messageData = _conversationData[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: AppDimensions.xl,
-                          ),
-                          child: Message(data: messageData),
-                        );
-                      },
-                    ),
+                    itemBuilder: (context, index) {
+                      final messageData = _conversationData[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: AppDimensions.xl,
+                        ),
+                        child: Message(data: messageData),
+                      );
+                    },
                   ),
                   Positioned(
                     left: 0,
