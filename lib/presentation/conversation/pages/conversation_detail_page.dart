@@ -65,12 +65,12 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       type: 'text',
       attachments: const [],
       replyTo: '660f1a2b3c4d5e6f7a8b9c0d',
-      replyInfo: const {
+      replyInfo: ReplyInfoEntity.fromJson(const {
         'messageId': '660f1a2b3c4d5e6f7a8b9c0d',
         'text': 'Hey! How are you doing today?',
         'senderName': 'Yến Vy',
         'attachmentType': null,
-      },
+      }),
       forwardedFrom: null,
       forwardInfo: null,
       threadInfo: null,
@@ -158,12 +158,20 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
         },
       ],
       replyTo: '660f1a2b3c4d5e6f7a8b9c13',
-      replyInfo: const {
-        'messageId': '660f1a2b3c4d5e6f7a8b9c13',
-        'text': 'Check out this beautiful view!',
-        'senderName': 'Yến Vy',
-        'attachmentType': 'image',
-      },
+      replyInfo: ReplyInfoEntity(
+        messageId: '660f1a2b3c4d5e6f7a8b9c13',
+        text: 'Check out this beautiful view!',
+        senderName: 'Yến Vy',
+        attachmentType: 'image',
+        attachments: [
+          {
+            'url':
+                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
+            'type': 'image',
+            'name': 'mountain.jpg',
+          },
+        ],
+      ),
       forwardedFrom: null,
       forwardInfo: null,
       threadInfo: null,
@@ -199,12 +207,12 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       type: 'text',
       attachments: const [],
       replyTo: '660f1a2b3c4d5e6f7a8b9c0e',
-      replyInfo: const {
+      replyInfo: ReplyInfoEntity.fromJson(const {
         'messageId': '660f1a2b3c4d5e6f7a8b9c0e',
         'text': 'I\'m doing great! Just finished my morning workout.',
         'senderName': 'Minh Anh',
         'attachmentType': null,
-      },
+      }),
       forwardedFrom: null,
       forwardInfo: null,
       threadInfo: null,
@@ -234,12 +242,12 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       type: 'text',
       attachments: const [],
       replyTo: '660f1a2b3c4d5e6f7a8b9c0f',
-      replyInfo: const {
+      replyInfo: ReplyInfoEntity.fromJson(const {
         'messageId': '660f1a2b3c4d5e6f7a8b9c0f',
         'text': 'That sounds awesome! What exercises did you do?',
         'senderName': 'Yến Vy',
         'attachmentType': null,
-      },
+      }),
       forwardedFrom: null,
       forwardInfo: null,
       threadInfo: null,
@@ -269,12 +277,12 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       type: 'text',
       attachments: const [],
       replyTo: '660f1a2b3c4d5e6f7a8b9c10',
-      replyInfo: const {
+      replyInfo: ReplyInfoEntity.fromJson(const {
         'messageId': '660f1a2b3c4d5e6f7a8b9c10',
         'text': 'Mostly cardio and some strength training. How about you?',
         'senderName': 'Minh Anh',
         'attachmentType': null,
-      },
+      }),
       forwardedFrom: null,
       forwardInfo: null,
       threadInfo: null,
@@ -304,12 +312,12 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       type: 'text',
       attachments: const [],
       replyTo: '660f1a2b3c4d5e6f7a8b9c11',
-      replyInfo: const {
+      replyInfo: ReplyInfoEntity.fromJson(const {
         'messageId': '660f1a2b3c4d5e6f7a8b9c11',
         'text': 'I\'m planning to go for a run later. Want to join?',
         'senderName': 'Yến Vy',
         'attachmentType': null,
-      },
+      }),
       forwardedFrom: null,
       forwardInfo: null,
       threadInfo: null,
@@ -383,26 +391,25 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
               ),
               child: Stack(
                 children: [
-                  SingleChildScrollView(
-                    controller: _controller.scrollController,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: AppDimensions.md,
-                        right: AppDimensions.md,
-                        top: AppDimensions.lg,
-                        bottom: AppDimensions.xxl * 2,
-                      ),
-                      child: Column(
-                        children:
-                            _conversationData.map((messageData) {
-                              return Padding(
-                                padding: const EdgeInsets.only(
-                                  bottom: AppDimensions.lg,
-                                ),
-                                child: Message(data: messageData),
-                              );
-                            }).toList(),
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: AppDimensions.md,
+                      right: AppDimensions.md,
+                      top: AppDimensions.lg,
+                      bottom: AppDimensions.xxl * 2,
+                    ),
+                    child: ListView.builder(
+                      controller: _controller.scrollController,
+                      itemCount: _conversationData.length,
+                      itemBuilder: (context, index) {
+                        final messageData = _conversationData[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: AppDimensions.xl,
+                          ),
+                          child: Message(data: messageData),
+                        );
+                      },
                     ),
                   ),
                   Positioned(

@@ -7,9 +7,9 @@ class MessageEntity extends Equatable {
   final String senderName;
   final String text;
   final String type;
-  final List<dynamic> attachments;
+  final List<Map<String, dynamic>> attachments;
   final String? replyTo;
-  final Map<String, dynamic>? replyInfo;
+  final ReplyInfoEntity? replyInfo;
   final String? forwardedFrom;
   final Map<String, dynamic>? forwardInfo;
   final Map<String, dynamic>? threadInfo;
@@ -18,7 +18,7 @@ class MessageEntity extends Equatable {
   final bool isEdited;
   final bool isDeleted;
   final bool isPinned;
-  final List<dynamic> editHistory;
+  final List<Map<String, dynamic>> editHistory;
   final Map<String, dynamic> metadata;
   final String? sticker;
   final String? emote;
@@ -33,26 +33,27 @@ class MessageEntity extends Equatable {
     required this.senderName,
     required this.text,
     required this.type,
-    required this.attachments,
+    this.attachments = const [],
     this.replyTo,
     this.replyInfo,
     this.forwardedFrom,
     this.forwardInfo,
     this.threadInfo,
-    required this.reactions,
-    required this.isRead,
-    required this.isEdited,
-    required this.isDeleted,
-    required this.isPinned,
-    required this.editHistory,
-    required this.metadata,
+    this.reactions = const [],
+    this.isRead = false,
+    this.isEdited = false,
+    this.isDeleted = false,
+    this.isPinned = false,
+    this.editHistory = const [],
+    this.metadata = const {},
     this.sticker,
     this.emote,
     required this.createdAt,
     required this.timestamp,
-    required this.isMe,
+    this.isMe = false,
   });
 
+  /// Factory for an empty message entity
   factory MessageEntity.empty() => MessageEntity(
     id: '',
     conversationId: '',
@@ -80,6 +81,7 @@ class MessageEntity extends Equatable {
     isMe: false,
   );
 
+  /// Returns a copy of this message, with optional new values.
   MessageEntity copyWith({
     String? id,
     String? conversationId,
@@ -87,9 +89,9 @@ class MessageEntity extends Equatable {
     String? senderName,
     String? text,
     String? type,
-    List<dynamic>? attachments,
+    List<Map<String, dynamic>>? attachments,
     String? replyTo,
-    Map<String, dynamic>? replyInfo,
+    ReplyInfoEntity? replyInfo,
     String? forwardedFrom,
     Map<String, dynamic>? forwardInfo,
     Map<String, dynamic>? threadInfo,
@@ -98,7 +100,7 @@ class MessageEntity extends Equatable {
     bool? isEdited,
     bool? isDeleted,
     bool? isPinned,
-    List<dynamic>? editHistory,
+    List<Map<String, dynamic>>? editHistory,
     Map<String, dynamic>? metadata,
     String? sticker,
     String? emote,
@@ -113,13 +115,10 @@ class MessageEntity extends Equatable {
       senderName: senderName ?? this.senderName,
       text: text ?? this.text,
       type: type ?? this.type,
-      attachments: attachments ?? List<dynamic>.from(this.attachments),
+      attachments:
+          attachments ?? List<Map<String, dynamic>>.from(this.attachments),
       replyTo: replyTo ?? this.replyTo,
-      replyInfo:
-          replyInfo ??
-          (this.replyInfo != null
-              ? Map<String, dynamic>.from(this.replyInfo!)
-              : null),
+      replyInfo: replyInfo ?? this.replyInfo,
       forwardedFrom: forwardedFrom ?? this.forwardedFrom,
       forwardInfo:
           forwardInfo ??
@@ -136,7 +135,8 @@ class MessageEntity extends Equatable {
       isEdited: isEdited ?? this.isEdited,
       isDeleted: isDeleted ?? this.isDeleted,
       isPinned: isPinned ?? this.isPinned,
-      editHistory: editHistory ?? List<dynamic>.from(this.editHistory),
+      editHistory:
+          editHistory ?? List<Map<String, dynamic>>.from(this.editHistory),
       metadata: metadata ?? Map<String, dynamic>.from(this.metadata),
       sticker: sticker ?? this.sticker,
       emote: emote ?? this.emote,
@@ -172,5 +172,54 @@ class MessageEntity extends Equatable {
     createdAt,
     timestamp,
     isMe,
+  ];
+}
+
+class ReplyInfoEntity extends Equatable {
+  final String messageId;
+  final String? text;
+  final String? senderName;
+  final String? attachmentType;
+  final List<Map<String, dynamic>> attachments;
+
+  const ReplyInfoEntity({
+    required this.messageId,
+    this.text,
+    this.senderName,
+    this.attachmentType,
+    this.attachments = const [],
+  });
+
+  factory ReplyInfoEntity.fromJson(Map<String, dynamic> json) {
+    return ReplyInfoEntity(
+      messageId: json['messageId'] ?? '',
+      text: json['text'],
+      senderName: json['senderName'],
+      attachmentType: json['attachmentType'],
+      attachments:
+          (json['attachments'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'messageId': messageId,
+      'text': text,
+      'senderName': senderName,
+      'attachmentType': attachmentType,
+      'attachments': attachments,
+    };
+  }
+
+  @override
+  List<Object?> get props => [
+    messageId,
+    text,
+    senderName,
+    attachmentType,
+    attachments,
   ];
 }

@@ -59,6 +59,13 @@ class ConversationDetailControllerState extends ChangeNotifier {
 
   ConversationDetailControllerState() {
     scrollController.addListener(_onScroll);
+
+    // Always scroll to end on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (scrollController.hasClients) {
+        scrollController.jumpTo(scrollController.position.maxScrollExtent);
+      }
+    });
   }
 
   @override

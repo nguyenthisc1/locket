@@ -37,9 +37,9 @@ class Message extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color:
-                      !data.isMe
-                          ? Colors.white.safeOpacity(0.2)
-                          : AppColors.borderLight.safeOpacity(0.9),
+                      data.isMe
+                          ? AppColors.borderLight.safeOpacity(0.9)
+                          : Colors.white.safeOpacity(0.2),
                 ),
                 padding: EdgeInsets.symmetric(
                   horizontal: AppDimensions.md,
@@ -51,7 +51,7 @@ class Message extends StatelessWidget {
                     Text(
                       data.text,
                       style: AppTypography.headlineLarge.copyWith(
-                        color: !data.isMe ? Colors.white : AppColors.dark,
+                        color: data.isMe ? AppColors.dark : Colors.white,
                         fontWeight: FontWeight.w600,
                         height: 1.25,
                       ),
@@ -62,209 +62,250 @@ class Message extends StatelessWidget {
               ),
             ),
           ),
-
-          if (data.reactions.isNotEmpty) _reaction(context, data.reactions),
+          if (data.reactions.isNotEmpty)
+            _reaction(context, data.reactions, data.isMe),
         ],
       ),
     );
   }
 
   Widget _messageImage(BuildContext context, MessageEntity data) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-          child: Image.network(
-            width: double.infinity,
-            height: MediaQuery.of(context).size.height * 0.4,
-            data.attachments.isNotEmpty ? data.attachments[0]['url'] ?? '' : '',
-            fit: BoxFit.cover,
-          ),
-        ),
-        // SENDER NAME
-        Positioned(
-          top: AppDimensions.md,
-          left: AppDimensions.md,
-          child: ClipRRect(
+    final String imageUrl =
+        data.attachments.isNotEmpty ? (data.attachments[0]['url'] ?? '') : '';
+    return Align(
+      alignment: data.isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ClipRRect(
             borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                padding: EdgeInsets.only(
-                  left: AppDimensions.sm,
-                  right: AppDimensions.md,
-                  top: AppDimensions.sm,
-                  bottom: AppDimensions.sm,
-                ),
-                decoration: BoxDecoration(color: Colors.black.safeOpacity(0.5)),
-                child: Row(
-                  children: [
-                    UserImage(
-                      imageUrl:
-                          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-                      size: AppDimensions.avatarXs,
-                    ),
-                    const SizedBox(width: AppDimensions.sm),
-                    Text(
-                      data.senderName,
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: AppDimensions.sm),
-                    Text(
-                      data.timestamp,
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            child: Image.network(
+              imageUrl,
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: MediaQuery.of(context).size.height * 0.35,
+              fit: BoxFit.cover,
+              errorBuilder:
+                  (context, error, stackTrace) => Container(
+                    color: Colors.grey[300],
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    height: MediaQuery.of(context).size.height * 0.35,
+                    child: const Icon(Icons.broken_image, color: Colors.grey),
+                  ),
             ),
           ),
-        ),
-
-        // SENDER TEXT
-        Positioned(
-          bottom: AppDimensions.md,
-          left: AppDimensions.md,
-          right: AppDimensions.md,
-          child: Align(
-            alignment: Alignment.center,
+          // SENDER NAME
+          Positioned(
+            top: AppDimensions.md,
+            left: AppDimensions.md,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: AppDimensions.sm,
-                    horizontal: AppDimensions.md,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.safeOpacity(0.3),
-                  ),
-                  child: Text(
-                    data.text,
-                    style: AppTypography.bodyLarge.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        if (data.reactions.isNotEmpty) _reaction(context, data.reactions),
-      ],
-    );
-  }
-
-  Widget _messageReply(BuildContext context, MessageEntity data) {
-    return Align(
-      alignment: data.isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Column(
-        children: [
-          // Row(children: [
-
-          //   ],
-          // ),
-          Transform.translate(
-            offset: Offset(
-              data.isMe ? -AppDimensions.md : AppDimensions.md,
-              AppDimensions.lg,
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.7,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        !data.isMe
-                            ? Colors.white.safeOpacity(0.2)
-                            : AppColors.borderLight.safeOpacity(0.9),
-                  ),
                   padding: EdgeInsets.only(
-                    left: AppDimensions.md,
+                    left: AppDimensions.sm,
                     right: AppDimensions.md,
-                    top: AppDimensions.md,
-                    bottom: AppDimensions.xl,
+                    top: AppDimensions.sm,
+                    bottom: AppDimensions.sm,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  decoration: BoxDecoration(
+                    color: Colors.black.safeOpacity(0.5),
+                  ),
+                  child: Row(
                     children: [
+                      UserImage(
+                        imageUrl:
+                            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+                        size: AppDimensions.avatarXs,
+                      ),
+                      const SizedBox(width: AppDimensions.sm),
                       Text(
-                        data.replyInfo?['text'] ?? '',
-                        style: AppTypography.headlineLarge.copyWith(
-                          color: !data.isMe ? Colors.white : AppColors.dark,
+                        data.senderName,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: Colors.white,
                           fontWeight: FontWeight.w600,
-                          height: 1.25,
                         ),
                       ),
-                      const SizedBox(height: AppDimensions.xs),
+                      const SizedBox(width: AppDimensions.sm),
+                      Text(
+                        data.timestamp,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
           ),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          // SENDER TEXT
+          Positioned(
+            bottom: AppDimensions.md,
+            left: AppDimensions.md,
+            right: AppDimensions.md,
+            child: Align(
+              alignment: Alignment.center,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.7,
+                    padding: EdgeInsets.symmetric(
+                      vertical: AppDimensions.sm,
+                      horizontal: AppDimensions.md,
                     ),
                     decoration: BoxDecoration(
-                      color:
-                          !data.isMe
-                              ? Colors.white.safeOpacity(0.2)
-                              : AppColors.borderLight.safeOpacity(0.9),
+                      color: Colors.black.safeOpacity(0.3),
                     ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: AppDimensions.md,
-                      vertical: AppDimensions.md,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          data.text,
-                          style: AppTypography.headlineLarge.copyWith(
-                            color: !data.isMe ? Colors.white : AppColors.dark,
-                            fontWeight: FontWeight.w600,
-                            height: 1.25,
-                          ),
-                        ),
-                        const SizedBox(height: AppDimensions.xs),
-                      ],
+                    child: Text(
+                      data.text,
+                      style: AppTypography.bodyLarge.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
               ),
-
-              if (data.reactions.isNotEmpty) _reaction(context, data.reactions),
-            ],
+            ),
           ),
+          if (data.reactions.isNotEmpty)
+            _reaction(context, data.reactions, data.isMe),
         ],
       ),
     );
   }
 
-  Widget _reaction(BuildContext context, dynamic reactions) {
+  Widget _messageReply(BuildContext context, MessageEntity data) {
+    final bool hasImage = data.attachments.isNotEmpty;
+    final String? replyText = data.replyInfo?.text;
+    final String replySenderName = data.replyInfo?.senderName ?? '';
+
+    return Transform.translate(
+      offset: Offset(0, -AppDimensions.md),
+      child: Align(
+        alignment: data.isMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: Column(
+          crossAxisAlignment:
+              data.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Transform.translate(
+              offset: Offset(
+                data.isMe ? -AppDimensions.lg : AppDimensions.lg,
+                AppDimensions.lg,
+              ),
+              child: Column(
+                crossAxisAlignment:
+                    data.isMe
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment:
+                        data.isMe
+                            ? MainAxisAlignment.end
+                            : MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Đã trả lời $replySenderName',
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppDimensions.sm),
+                  if (!hasImage)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusLg,
+                      ),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Opacity(
+                          opacity: 0.8,
+                          child: Container(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.7,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  data.isMe
+                                      ? AppColors.borderLight.safeOpacity(0.9)
+                                      : Colors.white.safeOpacity(0.2),
+                            ),
+                            padding: EdgeInsets.only(
+                              left: AppDimensions.md,
+                              right: AppDimensions.md,
+                              top: AppDimensions.md,
+                              bottom: AppDimensions.xl,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  replyText ?? '',
+                                  style: AppTypography.headlineLarge.copyWith(
+                                    color:
+                                        data.isMe
+                                            ? AppColors.dark
+                                            : Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.25,
+                                  ),
+                                ),
+                                const SizedBox(height: AppDimensions.xs),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (hasImage)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusXl,
+                      ),
+                      child: Opacity(
+                        opacity: 0.8,
+                        child: Image.network(
+                          data.replyInfo?.attachments != null &&
+                                  data.replyInfo!.attachments.isNotEmpty
+                              ? data.replyInfo!.attachments[0]['url'] ?? ''
+                              : '',
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          height: MediaQuery.of(context).size.height * 0.2,
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (context, error, stackTrace) => Container(
+                                color: Colors.grey[300],
+                                width: MediaQuery.of(context).size.width * 0.5,
+                                height:
+                                    MediaQuery.of(context).size.height * 0.2,
+                                child: const Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (!hasImage)
+              _messageText(context, data)
+            else
+              _messageImage(context, data),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _reaction(BuildContext context, dynamic reactions, bool isMe) {
     return Positioned(
       bottom: -AppDimensions.md,
       right: 0,
@@ -274,20 +315,22 @@ class Message extends StatelessWidget {
           vertical: AppDimensions.xs,
         ),
         decoration: BoxDecoration(
-          color: !data.isMe ? Colors.white : AppColors.borderLight,
+          color: isMe ? AppColors.borderLight : Colors.white,
           borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
           border: Border.all(color: Colors.white, width: 2),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children:
-              reactions.map<Widget>((reaction) {
-                final type = reaction['type']?.toString() ?? '';
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Text(type, style: AppTypography.headlineMedium),
-                );
-              }).toList(),
+              reactions is List
+                  ? reactions.map<Widget>((reaction) {
+                    final type = reaction['type']?.toString() ?? '';
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Text(type, style: AppTypography.headlineMedium),
+                    );
+                  }).toList()
+                  : [],
         ),
       ),
     );
