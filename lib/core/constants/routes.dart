@@ -9,6 +9,6 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/onboarding': (_) => const OnboardingPage(),
   '/auth': (_) => const AuthGate(),
   '/home': (_) => const HomePage(),
-  '/converstion': (_) => const ConversationPage(),
+  '/converstion': (_) => ConversationPage(),
   '/converstion:id': (_) => const ConversationDetailPage(),
 };

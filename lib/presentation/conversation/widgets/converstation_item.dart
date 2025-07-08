@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 
 class ConverstationItem extends StatelessWidget {
-  final String name;
-  final String lastMessage;
-  final String timestamp;
-  final String imageUrl;
+  final ConversationEntity data;
 
-  const ConverstationItem({
-    super.key,
-    required this.name,
-    required this.lastMessage,
-    required this.timestamp,
-    required this.imageUrl,
-  });
+  const ConverstationItem({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
+    // Defensive: fallback for missing lastMessage
+    final String lastMessageText = data.lastMessage?.text ?? '';
+    final String timestampText = data.timestamp;
+    final String nameText = data.name;
+    final String imageUrl = data.imageUrl;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -54,7 +52,7 @@ class ConverstationItem extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      name,
+                      nameText,
                       style: AppTypography.headlineLarge.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -63,7 +61,7 @@ class ConverstationItem extends StatelessWidget {
                   ),
                   const SizedBox(width: AppDimensions.sm),
                   Text(
-                    timestamp,
+                    timestampText,
                     style: AppTypography.headlineLarge.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
@@ -74,7 +72,7 @@ class ConverstationItem extends StatelessWidget {
               ),
               const SizedBox(height: AppDimensions.sm),
               Text(
-                lastMessage,
+                lastMessageText,
                 style: AppTypography.headlineLarge.copyWith(
                   fontWeight: FontWeight.w800,
                 ),

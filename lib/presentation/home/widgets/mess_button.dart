@@ -13,7 +13,7 @@ class MessButton extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         IconButton(
-          onPressed: () => AppNavigator.push(context, const ConversationPage()),
+          onPressed: () => AppNavigator.push(context, ConversationPage()),
           style: IconButton.styleFrom(
             padding: EdgeInsets.symmetric(
               horizontal: AppDimensions.sm,
