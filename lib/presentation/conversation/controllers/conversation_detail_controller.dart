@@ -1,9 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:locket/domain/conversation/entities/message_entity.dart';
 
 class ConversationDetailControllerState extends ChangeNotifier {
   final ScrollController scrollController = ScrollController();
+
+  // Track which message indices have their timestamp visible
+  final Set<int> visibleTimestamps = {};
 
   final List<LinearGradient> _backgroundGradients = [
     LinearGradient(
@@ -101,5 +105,13 @@ class ConversationDetailControllerState extends ChangeNotifier {
 
     _currentBackgroundGradient = newGradient;
     notifyListeners();
+  }
+
+  bool shouldShowTimestamp(int index, List<MessageEntity> data) {
+    if (index == 0) return true;
+    final prev = data[index - 1];
+    final curr = data[index];
+    final diff = curr.createdAt.difference(prev.createdAt).inMinutes.abs();
+    return diff > 20;
   }
 }

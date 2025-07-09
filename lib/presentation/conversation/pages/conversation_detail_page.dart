@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart' as utils;
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/common/wigets/user_image.dart';
@@ -395,23 +396,76 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
               ),
               child: Stack(
                 children: [
-                  ListView.builder(
-                    controller: _controller.scrollController,
-                    itemCount: _conversationData.length,
-                    padding: const EdgeInsets.only(
-                      top: AppDimensions.lg,
-                      bottom: AppDimensions.xxl * 2,
-                    ),
-                    itemBuilder: (context, index) {
-                      final messageData = _conversationData[index];
-                      return Padding(
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      return ListView.builder(
+                        controller: _controller.scrollController,
+                        itemCount: _conversationData.length,
                         padding: const EdgeInsets.only(
-                          bottom: AppDimensions.xl,
+                          top: AppDimensions.lg,
+                          bottom: AppDimensions.xxl * 2,
                         ),
-                        child: Message(data: messageData),
+                        itemBuilder: (context, index) {
+                          final messageData = _conversationData[index];
+                          final showTimestamp =
+                              _controller.shouldShowTimestamp(
+                                index,
+                                _conversationData,
+                              ) ||
+                              _controller.visibleTimestamps.contains(index);
+
+                          return GestureDetector(
+                            behavior: HitTestBehavior.translucent,
+                            onTap: () {
+                              setState(() {
+                                if (_controller.visibleTimestamps.contains(
+                                  index,
+                                )) {
+                                  _controller.visibleTimestamps.remove(index);
+                                } else {
+                                  _controller.visibleTimestamps.add(index);
+                                }
+                              });
+                            },
+                            child: Column(
+                              crossAxisAlignment:
+                                  messageData.isMe
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
+                              children: [
+                                if (showTimestamp)
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: AppDimensions.sm,
+                                      ),
+                                      child: Text(
+                                        utils.formatVietnameseTimestamp(
+                                          messageData.createdAt,
+                                        ),
+                                        style: AppTypography.bodyMedium
+                                            .copyWith(
+                                              color: Colors.grey[400],
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: AppDimensions.xl,
+                                  ),
+                                  child: Message(data: messageData),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
+
                   Positioned(
                     left: 0,
                     right: 0,

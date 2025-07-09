@@ -62,6 +62,7 @@ class Message extends StatelessWidget {
               ),
             ),
           ),
+
           if (data.reactions.isNotEmpty)
             _reaction(context, data.reactions, data.isMe),
         ],
