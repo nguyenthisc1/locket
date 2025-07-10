@@ -50,6 +50,8 @@ dependencies:
   flutter_secure_storage: ^4.2.1
   camera: ^0.11.1
   photofilters: ^3.0.1
+  image_downloader: ^0.31.0
+  share_plus: ^11.0.0
 
 dev_dependencies:
   flutter_test:

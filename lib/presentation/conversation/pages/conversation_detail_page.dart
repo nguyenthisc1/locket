@@ -379,7 +379,11 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                 ),
               ],
             ),
-            action: Icon(Icons.more_horiz, size: AppDimensions.iconLg),
+
+            action: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
+              child: Icon(Icons.more_horiz, size: AppDimensions.iconLg),
+            ),
           ),
           body: Container(
             padding: const EdgeInsets.only(

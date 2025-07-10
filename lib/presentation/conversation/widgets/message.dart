@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/utils.dart';
+import 'package:locket/common/wigets/photo_preview.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
@@ -10,6 +11,21 @@ class Message extends StatelessWidget {
   final MessageEntity data;
 
   const Message({super.key, required this.data});
+
+  void showImagePreview(BuildContext context, String imageUrl) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "Close",
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder:
+          (context, _, _) => PhotoPreview(
+            imageUrl: imageUrl,
+            tag: imageUrl,
+            onClose: () => Navigator.of(context).pop(),
+          ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,108 +89,111 @@ class Message extends StatelessWidget {
   Widget _messageImage(BuildContext context, MessageEntity data) {
     final String imageUrl =
         data.attachments.isNotEmpty ? (data.attachments[0]['url'] ?? '') : '';
-    return Align(
-      alignment: data.isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-            child: Image.network(
-              imageUrl,
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: MediaQuery.of(context).size.height * 0.35,
-              fit: BoxFit.cover,
-              errorBuilder:
-                  (context, error, stackTrace) => Container(
-                    color: Colors.grey[300],
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    height: MediaQuery.of(context).size.height * 0.35,
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  ),
-            ),
-          ),
-          // SENDER NAME
-          Positioned(
-            top: AppDimensions.md,
-            left: AppDimensions.md,
-            child: ClipRRect(
+    return GestureDetector(
+      onTap: () => showImagePreview(context, imageUrl),
+      child: Align(
+        alignment: data.isMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ClipRRect(
               borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  padding: EdgeInsets.only(
-                    left: AppDimensions.sm,
-                    right: AppDimensions.md,
-                    top: AppDimensions.sm,
-                    bottom: AppDimensions.sm,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.safeOpacity(0.5),
-                  ),
-                  child: Row(
-                    children: [
-                      UserImage(
-                        imageUrl:
-                            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-                        size: AppDimensions.avatarXs,
-                      ),
-                      const SizedBox(width: AppDimensions.sm),
-                      Text(
-                        data.senderName,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: AppDimensions.sm),
-                      Text(
-                        data.timestamp,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              child: Image.network(
+                imageUrl,
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.height * 0.35,
+                fit: BoxFit.cover,
+                errorBuilder:
+                    (context, error, stackTrace) => Container(
+                      color: Colors.grey[300],
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      height: MediaQuery.of(context).size.height * 0.35,
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    ),
               ),
             ),
-          ),
-          // SENDER TEXT
-          Positioned(
-            bottom: AppDimensions.md,
-            left: AppDimensions.md,
-            right: AppDimensions.md,
-            child: Align(
-              alignment: Alignment.center,
+            // SENDER NAME
+            Positioned(
+              top: AppDimensions.md,
+              left: AppDimensions.md,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    padding: EdgeInsets.symmetric(
-                      vertical: AppDimensions.sm,
-                      horizontal: AppDimensions.md,
+                    padding: EdgeInsets.only(
+                      left: AppDimensions.sm,
+                      right: AppDimensions.md,
+                      top: AppDimensions.sm,
+                      bottom: AppDimensions.sm,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.safeOpacity(0.3),
+                      color: Colors.black.safeOpacity(0.5),
                     ),
-                    child: Text(
-                      data.text,
-                      style: AppTypography.bodyLarge.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                    child: Row(
+                      children: [
+                        UserImage(
+                          imageUrl:
+                              'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+                          size: AppDimensions.avatarXs,
+                        ),
+                        const SizedBox(width: AppDimensions.sm),
+                        Text(
+                          data.senderName,
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: AppDimensions.sm),
+                        Text(
+                          data.timestamp,
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // SENDER TEXT
+            Positioned(
+              bottom: AppDimensions.md,
+              left: AppDimensions.md,
+              right: AppDimensions.md,
+              child: Align(
+                alignment: Alignment.center,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: AppDimensions.sm,
+                        horizontal: AppDimensions.md,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.safeOpacity(0.3),
+                      ),
+                      child: Text(
+                        data.text,
+                        style: AppTypography.bodyLarge.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          if (data.reactions.isNotEmpty)
-            _reaction(context, data.reactions, data.isMe),
-        ],
+            if (data.reactions.isNotEmpty)
+              _reaction(context, data.reactions, data.isMe),
+          ],
+        ),
       ),
     );
   }

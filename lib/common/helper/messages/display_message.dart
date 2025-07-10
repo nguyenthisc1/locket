@@ -19,4 +19,13 @@ class DisplayMessage {
     );
     ScaffoldMessenger.of(context).showSnackBar(snackbar);
   }
+
+  static void message(BuildContext context, String message) {
+    var snackbar = SnackBar(
+      content: Text(message),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: AppColors.background,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackbar);
+  }
 }
