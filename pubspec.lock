@@ -53,10 +53,10 @@ packages:
     dependency: transitive
     description:
       name: build
-      sha256: "51dc711996cbf609b90cbe5b335bbce83143875a9d58e4b5c6d3c4f684d3dda7"
+      sha256: cef23f1eda9b57566c81e2133d196f8e3df48f244b317368d65c5943d91148f0
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.4"
+    version: "2.4.2"
   build_config:
     dependency: transitive
     description:
@@ -77,26 +77,26 @@ packages:
     dependency: transitive
     description:
       name: build_resolvers
-      sha256: ee4257b3f20c0c90e72ed2b57ad637f694ccba48839a821e87db762548c22a62
+      sha256: b9e4fda21d846e192628e7a4f6deda6888c36b5b69ba02ff291a01fd529140f0
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.4"
+    version: "2.4.4"
   build_runner:
     dependency: "direct dev"
     description:
       name: build_runner
-      sha256: "382a4d649addbfb7ba71a3631df0ec6a45d5ab9b098638144faf27f02778eb53"
+      sha256: "74691599a5bc750dc96a6b4bfd48f7d9d66453eab04c7f4063134800d6a5c573"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.4"
+    version: "2.4.14"
   build_runner_core:
     dependency: transitive
     description:
       name: build_runner_core
-      sha256: "85fbbb1036d576d966332a3f5ce83f2ce66a40bea1a94ad2d5fc29a19a0d3792"
+      sha256: "22e3aa1c80e0ada3722fe5b63fd43d9c8990759d0a2cf489c8c5d7b2bdebc021"
       url: "https://pub.dev"
     source: hosted
-    version: "9.1.2"
+    version: "8.0.0"
   built_collection:
     dependency: transitive
     description:
@@ -117,26 +117,26 @@ packages:
     dependency: "direct main"
     description:
       name: camera
-      sha256: "413d2b34fe28496c35c69ede5b232fb9dd5ca2c3a4cb606b14efc1c7546cc8cb"
+      sha256: d6ec2cbdbe2fa8f5e0d07d8c06368fe4effa985a4a5ddade9cc58a8cd849557d
       url: "https://pub.dev"
     source: hosted
-    version: "0.11.1"
+    version: "0.11.2"
   camera_android_camerax:
     dependency: transitive
     description:
       name: camera_android_camerax
-      sha256: b4197bd6ce75bc66963a904c34c4cbb6aaa2260a5d4aca13b3556926cf3a92b8
+      sha256: "4b6c1bef4270c39df96402c4d62f2348c3bb2bbaefd0883b9dbd58f426306ad0"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.18+3"
+    version: "0.6.19"
   camera_avfoundation:
     dependency: transitive
     description:
       name: camera_avfoundation
-      sha256: "71dacf6c30aee386617c2b72ad46517706f8ef625aa637313c0d4dc93ddd8d76"
+      sha256: "14d7698b26e95a7db371bee1b07358245e5100640ab5e07c036be23f51383d43"
       url: "https://pub.dev"
     source: hosted
-    version: "0.9.20+1"
+    version: "0.9.20+2"
   camera_platform_interface:
     dependency: transitive
     description:
@@ -376,6 +376,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  gallery_saver:
+    dependency: "direct main"
+    description:
+      name: gallery_saver
+      sha256: df8b7e207ca12d64c71e0710a7ee3bc48aa7206d51cc720716fedb1543a66712
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.2"
   glob:
     dependency: transitive
     description:
@@ -396,10 +404,10 @@ packages:
     dependency: transitive
     description:
       name: http
-      sha256: "2c11f3f94c687ee9bad77c171151672986360b2b001d109814ee7140b2cf261b"
+      sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "0.13.6"
   http_multi_server:
     dependency: transitive
     description:
@@ -424,14 +432,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.0"
-  image_downloader:
-    dependency: "direct main"
-    description:
-      name: image_downloader
-      sha256: "2b1c1d1fcfb6677175d009af3fc86914aee07684c12ea061f380ef1f44cae8df"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.31.0"
   image_picker:
     dependency: "direct main"
     description:
@@ -812,10 +812,10 @@ packages:
     dependency: transitive
     description:
       name: shelf_web_socket
-      sha256: "3632775c8e90d6c9712f883e633716432a27758216dfb61bd86a8321c0580925"
+      sha256: cc36c297b52866d203dbf9332263c94becc2fe0ceaa9681d07b6ef9807023b67
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "2.0.1"
   sky_engine:
     dependency: transitive
     description: flutter

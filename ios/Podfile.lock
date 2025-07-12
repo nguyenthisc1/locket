@@ -4,13 +4,15 @@ PODS:
   - Flutter (1.0.0)
   - flutter_secure_storage (3.3.1):
     - Flutter
-  - image_downloader (0.0.1):
+  - gallery_saver (0.0.1):
     - Flutter
   - image_picker_ios (0.0.1):
     - Flutter
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - share_plus (0.0.1):
+    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -19,9 +21,10 @@ DEPENDENCIES:
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - Flutter (from `Flutter`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
-  - image_downloader (from `.symlinks/plugins/image_downloader/ios`)
+  - gallery_saver (from `.symlinks/plugins/gallery_saver/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
@@ -31,12 +34,14 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_secure_storage:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
-  image_downloader:
-    :path: ".symlinks/plugins/image_downloader/ios"
+  gallery_saver:
+    :path: ".symlinks/plugins/gallery_saver/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
@@ -44,11 +49,12 @@ SPEC CHECKSUMS:
   camera_avfoundation: adb0207d868b2d873e895371d88448399ab78d87
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_secure_storage: 7953c38a04c3fdbb00571bcd87d8e3b5ceb9daec
-  image_downloader: 73e190d6c9f286f2649554051348d9cb319cd4b3
+  gallery_saver: 9fc173c9f4fcc48af53b2a9ebea1b643255be542
   image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
 
-PODFILE CHECKSUM: bae06826497f9227f5ea214ac5e56f9f3d201b5e
+PODFILE CHECKSUM: 8c4d30c2258325612f2b7276ac7aac1f617fcf63
 
 COCOAPODS: 1.16.2
