@@ -386,10 +386,6 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
             ),
           ),
           body: Container(
-            padding: const EdgeInsets.only(
-              left: AppDimensions.md,
-              right: AppDimensions.md,
-            ),
             decoration: BoxDecoration(
               gradient: _controller.currentBackgroundGradient,
             ),
@@ -458,6 +454,8 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                                   ),
                                 Padding(
                                   padding: const EdgeInsets.only(
+                                    left: AppDimensions.md,
+                                    right: AppDimensions.md,
                                     bottom: AppDimensions.xl,
                                   ),
                                   child: Message(data: messageData),
@@ -470,19 +468,11 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                     },
                   ),
 
-                  Positioned(
+                  Positioned.fill(
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: AppDimensions.md,
-                        right: AppDimensions.md,
-                        top: AppDimensions.lg,
-                        bottom: AppDimensions.lg,
-                      ),
-                      child: MessageField(),
-                    ),
+                    child: MessageField(),
                   ),
                 ],
               ),

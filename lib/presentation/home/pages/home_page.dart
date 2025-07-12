@@ -40,6 +40,7 @@ class _HomePageState extends State<HomePage> {
       builder: (context, child) {
         return Scaffold(
           extendBodyBehindAppBar: true,
+          resizeToAvoidBottomInset: false,
           appBar: BasicAppbar(
             hideBack: true,
             action: Expanded(

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:image_downloader/image_downloader.dart';
 import 'package:locket/common/helper/messages/display_message.dart';
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
 
 class PhotoPreview extends StatelessWidget {
   final String imageUrl;
@@ -19,14 +17,14 @@ class PhotoPreview extends StatelessWidget {
   });
 
   Future<void> _downloadImage(BuildContext context) async {
-    try {
-      await ImageDownloader.downloadImage(imageUrl);
-      // ignore: use_build_context_synchronously
-      DisplayMessage.message(context, 'Đã lưu ảnh về máy');
-    } catch (e) {
-      // ignore: use_build_context_synchronously
-      DisplayMessage.message(context, 'Lưu ảnh thất bại');
-    }
+    // try {
+    //   await GallerySaver.saveImage(imageUrl);
+    //   // ignore: use_build_context_synchronously
+    //   DisplayMessage.message(context, 'Đã lưu ảnh về máy');
+    // } catch (e) {
+    //   // ignore: use_build_context_synchronously
+    //   DisplayMessage.message(context, 'Lưu ảnh thất bại');
+    // }
   }
 
   void _showMoreOptions(BuildContext context) async {
@@ -69,7 +67,7 @@ class PhotoPreview extends StatelessWidget {
                 onTap: () async {
                   Navigator.of(context).pop();
                   // ignore: deprecated_member_use
-                  await Share.share(imageUrl, subject: 'Chia sẻ ảnh');
+                  // await Share.share(imageUrl, subject: 'Chia sẻ ảnh');
                 },
               ),
             ],
