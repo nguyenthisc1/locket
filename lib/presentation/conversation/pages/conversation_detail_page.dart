@@ -3,7 +3,6 @@ import 'package:locket/common/helper/utils.dart' as utils;
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/common/wigets/user_image.dart';
-import 'package:locket/domain/conversation/entities/message_entity.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail_controller.dart';
 import 'package:locket/presentation/conversation/widgets/message.dart';
 
@@ -19,333 +18,16 @@ class ConversationDetailPage extends StatefulWidget {
 class _ConversationDetailPageState extends State<ConversationDetailPage> {
   late final ConversationDetailControllerState _controller;
 
-  // Example conversation data modeled after the provided Mongoose message schema
-  List<MessageEntity> get _conversationData => [
-    MessageEntity(
-      id: '660f1a2b3c4d5e6f7a8b9c0d',
-      conversationId: '660f1a2b3c4d5e6f7a8b9c0a',
-      senderId: '660f1a2b3c4d5e6f7a8b9c01',
-      senderName: 'Yến Vy',
-      text: 'Hey! How are you doing today?',
-      type: 'text',
-      attachments: const [],
-      replyTo: null,
-      replyInfo: null,
-      forwardedFrom: null,
-      forwardInfo: null,
-      threadInfo: null,
-      reactions: [
-        {
-          'userId': '660f1a2b3c4d5e6f7a8b9c02',
-          'type': '❤️',
-          'createdAt': DateTime(2023, 5, 6, 10, 31),
-        },
-      ],
-      isRead: true,
-      isEdited: false,
-      isDeleted: false,
-      isPinned: false,
-      editHistory: const [],
-      metadata: const {
-        'clientMessageId': 'client-1',
-        'deviceId': 'ios-001',
-        'platform': 'ios',
-      },
-      sticker: null,
-      emote: null,
-      createdAt: DateTime(2023, 5, 6, 10, 30),
-      timestamp: '10:30 AM',
-      isMe: false,
-    ),
-    MessageEntity(
-      id: '660f1a2b3c4d5e6f7a8b9c0e',
-      conversationId: '660f1a2b3c4d5e6f7a8b9c0a',
-      senderId: '660f1a2b3c4d5e6f7a8b9c02',
-      senderName: 'Minh Anh',
-      text: 'I\'m doing great! Just finished my morning workout.',
-      type: 'text',
-      attachments: const [],
-      replyTo: '660f1a2b3c4d5e6f7a8b9c0d',
-      replyInfo: ReplyInfoEntity.fromJson(const {
-        'messageId': '660f1a2b3c4d5e6f7a8b9c0d',
-        'text': 'Hey! How are you doing today?',
-        'senderName': 'Yến Vy',
-        'attachmentType': null,
-      }),
-      forwardedFrom: null,
-      forwardInfo: null,
-      threadInfo: null,
-      reactions: [
-        {
-          'userId': '660f1a2b3c4d5e6f7a8b9c01',
-          'type': '😂',
-          'createdAt': DateTime(2023, 5, 6, 10, 33),
-        },
-      ],
-      isRead: true,
-      isEdited: false,
-      isDeleted: false,
-      isPinned: false,
-      editHistory: const [],
-      metadata: const {
-        'clientMessageId': 'client-2',
-        'deviceId': 'android-001',
-        'platform': 'android',
-      },
-      sticker: null,
-      emote: null,
-      createdAt: DateTime(2023, 5, 6, 10, 32),
-      timestamp: '10:32 AM',
-      isMe: true,
-    ),
-    // Message with Unsplash image attachment
-    MessageEntity(
-      id: '660f1a2b3c4d5e6f7a8b9c13',
-      conversationId: '660f1a2b3c4d5e6f7a8b9c0a',
-      senderId: '660f1a2b3c4d5e6f7a8b9c01',
-      senderName: 'Yến Vy',
-      text: 'Check out this beautiful view!',
-      type: 'image',
-      attachments: const [
-        {
-          'url':
-              'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
-          'type': 'image',
-          'name': 'mountain.jpg',
-        },
-      ],
-      replyTo: null,
-      replyInfo: null,
-      forwardedFrom: null,
-      forwardInfo: null,
-      threadInfo: null,
-      reactions: [
-        {
-          'userId': '660f1a2b3c4d5e6f7a8b9c02',
-          'type': '😍',
-          'createdAt': DateTime(2023, 5, 6, 10, 40),
-        },
-      ],
-      isRead: true,
-      isEdited: false,
-      isDeleted: false,
-      isPinned: false,
-      editHistory: const [],
-      metadata: const {
-        'clientMessageId': 'client-7',
-        'deviceId': 'ios-001',
-        'platform': 'ios',
-      },
-      sticker: null,
-      emote: null,
-      createdAt: DateTime(2023, 5, 6, 10, 40),
-      timestamp: '10:40 AM',
-      isMe: false,
-    ),
-    // Another message with Unsplash image
-    MessageEntity(
-      id: '660f1a2b3c4d5e6f7a8b9c14',
-      conversationId: '660f1a2b3c4d5e6f7a8b9c0a',
-      senderId: '660f1a2b3c4d5e6f7a8b9c02',
-      senderName: 'Minh Anh',
-      text: 'Wow! Here is one from my last trip.',
-      type: 'image',
-      attachments: const [
-        {
-          'url':
-              'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80',
-          'type': 'image',
-          'name': 'lake.jpg',
-        },
-      ],
-      replyTo: '660f1a2b3c4d5e6f7a8b9c13',
-      replyInfo: ReplyInfoEntity(
-        messageId: '660f1a2b3c4d5e6f7a8b9c13',
-        text: 'Check out this beautiful view!',
-        senderName: 'Yến Vy',
-        attachmentType: 'image',
-        attachments: [
-          {
-            'url':
-                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
-            'type': 'image',
-            'name': 'mountain.jpg',
-          },
-        ],
-      ),
-      forwardedFrom: null,
-      forwardInfo: null,
-      threadInfo: null,
-      reactions: [
-        {
-          'userId': '660f1a2b3c4d5e6f7a8b9c01',
-          'type': '👍',
-          'createdAt': DateTime(2023, 5, 6, 10, 42),
-        },
-      ],
-      isRead: true,
-      isEdited: false,
-      isDeleted: false,
-      isPinned: false,
-      editHistory: const [],
-      metadata: const {
-        'clientMessageId': 'client-8',
-        'deviceId': 'android-001',
-        'platform': 'android',
-      },
-      sticker: null,
-      emote: null,
-      createdAt: DateTime(2023, 5, 6, 10, 42),
-      timestamp: '10:42 AM',
-      isMe: true,
-    ),
-    MessageEntity(
-      id: '660f1a2b3c4d5e6f7a8b9c0f',
-      conversationId: '660f1a2b3c4d5e6f7a8b9c0a',
-      senderId: '660f1a2b3c4d5e6f7a8b9c01',
-      senderName: 'Yến Vy',
-      text: 'That sounds awesome! What exercises did you do?',
-      type: 'text',
-      attachments: const [],
-      replyTo: '660f1a2b3c4d5e6f7a8b9c0e',
-      replyInfo: ReplyInfoEntity.fromJson(const {
-        'messageId': '660f1a2b3c4d5e6f7a8b9c0e',
-        'text': 'I\'m doing great! Just finished my morning workout.',
-        'senderName': 'Minh Anh',
-        'attachmentType': null,
-      }),
-      forwardedFrom: null,
-      forwardInfo: null,
-      threadInfo: null,
-      reactions: const [],
-      isRead: true,
-      isEdited: false,
-      isDeleted: false,
-      isPinned: false,
-      editHistory: const [],
-      metadata: const {
-        'clientMessageId': 'client-3',
-        'deviceId': 'ios-001',
-        'platform': 'ios',
-      },
-      sticker: null,
-      emote: null,
-      createdAt: DateTime(2023, 5, 6, 10, 33),
-      timestamp: '10:33 AM',
-      isMe: false,
-    ),
-    MessageEntity(
-      id: '660f1a2b3c4d5e6f7a8b9c10',
-      conversationId: '660f1a2b3c4d5e6f7a8b9c0a',
-      senderId: '660f1a2b3c4d5e6f7a8b9c02',
-      senderName: 'Minh Anh',
-      text: 'Mostly cardio and some strength training. How about you?',
-      type: 'text',
-      attachments: const [],
-      replyTo: '660f1a2b3c4d5e6f7a8b9c0f',
-      replyInfo: ReplyInfoEntity.fromJson(const {
-        'messageId': '660f1a2b3c4d5e6f7a8b9c0f',
-        'text': 'That sounds awesome! What exercises did you do?',
-        'senderName': 'Yến Vy',
-        'attachmentType': null,
-      }),
-      forwardedFrom: null,
-      forwardInfo: null,
-      threadInfo: null,
-      reactions: const [],
-      isRead: true,
-      isEdited: false,
-      isDeleted: false,
-      isPinned: false,
-      editHistory: const [],
-      metadata: const {
-        'clientMessageId': 'client-4',
-        'deviceId': 'android-001',
-        'platform': 'android',
-      },
-      sticker: null,
-      emote: null,
-      createdAt: DateTime(2023, 5, 6, 10, 35),
-      timestamp: '10:35 AM',
-      isMe: true,
-    ),
-    MessageEntity(
-      id: '660f1a2b3c4d5e6f7a8b9c11',
-      conversationId: '660f1a2b3c4d5e6f7a8b9c0a',
-      senderId: '660f1a2b3c4d5e6f7a8b9c01',
-      senderName: 'Yến Vy',
-      text: 'I\'m planning to go for a run later. Want to join?',
-      type: 'text',
-      attachments: const [],
-      replyTo: '660f1a2b3c4d5e6f7a8b9c10',
-      replyInfo: ReplyInfoEntity.fromJson(const {
-        'messageId': '660f1a2b3c4d5e6f7a8b9c10',
-        'text': 'Mostly cardio and some strength training. How about you?',
-        'senderName': 'Minh Anh',
-        'attachmentType': null,
-      }),
-      forwardedFrom: null,
-      forwardInfo: null,
-      threadInfo: null,
-      reactions: const [],
-      isRead: true,
-      isEdited: false,
-      isDeleted: false,
-      isPinned: false,
-      editHistory: const [],
-      metadata: const {
-        'clientMessageId': 'client-5',
-        'deviceId': 'ios-001',
-        'platform': 'ios',
-      },
-      sticker: null,
-      emote: null,
-      createdAt: DateTime(2023, 5, 6, 10, 36),
-      timestamp: '10:36 AM',
-      isMe: false,
-    ),
-    MessageEntity(
-      id: '660f1a2b3c4d5e6f7a8b9c12',
-      conversationId: '660f1a2b3c4d5e6f7a8b9c0a',
-      senderId: '660f1a2b3c4d5e6f7a8b9c02',
-      senderName: 'Minh Anh',
-      text: 'Sure! That would be fun. What time works for you?',
-      type: 'text',
-      attachments: const [],
-      replyTo: '660f1a2b3c4d5e6f7a8b9c11',
-      replyInfo: ReplyInfoEntity.fromJson(const {
-        'messageId': '660f1a2b3c4d5e6f7a8b9c11',
-        'text': 'I\'m planning to go for a run later. Want to join?',
-        'senderName': 'Yến Vy',
-        'attachmentType': null,
-      }),
-      forwardedFrom: null,
-      forwardInfo: null,
-      threadInfo: null,
-      reactions: const [],
-      isRead: true,
-      isEdited: false,
-      isDeleted: false,
-      isPinned: false,
-      editHistory: const [],
-      metadata: const {
-        'clientMessageId': 'client-6',
-        'deviceId': 'android-001',
-        'platform': 'android',
-      },
-      sticker: null,
-      emote: null,
-      createdAt: DateTime(2023, 5, 6, 10, 38),
-      timestamp: '10:38 AM',
-      isMe: true,
-    ),
-    // ... (Add more messages as needed, following the above structure)
-  ];
-
   @override
   void initState() {
     super.initState();
     _controller = ConversationDetailControllerState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.scrollController.jumpTo(
+        _controller.scrollController.position.minScrollExtent,
+      );
+    });
   }
 
   @override
@@ -399,18 +81,20 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                   StatefulBuilder(
                     builder: (context, setState) {
                       return ListView.builder(
+                        reverse: true,
                         controller: _controller.scrollController,
-                        itemCount: _conversationData.length,
+                        itemCount: _controller.conversationData.length,
                         padding: const EdgeInsets.only(
                           top: AppDimensions.lg,
                           bottom: AppDimensions.xxl * 2,
                         ),
                         itemBuilder: (context, index) {
-                          final messageData = _conversationData[index];
+                          final messageData =
+                              _controller.conversationData[index];
                           final showTimestamp =
                               _controller.shouldShowTimestamp(
                                 index,
-                                _conversationData,
+                                _controller.conversationData,
                               ) ||
                               _controller.visibleTimestamps.contains(index);
 
@@ -418,13 +102,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                             behavior: HitTestBehavior.translucent,
                             onTap: () {
                               setState(() {
-                                if (_controller.visibleTimestamps.contains(
-                                  index,
-                                )) {
-                                  _controller.visibleTimestamps.remove(index);
-                                } else {
-                                  _controller.visibleTimestamps.add(index);
-                                }
+                                _controller.toggleTimestampVisibility(index);
                               });
                             },
                             child: Column(
@@ -465,6 +143,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                           );
                         },
                       );
+                      ;
                     },
                   ),
 
