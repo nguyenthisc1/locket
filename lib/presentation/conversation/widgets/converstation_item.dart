@@ -62,7 +62,7 @@ class ConverstationItem extends StatelessWidget {
                   const SizedBox(width: AppDimensions.sm),
                   Text(
                     timestampText,
-                    style: AppTypography.headlineLarge.copyWith(
+                    style: AppTypography.bodySmall.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),

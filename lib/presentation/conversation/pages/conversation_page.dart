@@ -166,6 +166,7 @@ class ConversationPage extends StatelessWidget {
           itemBuilder: (context, index) {
             final conversation = _conversations[index];
             return GestureDetector(
+              behavior: HitTestBehavior.translucent,
               onTap:
                   () => AppNavigator.push(
                     context,
