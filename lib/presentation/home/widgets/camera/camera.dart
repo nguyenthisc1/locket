@@ -68,6 +68,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
               onZoomlevel: _cameraController.setZoomLevel,
               isPictureTaken: _cameraController.isPictureTaken,
               imageFile: _cameraController.imageFile,
+              fadeController: _cameraController.fadeController,
             ),
 
             const SizedBox(height: AppDimensions.xxl),

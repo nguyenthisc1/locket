@@ -1,6 +1,8 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:locket/common/animations/fade_animation_controller.dart';
 
 class CameraControllerState extends ChangeNotifier implements TickerProvider {
   List<CameraDescription> _cameras = [];
@@ -14,13 +16,7 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   bool _isPictureTaken = false;
   DateTime? _pictureTakenAt;
 
-  // Animation Controllers
-  late final AnimationController _flashModeControlRowAnimationController;
-  late final CurvedAnimation _flashModeControlRowAnimation;
-  late final AnimationController _exposureModeControlRowAnimationController;
-  late final CurvedAnimation _exposureModeControlRowAnimation;
-  late final AnimationController _focusModeControlRowAnimationController;
-  late final CurvedAnimation _focusModeControlRowAnimation;
+  FadeAnimationController? _fadeController;
 
   // Getters
   List<CameraDescription> get cameras => _cameras;
@@ -34,19 +30,8 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   bool get isPictureTaken => _isPictureTaken;
   DateTime? get pictureTakenAt => _pictureTakenAt;
 
-  // Animation getters
-  AnimationController get flashModeControlRowAnimationController =>
-      _flashModeControlRowAnimationController;
-  CurvedAnimation get flashModeControlRowAnimation =>
-      _flashModeControlRowAnimation;
-  AnimationController get exposureModeControlRowAnimationController =>
-      _exposureModeControlRowAnimationController;
-  CurvedAnimation get exposureModeControlRowAnimation =>
-      _exposureModeControlRowAnimation;
-  AnimationController get focusModeControlRowAnimationController =>
-      _focusModeControlRowAnimationController;
-  CurvedAnimation get focusModeControlRowAnimation =>
-      _focusModeControlRowAnimation;
+  // Animation getter
+  FadeAnimationController? get fadeController => _fadeController;
 
   @override
   Ticker createTicker(TickerCallback onTick) {
@@ -58,39 +43,28 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     print('Error: $code${message == null ? '' : '\nError Message: $message'}');
   }
 
+  void resetPictureTakenState() {
+    _imageFile = null;
+    _isPictureTaken = false;
+    _pictureTakenAt = null;
+    notifyListeners();
+  }
+
+  void clearImageFile() {
+    _imageFile = null;
+    notifyListeners();
+  }
+
   Future<void> initialize() async {
-    // Initialize animation controllers
-    _flashModeControlRowAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _flashModeControlRowAnimation = CurvedAnimation(
-      parent: _flashModeControlRowAnimationController,
-      curve: Curves.easeInOut,
-    );
-
-    _exposureModeControlRowAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _exposureModeControlRowAnimation = CurvedAnimation(
-      parent: _exposureModeControlRowAnimationController,
-      curve: Curves.easeInOut,
-    );
-
-    _focusModeControlRowAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _focusModeControlRowAnimation = CurvedAnimation(
-      parent: _focusModeControlRowAnimationController,
-      curve: Curves.easeInOut,
-    );
+    // Dispose previous fade controller if exists
+    _fadeController?.dispose();
+    _fadeController = FadeAnimationController(vsync: this);
 
     try {
       _cameras = await availableCameras();
       if (_cameras.isNotEmpty) {
-        _selectedCameraIndex = 1;
+        // Use index 0 by default for safety, fallback if index 1 doesn't exist
+        _selectedCameraIndex = _cameras.length > 1 ? 1 : 0;
         _isFlashOn = false;
         await _initCameraController(_cameras[_selectedCameraIndex]);
       }
@@ -135,6 +109,13 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   Future<void> switchCamera() async {
     if (_cameras.length < 2) return;
 
+    // Fade out animation (opacity 1 → 0)
+    _fadeController?.fadeOut();
+
+    // Wait for fade out to complete before switching camera
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // Switch camera logic
     final lensDirection = _cameras[_selectedCameraIndex].lensDirection;
     CameraLensDirection newDirection =
         lensDirection == CameraLensDirection.front
@@ -147,8 +128,14 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
 
     if (newIndex != -1) {
       _selectedCameraIndex = newIndex;
+      _currentZoomLevel =
+          1.0; // Reset zoom level to default when switching camera
       await _initCameraController(_cameras[_selectedCameraIndex]);
+      notifyListeners(); // Notify listeners about zoom level reset
     }
+
+    // Fade in animation (opacity 0 → 1)
+    _fadeController?.fadeIn();
   }
 
   Future<void> toggleFlash() async {
@@ -156,6 +143,8 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
 
     try {
       _isFlashOn = !_isFlashOn;
+      HapticFeedback.mediumImpact();
+
       notifyListeners();
 
       if (_isFlashOn) {
@@ -184,6 +173,7 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
 
     try {
       final XFile image = await _controller!.takePicture();
+      HapticFeedback.mediumImpact();
       _imageFile = image;
       _isPictureTaken = true;
       _pictureTakenAt = DateTime.now();
@@ -194,18 +184,6 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     } on CameraException catch (e) {
       _logError(e.code, e.description);
     }
-  }
-
-  void resetPictureTakenState() {
-    _imageFile = null;
-    _isPictureTaken = false;
-    _pictureTakenAt = null;
-    notifyListeners();
-  }
-
-  void clearImageFile() {
-    _imageFile = null;
-    notifyListeners();
   }
 
   Future<void> startRecording() async {
@@ -233,11 +211,10 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     }
   }
 
+  @override
   void dispose() {
     _controller?.dispose();
-    _flashModeControlRowAnimationController.dispose();
-    _exposureModeControlRowAnimationController.dispose();
-    _focusModeControlRowAnimationController.dispose();
+    _fadeController?.dispose();
     super.dispose();
   }
 }

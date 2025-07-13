@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:locket/common/animations/fade_animation_controller.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 import 'camera_controls.dart';
@@ -15,6 +16,7 @@ class CameraPreviewWrapper extends StatefulWidget {
   final Future<void> Function(double) onZoomlevel;
   final XFile? imageFile;
   final bool isPictureTaken;
+  final FadeAnimationController? fadeController;
 
   const CameraPreviewWrapper({
     super.key,
@@ -25,6 +27,7 @@ class CameraPreviewWrapper extends StatefulWidget {
     required this.onZoomlevel,
     this.imageFile,
     this.isPictureTaken = false,
+    required this.fadeController,
   });
 
   @override
@@ -32,22 +35,6 @@ class CameraPreviewWrapper extends StatefulWidget {
 }
 
 class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
-  late double _currentZoomLevel;
-  double _baseScale = 1.0;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentZoomLevel = widget.currentZoomLevel;
-  }
-
-  Future<void> _handleZoom(double zoom) async {
-    setState(() {
-      _currentZoomLevel = zoom;
-    });
-    await widget.onZoomlevel(zoom);
-  }
-
   @override
   Widget build(BuildContext context) {
     final bool isFrontCamera =
@@ -69,7 +56,6 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
                           (isFrontCamera
                                 ? Matrix4.rotationY(math.pi)
                                 : Matrix4.identity())
-                            // Add scale to match the preview scale
                             ..scale(1.2, 1.2),
                       child: Image.file(
                         File(widget.imageFile!.path),
@@ -80,17 +66,16 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
                       scaleX: 1.2,
                       scaleY: 2,
                       child: GestureDetector(
-                        onScaleStart: (details) {
-                          _baseScale = _currentZoomLevel;
-                        },
                         onScaleUpdate: (details) {
-                          double zoom = (_baseScale * details.scale).clamp(
-                            1.0,
-                            3.0,
-                          );
-                          _handleZoom(zoom);
+                          double zoom = (widget.currentZoomLevel *
+                                  details.scale)
+                              .clamp(1.0, 3.0);
+                          widget.onZoomlevel(zoom);
                         },
-                        child: CameraPreview(widget.controller),
+                        child: FadeTransition(
+                          opacity: widget.fadeController!.animation,
+                          child: CameraPreview(widget.controller),
+                        ),
                       ),
                     ),
           ),
@@ -104,7 +89,7 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
               ),
               child: CameraControls(
                 isFlashOn: widget.isFlashOn,
-                currentZoomLevel: _currentZoomLevel,
+                currentZoomLevel: widget.currentZoomLevel,
                 onFlashToggle: widget.onFlashToggle,
               ),
             ),
