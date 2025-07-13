@@ -376,14 +376,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
-  gallery_saver:
+  gallery_saver_plus:
     dependency: "direct main"
     description:
-      name: gallery_saver
-      sha256: df8b7e207ca12d64c71e0710a7ee3bc48aa7206d51cc720716fedb1543a66712
+      name: gallery_saver_plus
+      sha256: "29d7c20d24a7e5a90d9765753180c24ff1194d9a9f0ea545b66fd5ef5fa27c84"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.2"
+    version: "3.2.8"
   glob:
     dependency: transitive
     description:
@@ -404,10 +404,10 @@ packages:
     dependency: transitive
     description:
       name: http
-      sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
+      sha256: "2c11f3f94c687ee9bad77c171151672986360b2b001d109814ee7140b2cf261b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.6"
+    version: "1.4.0"
   http_multi_server:
     dependency: transitive
     description:
@@ -616,6 +616,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  pasteboard:
+    dependency: "direct main"
+    description:
+      name: pasteboard
+      sha256: "9ff73ada33f79a59ff91f6c01881fd4ed0a0031cfc4ae2d86c0384471525fca1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.0"
   path:
     dependency: transitive
     description:
@@ -909,6 +917,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  universal_io:
+    dependency: "direct main"
+    description:
+      name: universal_io
+      sha256: "1722b2dcc462b4b2f3ee7d188dad008b6eb4c40bbd03a3de451d82c78bba9aad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.2"
   url_launcher_linux:
     dependency: transitive
     description:
