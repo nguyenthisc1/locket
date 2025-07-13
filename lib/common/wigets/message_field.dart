@@ -52,14 +52,13 @@ class _MessageFieldState extends State<MessageField>
     _focusNode.addListener(_handleFocusChange);
 
     _animationController = AnimationController(
-      vsync: this, // use this as the TickerProvider
-      duration: const Duration(milliseconds: 500),
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
     );
 
-    _opacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(_animationController);
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.linear),
+    );
     super.initState();
   }
 
@@ -85,9 +84,9 @@ class _MessageFieldState extends State<MessageField>
     return Stack(
       children: [
         // Fullscreen GestureDetector to close keyboard when tapping outside
-        IgnorePointer(
-          ignoring: !isKeyboardVisible,
-          child: Positioned.fill(
+        Positioned.fill(
+          child: IgnorePointer(
+            ignoring: !isKeyboardVisible,
             child: GestureDetector(
               onTap: _unfocus,
               behavior: HitTestBehavior.translucent,
