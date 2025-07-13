@@ -60,7 +60,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
 
         return Column(
           children: [
-            CameraPrevieWrapper(
+            CameraPreviewWrapper(
               controller: _cameraController.controller!,
               isFlashOn: _cameraController.isFlashOn,
               currentZoomLevel: _cameraController.currentZoomLevel,

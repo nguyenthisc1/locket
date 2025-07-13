@@ -7,7 +7,7 @@ import 'package:locket/core/configs/theme/index.dart';
 
 import 'camera_controls.dart';
 
-class CameraPrevieWrapper extends StatefulWidget {
+class CameraPreviewWrapper extends StatefulWidget {
   final CameraController controller;
   final bool isFlashOn;
   final VoidCallback onFlashToggle;
@@ -16,7 +16,7 @@ class CameraPrevieWrapper extends StatefulWidget {
   final XFile? imageFile;
   final bool isPictureTaken;
 
-  const CameraPrevieWrapper({
+  const CameraPreviewWrapper({
     super.key,
     required this.controller,
     required this.isFlashOn,
@@ -28,10 +28,10 @@ class CameraPrevieWrapper extends StatefulWidget {
   });
 
   @override
-  State<CameraPrevieWrapper> createState() => _CameraPrevieWrapperState();
+  State<CameraPreviewWrapper> createState() => _CameraPreviewWrapperState();
 }
 
-class _CameraPrevieWrapperState extends State<CameraPrevieWrapper> {
+class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
   late double _currentZoomLevel;
   double _baseScale = 1.0;
 
@@ -66,17 +66,19 @@ class _CameraPrevieWrapperState extends State<CameraPrevieWrapper> {
                     ? Transform(
                       alignment: Alignment.center,
                       transform:
-                          isFrontCamera
-                              ? Matrix4.rotationY(math.pi)
-                              : Matrix4.identity(),
+                          (isFrontCamera
+                                ? Matrix4.rotationY(math.pi)
+                                : Matrix4.identity())
+                            // Add scale to match the preview scale
+                            ..scale(1.2, 1.2),
                       child: Image.file(
                         File(widget.imageFile!.path),
                         fit: BoxFit.cover,
                       ),
                     )
                     : Transform.scale(
-                      scaleY: 2,
                       scaleX: 1.2,
+                      scaleY: 2,
                       child: GestureDetector(
                         onScaleStart: (details) {
                           _baseScale = _currentZoomLevel;
