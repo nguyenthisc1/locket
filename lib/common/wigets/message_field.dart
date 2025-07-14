@@ -6,6 +6,7 @@ import 'package:locket/core/configs/theme/index.dart';
 
 class MessageField extends StatefulWidget {
   final EdgeInsetsGeometry? padding;
+  final bool? isVisibleBackdrop;
 
   const MessageField({
     super.key,
@@ -15,6 +16,7 @@ class MessageField extends StatefulWidget {
       top: AppDimensions.lg,
       bottom: AppDimensions.lg,
     ),
+    this.isVisibleBackdrop = false,
   });
 
   @override
@@ -92,7 +94,12 @@ class _MessageFieldState extends State<MessageField>
               behavior: HitTestBehavior.translucent,
               child: FadeTransition(
                 opacity: _opacityAnimation,
-                child: Container(color: Colors.black.safeOpacity(0.8)),
+                child: Container(
+                  color:
+                      widget.isVisibleBackdrop!
+                          ? Colors.transparent
+                          : Colors.black.safeOpacity(0.8),
+                ),
               ),
             ),
           ),
