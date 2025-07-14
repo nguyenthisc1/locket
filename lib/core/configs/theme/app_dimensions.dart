@@ -56,4 +56,9 @@ class AppDimensions {
   static const double photoGridSpacing = 2.0;
   static const double storySize = 64.0;
   static const double storySpacing = 12.0;
+
+  // duration
+  static const int durationFast = 200;
+  static const int durationMedium = 400;
+  static const int durationSlow = 600;
 }

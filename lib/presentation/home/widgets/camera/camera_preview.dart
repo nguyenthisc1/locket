@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:locket/common/animations/fade_animation_controller.dart';
+import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 import 'camera_controls.dart';
@@ -35,73 +36,139 @@ class CameraPreviewWrapper extends StatefulWidget {
 }
 
 class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
+  bool get _isFrontCamera =>
+      widget.controller.description.lensDirection == CameraLensDirection.front;
+
+  double get _previewHeight => MediaQuery.of(context).size.height * 0.45;
+
   @override
   Widget build(BuildContext context) {
-    final bool isFrontCamera =
-        widget.controller.description.lensDirection ==
-        CameraLensDirection.front;
-
     return Stack(
       children: [
-        SizedBox(
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height * 0.45,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-            child:
-                widget.imageFile != null
-                    ? Transform(
-                      alignment: Alignment.center,
-                      transform:
-                          (isFrontCamera
-                                ? Matrix4.rotationY(math.pi)
-                                : Matrix4.identity())
-                            ..scale(1.2, 1.2),
-                      child: Image.file(
-                        File(widget.imageFile!.path),
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                    : Transform.scale(
-                      scaleX: 1.2,
-                      scaleY: 2,
-                      child: GestureDetector(
-                        onScaleUpdate: (details) {
-                          double zoom = (widget.currentZoomLevel *
-                                  details.scale)
-                              .clamp(1.0, 3.0);
-                          widget.onZoomlevel(zoom);
-                        },
-                        child: FadeTransition(
-                          opacity: widget.fadeController!.animation,
-                          child: CameraPreview(widget.controller),
-                        ),
-                      ),
-                    ),
-          ),
+        _buildAnimatedPreview(),
+        Positioned(child: _buildCameraControls()),
+        Positioned.fill(left: 0, right: 0, child: _buildMessageField()),
+      ],
+    );
+  }
+
+  Widget _buildImagePreview() {
+    return SizedBox(
+      key: const ValueKey('image_preview'),
+      width: double.infinity,
+      height: _previewHeight,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+        child: Transform(
+          alignment: Alignment.center,
+          transform:
+              (_isFrontCamera ? Matrix4.rotationY(math.pi) : Matrix4.identity())
+                ..scale(1.2, 1.2),
+          child: Image.file(File(widget.imageFile!.path), fit: BoxFit.cover),
         ),
-        if (!widget.isPictureTaken)
-          Positioned(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.lg,
-                vertical: AppDimensions.md,
-              ),
-              child: CameraControls(
-                isFlashOn: widget.isFlashOn,
-                currentZoomLevel: widget.currentZoomLevel,
-                onFlashToggle: widget.onFlashToggle,
-              ),
+      ),
+    );
+  }
+
+  Widget _buildCameraPreview() {
+    return SizedBox(
+      key: const ValueKey('camera_preview'),
+      width: double.infinity,
+      height: _previewHeight,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+        child: Transform.scale(
+          scaleX: 1.2,
+          scaleY: 2,
+          child: GestureDetector(
+            onScaleUpdate: (details) {
+              final zoom = (widget.currentZoomLevel * details.scale).clamp(
+                1.0,
+                3.0,
+              );
+              widget.onZoomlevel(zoom);
+            },
+            child: FadeTransition(
+              opacity:
+                  widget.fadeController?.animation ?? kAlwaysCompleteAnimation,
+              child: CameraPreview(widget.controller),
             ),
           ),
-        // if (widget.isPictureTaken)
-        //   Positioned(
-        //     bottom: 0,
-        //     child: TextField(
-        //       decoration: InputDecoration(label: Text('Message')),
-        //     ),
-        //   ),
-      ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedPreview() {
+    final showImage = widget.isPictureTaken && widget.imageFile != null;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: AppDimensions.durationFast),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder:
+          (child, animation) =>
+              FadeTransition(opacity: animation, child: child),
+      child: showImage ? _buildImagePreview() : _buildCameraPreview(),
+    );
+  }
+
+  Widget _buildCameraControls() {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: AppDimensions.durationFast),
+      transitionBuilder:
+          (child, animation) =>
+              FadeTransition(opacity: animation, child: child),
+      child:
+          !widget.isPictureTaken
+              ? Padding(
+                key: const ValueKey('camera_controls'),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.lg,
+                  vertical: AppDimensions.md,
+                ),
+                child: CameraControls(
+                  isFlashOn: widget.isFlashOn,
+                  currentZoomLevel: widget.currentZoomLevel,
+                  onFlashToggle: widget.onFlashToggle,
+                ),
+              )
+              : const SizedBox.shrink(key: ValueKey('empty')),
+    );
+  }
+
+  Widget _buildMessageField() {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: AppDimensions.durationFast),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: animation.drive(
+              Tween<Offset>(
+                begin: const Offset(0, 0.1),
+                end: Offset.zero,
+              ).chain(CurveTween(curve: Curves.easeOut)),
+            ),
+            child: child,
+          ),
+        );
+      },
+      child:
+          widget.isPictureTaken
+              ? SizedBox.expand(
+                key: const ValueKey('text_field'),
+                child: const MessageField(
+                  isVisibleBackdrop: true,
+                  padding: EdgeInsets.only(
+                    left: AppDimensions.lg,
+                    right: AppDimensions.lg,
+                    bottom: AppDimensions.md,
+                  ),
+                ),
+              )
+              : const SizedBox.shrink(key: ValueKey('empty')),
     );
   }
 }
