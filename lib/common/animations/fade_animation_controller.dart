@@ -15,15 +15,9 @@ class FadeAnimationController {
     animation = CurvedAnimation(parent: controller, curve: curve);
   }
 
-  void fadeIn() {
-    controller.forward();
-  }
+  void fadeIn() => controller.forward();
 
-  void fadeOut() {
-    controller.reverse();
-  }
+  void fadeOut() => controller.reverse();
 
-  void dispose() {
-    controller.dispose();
-  }
+  void dispose() => controller.dispose();
 }
