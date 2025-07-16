@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/presentation/home/widgets/build_icon_button.dart';
-import 'package:locket/presentation/home/widgets/take_button.dart';
+import 'package:locket/common/wigets/take_button.dart';
 
 class FriendToolbar extends StatelessWidget {
   final void Function() onScrollToTop;

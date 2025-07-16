@@ -17,7 +17,6 @@ class FadeSlideAnimationController {
     controller = AnimationController(vsync: vsync, duration: duration);
   }
 
-  /// Khởi tạo hoặc cập nhật animation với hướng translate mong muốn
   void configure({required Offset beginOffset}) {
     fadeAnimation = CurvedAnimation(parent: controller, curve: curve);
 
