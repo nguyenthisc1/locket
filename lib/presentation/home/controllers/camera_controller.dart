@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -11,6 +13,7 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   bool _isFlashOn = false;
   double _currentZoomLevel = 1.0;
   XFile? _imageFile;
+  XFile? _videoFile;
   bool _isRecording = false;
   bool _isInitialized = false;
   bool _isPictureTaken = false;
@@ -25,6 +28,7 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   bool get isFlashOn => _isFlashOn;
   double get currentZoomLevel => _currentZoomLevel;
   XFile? get imageFile => _imageFile;
+  XFile? get videoFile => _videoFile;
   bool get isRecording => _isRecording;
   bool get isInitialized => _isInitialized;
   bool get isPictureTaken => _isPictureTaken;
@@ -45,13 +49,9 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
 
   void resetPictureTakenState() {
     _imageFile = null;
+    _videoFile = null;
     _isPictureTaken = false;
     _pictureTakenAt = null;
-    notifyListeners();
-  }
-
-  void clearImageFile() {
-    _imageFile = null;
     notifyListeners();
   }
 
@@ -203,7 +203,13 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
 
     try {
       final XFile video = await _controller!.stopVideoRecording();
+      _videoFile = video;
+      _isPictureTaken = true;
+      _pictureTakenAt = DateTime.now();
       _isRecording = false;
+      print('video path: ${_videoFile?.path}');
+      print('video name: ${_videoFile?.name}');
+      print('Picture taken at: $_pictureTakenAt');
       notifyListeners();
       // Handle the recorded video file
     } on CameraException catch (e) {

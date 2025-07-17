@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/common/wigets/take_button.dart';
@@ -25,34 +27,53 @@ class _CameraButtonState extends State<CameraButton>
   late AnimationController _progressController;
 
   bool _isLongPress = false;
+  int _longPressCount = 0;
+  static const int _maxLongPress = 5;
+  static const Duration _maxLongPressDuration = Duration(seconds: 5);
+  Timer? _longPressTimer;
 
   @override
   void initState() {
     super.initState();
     _progressController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5),
+      duration: _maxLongPressDuration,
     );
 
     _progressController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         widget.onRecordComplete();
         _progressController.reset();
+        _handleLongPressEnd(force: true);
       }
     });
   }
 
   void _handleLongPressStart() {
+    if (_longPressCount >= _maxLongPress) {
+      _handleLongPressEnd(force: true);
+      return;
+    }
     widget.onRecordStart();
     _progressController.forward(from: 0);
     setState(() {
       _isLongPress = true;
+      _longPressCount++;
+    });
+
+    _longPressTimer?.cancel();
+    _longPressTimer = Timer(_maxLongPressDuration, () {
+      if (_isLongPress) {
+        _handleLongPressEnd(force: true);
+      }
     });
   }
 
-  void _handleLongPressEnd() {
+  void _handleLongPressEnd({bool force = false}) {
+    if (!_isLongPress && !force) return;
     widget.onRecordEnd();
     _progressController.reset();
+    _longPressTimer?.cancel();
     setState(() {
       _isLongPress = false;
     });
@@ -61,6 +82,7 @@ class _CameraButtonState extends State<CameraButton>
   @override
   void dispose() {
     _progressController.dispose();
+    _longPressTimer?.cancel();
     super.dispose();
   }
 

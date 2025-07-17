@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:locket/common/animations/fade_animation_controller.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/presentation/home/widgets/camera/video_preview.dart';
 
 import 'camera_controls.dart';
 
@@ -16,6 +17,7 @@ class CameraPreviewWrapper extends StatefulWidget {
   final double currentZoomLevel;
   final Future<void> Function(double) onZoomlevel;
   final XFile? imageFile;
+  final XFile? videoFile;
   final bool isPictureTaken;
   final FadeAnimationController? fadeController;
 
@@ -26,9 +28,10 @@ class CameraPreviewWrapper extends StatefulWidget {
     required this.onFlashToggle,
     required this.currentZoomLevel,
     required this.onZoomlevel,
-    this.imageFile,
-    this.isPictureTaken = false,
     required this.fadeController,
+    this.imageFile,
+    this.videoFile,
+    this.isPictureTaken = false,
   });
 
   @override
@@ -64,7 +67,15 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
           transform:
               (_isFrontCamera ? Matrix4.rotationY(math.pi) : Matrix4.identity())
                 ..scale(1.2, 1.2),
-          child: Image.file(File(widget.imageFile!.path), fit: BoxFit.cover),
+          child:
+              widget.imageFile != null
+                  ? Image.file(File(widget.imageFile!.path), fit: BoxFit.cover)
+                  : widget.videoFile != null
+                  ? VideoPreview(
+                    file: File(widget.videoFile!.path),
+                    flip: _isFrontCamera,
+                  )
+                  : const SizedBox.shrink(),
         ),
       ),
     );
@@ -100,7 +111,9 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
   }
 
   Widget _buildAnimatedPreview() {
-    final showImage = widget.isPictureTaken && widget.imageFile != null;
+    final showImage =
+        widget.isPictureTaken && widget.imageFile != null ||
+        widget.videoFile != null;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: AppDimensions.durationFast),
       switchInCurve: Curves.easeOut,
