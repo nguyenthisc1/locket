@@ -23,6 +23,8 @@ class BasicAppbar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: backgroundColor ?? Colors.transparent,
       elevation: 0,
+      // scrolledUnderElevation: 0,
+      forceMaterialTransparency: true,
       shadowColor: Colors.transparent,
       centerTitle: true,
       automaticallyImplyLeading: false,
