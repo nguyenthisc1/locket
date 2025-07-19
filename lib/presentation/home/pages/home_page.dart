@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
+import 'package:locket/presentation/home/controllers/feed_controller.dart';
 import 'package:locket/presentation/home/controllers/home_controller.dart';
 import 'package:locket/presentation/home/widgets/camera/index.dart';
-import 'package:locket/presentation/home/widgets/feed/feed.dart';
+import 'package:locket/presentation/home/pages/feed_page.dart';
 import 'package:locket/presentation/home/widgets/friend_select.dart';
 import 'package:locket/presentation/home/widgets/friend_topbar.dart';
 import 'package:locket/presentation/home/widgets/history_feed.dart';
 import 'package:locket/presentation/home/widgets/mess_button.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -97,11 +99,15 @@ class _HomePageState extends State<HomePage> {
               }
 
               // FEEDS
-              return Feed(
-                innerController: _homeController.innerController,
-                outerController: _homeController.outerController,
-                handleScrollFeedToTop:
-                    () => _homeController.handleScrollPageViewOuter(0),
+              return ChangeNotifierProvider(
+                create: (context) => FeedControllerState(),
+                child: FeedPage(
+                  innerController: _homeController.innerController,
+                  outerController: _homeController.outerController,
+                  handleScrollFeedToTop:
+                      () => _homeController.handleScrollPageViewOuter(0),
+                  images: _homeController.gallery,
+                ),
               );
             },
           ),

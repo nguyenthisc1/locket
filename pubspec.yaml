@@ -55,6 +55,9 @@ dependencies:
   universal_io: ^2.2.2
   pasteboard: ^0.4.0
   video_player: ^2.10.0
+  photo_manager: ^3.7.1
+  permission_handler: ^12.0.1
+  provider: ^6.1.5
 
 
 dev_dependencies:

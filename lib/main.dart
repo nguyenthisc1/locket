@@ -4,6 +4,8 @@ import 'package:locket/presentation/home/pages/home_page.dart';
 
 import 'core/configs/theme/index.dart';
 
+final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -29,6 +31,7 @@ class MyApp extends StatelessWidget {
       home: const HomePage(),
       debugShowCheckedModeBanner: false,
       routes: appRoutes,
+      navigatorObservers: [routeObserver],
     );
   }
 }

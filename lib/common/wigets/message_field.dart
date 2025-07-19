@@ -5,6 +5,7 @@ import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 class MessageField extends StatefulWidget {
+  final FocusNode? focusNode;
   final EdgeInsetsGeometry? padding;
   final bool? isVisibleBackdrop;
 
@@ -17,6 +18,7 @@ class MessageField extends StatefulWidget {
       bottom: AppDimensions.lg,
     ),
     this.isVisibleBackdrop = false,
+    this.focusNode,
   });
 
   @override
@@ -25,7 +27,9 @@ class MessageField extends StatefulWidget {
 
 class _MessageFieldState extends State<MessageField>
     with TickerProviderStateMixin {
-  final FocusNode _focusNode = FocusNode();
+  FocusNode? _internalFocusNode;
+  FocusNode get _effectiveFocusNode => widget.focusNode ?? _internalFocusNode!;
+
   bool isKeyboardVisible = false;
 
   late AnimationController _animationController;
@@ -33,10 +37,10 @@ class _MessageFieldState extends State<MessageField>
 
   void _handleFocusChange() {
     setState(() {
-      isKeyboardVisible = _focusNode.hasFocus;
+      isKeyboardVisible = _effectiveFocusNode.hasFocus;
     });
 
-    if (_focusNode.hasFocus) {
+    if (_effectiveFocusNode.hasFocus) {
       _animationController.forward();
     } else {
       _animationController.reverse();
@@ -44,14 +48,22 @@ class _MessageFieldState extends State<MessageField>
   }
 
   void _unfocus() {
-    if (_focusNode.hasFocus) {
-      _focusNode.unfocus();
+    if (_effectiveFocusNode.hasFocus) {
+      _effectiveFocusNode.unfocus();
     }
   }
 
   @override
   void initState() {
-    _focusNode.addListener(_handleFocusChange);
+    super.initState();
+
+    // Only create and manage internal focus node if widget.focusNode is null
+    if (widget.focusNode == null) {
+      _internalFocusNode = FocusNode();
+      _internalFocusNode!.addListener(_handleFocusChange);
+    } else {
+      widget.focusNode!.addListener(_handleFocusChange);
+    }
 
     _animationController = AnimationController(
       vsync: this,
@@ -61,13 +73,17 @@ class _MessageFieldState extends State<MessageField>
     _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.linear),
     );
-    super.initState();
   }
 
   @override
   void dispose() {
-    _focusNode.removeListener(_handleFocusChange);
-    _focusNode.dispose();
+    if (widget.focusNode == null) {
+      _internalFocusNode?.removeListener(_handleFocusChange);
+      _internalFocusNode?.dispose();
+    } else {
+      widget.focusNode?.removeListener(_handleFocusChange);
+      // Do not dispose external focusNode
+    }
     _animationController.dispose();
     super.dispose();
   }
@@ -114,7 +130,7 @@ class _MessageFieldState extends State<MessageField>
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: TextField(
-                  focusNode: _focusNode,
+                  focusNode: _effectiveFocusNode,
                   decoration: InputDecoration(
                     hintText: 'Gửi tin nhắn...',
                     filled: true,

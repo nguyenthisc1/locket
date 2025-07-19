@@ -4,12 +4,16 @@ class HomeControllerState extends ChangeNotifier {
   final PageController outerController = PageController();
   final PageController innerController = PageController();
 
+  static List<String> get _galleryImages =>
+      List.generate(50, (i) => 'https://picsum.photos/seed/$i/300/300');
+
   int _currentOuterPage = 0;
   bool _enteredFeed = false;
 
   // Getters
   int get currentOuterPage => _currentOuterPage;
   bool get enteredFeed => _enteredFeed;
+  List<String> get gallery => _galleryImages;
 
   void init() {
     outerController.addListener(_outerPageListener);
