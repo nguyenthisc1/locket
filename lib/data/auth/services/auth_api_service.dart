@@ -26,7 +26,7 @@ abstract class AuthApiService {
   // Current user management
   Future<Either<Failure, UserEntity>> getCurrentUser();
   Future<Either<Failure, UserEntity>> updateUserProfile(UserEntity user);
-  Future<Either<Failure, void>> deleteAccount();
+  Future<Either<Failure, void>> deleteAccount(String userId);
 }
 
 class AuthApiServiceImpl extends AuthApiService {
@@ -133,7 +133,7 @@ class AuthApiServiceImpl extends AuthApiService {
     try {
       logger.d('👤 Fetching current user');
 
-      final response = await dioClient.get(ApiUrl.user);
+      final response = await dioClient.get(ApiUrl.getProfile);
 
       if (response.statusCode == 200 && response.data != null) {
         final userMap = response.data as Map<String, dynamic>;
@@ -172,7 +172,10 @@ class AuthApiServiceImpl extends AuthApiService {
         'avatarUrl': user.avatarUrl,
       };
 
-      final response = await dioClient.put(ApiUrl.user, data: userData);
+      final response = await dioClient.put(
+        ApiUrl.updateProfile,
+        data: userData,
+      );
 
       if (response.statusCode == 200 && response.data != null) {
         final userMap = response.data as Map<String, dynamic>;
@@ -197,11 +200,11 @@ class AuthApiServiceImpl extends AuthApiService {
   }
 
   @override
-  Future<Either<Failure, void>> deleteAccount() async {
+  Future<Either<Failure, void>> deleteAccount(userId) async {
     try {
       logger.d('🗑️ Deleting user account');
 
-      final response = await dioClient.delete(ApiUrl.user);
+      final response = await dioClient.delete(ApiUrl.deleteAccount(userId));
 
       if (response.statusCode == 200) {
         // Clear tokens after successful account deletion

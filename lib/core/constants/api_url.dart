@@ -1,12 +1,67 @@
 class ApiUrl {
-  static const api = 'http://localhost:8000/api/v1';
+  static const String baseUrl = String.fromEnvironment('PUBLIC_API_URL');
 
-  static const auth = '$api/auth';
-  static const login = '$auth/login';
-  static const logout = '$auth/logout';
-  static const signup = '$auth/signup';
-  static const getToken = '$auth/token';
-  static const refreshToken = '$auth/refresh';
+  static const String register = '/auth/register';
+  static const String login = '/auth/login';
+  static const String logout = '/auth/logout';
+  static const String refreshToken = '/auth/refresh';
 
-  static const user = '$api/user';
+  // Conversations
+  static const String createConversation = '/conversation';
+  static const String getUserConversations = '/conversation/user';
+  static const String searchConversations = '/conversation/search';
+  static String getConversationById(String conversationId) =>
+      '/conversation/$conversationId';
+  static String updateConversation(String conversationId) =>
+      '/conversation/$conversationId';
+  static String addParticipants(String conversationId) =>
+      '/conversation/$conversationId/participants';
+  static String removeParticipant(String conversationId) =>
+      '/conversation/$conversationId/participants';
+  static String getConversationThreads(String conversationId) =>
+      '/conversation/$conversationId/threads';
+  static String leaveConversation(String conversationId) =>
+      '/conversation/$conversationId/leave';
+  static String deleteConversation(String conversationId) =>
+      '/conversation/$conversationId';
+
+  // Messages
+  static const String sendMessage = '/message';
+  static String getConversationMessages(String conversationId) =>
+      '/message/conversation/$conversationId';
+  static const String searchMessages = '/message/search';
+  static String getMessageById(String messageId) => '/message/$messageId';
+  static String editMessage(String messageId) => '/message/$messageId';
+  static String deleteMessage(String messageId) => '/message/$messageId';
+  static String addReaction(String messageId) =>
+      '/message/$messageId/reactions';
+  static String removeReaction(String messageId) =>
+      '/message/$messageId/reactions';
+  static String replyToMessage(String messageId) => '/message/$messageId/reply';
+  static String getThreadMessages(String messageId) =>
+      '/message/$messageId/thread';
+  static String pinMessage(String messageId) => '/message/$messageId/pin';
+  static const String forwardMessages = '/message/forward';
+
+  // Photos
+  static const String getPhotos = '/photo';
+  static String getPhotoById(String photoId) => '/photo/$photoId';
+  static String getUserPhotos(String userId) => '/photo/user/$userId';
+  static const String createPhoto = '/photos';
+  static String updatePhoto(String photoId) => '/photo/$photoId';
+  static String deletePhoto(String photoId) => '/photo/$photoId';
+  static String addPhotoReaction(String photoId) => '/photo/$photoId/reactions';
+  static String removePhotoReaction(String photoId) =>
+      '/photo/$photoId/reactions';
+
+  static const String uploadPhoto = '/upload';
+  static const String uploadMultiplePhotos = '/upload/upload-multiple';
+  static String deletePhotoWithCloudinary(String photoId) => '/upload/$photoId';
+  static String getImageUrls(String photoId) => '/upload/$photoId/urls';
+
+  // Users
+  static const String getProfile = '/user';
+  static const String updateProfile = '/users';
+  static String deleteAccount(String userId) => '/users/$userId';
+  static const String searchUsers = '/users/search';
 }

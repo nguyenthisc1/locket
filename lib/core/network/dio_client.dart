@@ -9,7 +9,7 @@ class DioClient {
     : _dio = Dio(
         options ??
             BaseOptions(
-              baseUrl: ApiUrl.api,
+              baseUrl: ApiUrl.baseUrl,
               headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
