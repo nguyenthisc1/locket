@@ -65,18 +65,18 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   Future<void> _checkFirstLaunch() async {
-    final appPreferences = AppPreferences();
-    final isFirstLaunch = await appPreferences.isFirstLaunch();
+    // final appPreferences = AppPreferences();
+    // final isFirstLaunch = await appPreferences.isFirstLaunch();
 
-    await Future.delayed(const Duration(milliseconds: 2000));
+    // await Future.delayed(const Duration(milliseconds: 2000));
 
-    if (mounted) {
-      if (isFirstLaunch) {
-        AppNavigator.pushReplacement(context, const OnboardingPage());
-      } else {
-        AppNavigator.pushReplacement(context, const AuthGate());
-      }
-    }
+    // if (mounted) {
+    //   if (isFirstLaunch) {
+    //     AppNavigator.pushReplacement(context, const OnboardingPage());
+    //   } else {
+    //     AppNavigator.pushReplacement(context, const AuthGate());
+    //   }
+    // }
   }
 
   @override

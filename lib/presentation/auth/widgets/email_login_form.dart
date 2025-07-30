@@ -5,20 +5,20 @@ import 'package:locket/common/helper/validation.dart';
 import 'package:locket/common/wigets/auth_gate.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/domain/auth/usecase/auth_usecases.dart';
 
 class EmailLoginForm extends StatefulWidget {
-  final LoginUseCase loginUseCase;
+  // final LoginUseCase loginUseCase;
 
-  const EmailLoginForm({super.key, required this.loginUseCase});
+  const EmailLoginForm({super.key});
 
   @override
   State<EmailLoginForm> createState() => _EmailLoginFormState();
 }
 
 class _EmailLoginFormState extends State<EmailLoginForm> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  // Set default values for email and password fields
+  final _emailController = TextEditingController(text: 'admin@gmail.com');
+  final _passwordController = TextEditingController(text: 'Adminadmin12');
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
@@ -31,40 +31,41 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
       _isLoading = true;
     });
 
-    try {
-      final result = await widget.loginUseCase(
-        identifier: _emailController.text,
-        password: _passwordController.text,
-      );
+    // try {
+    //   final result = await widget.loginUseCase(
+    //     identifier: _emailController.text,
+    //     password: _passwordController.text,
+    //   );
 
-      result.fold(
-        (failure) {
-          DisplayMessage.error(
-            context,
-            'Tài khoản hoặc mật khẩu không đúng',
-          );
-        },
-        (user) {
-          DisplayMessage.success(
-            context,
-            'Đăng nhập thành công!',
-          );
-          AppNavigator.pushReplacement(context, const AuthGate());
-        },
-      );
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
+    //   result.fold(
+    //     (failure) {
+    //       print(  failure.message);
+    //       DisplayMessage.error(
+    //         context,
+    //         // 'Tài khoản hoặc mật khẩu không đúng',
+    //         failure.message,
+    //       );
+    //     },
+    //     (user) {
+    //       DisplayMessage.success(context, 'Đăng nhập thành công!');
+    //       AppNavigator.pushReplacement(context, const AuthGate());
+    //     },
+    //   );
+    // } catch (e) {
+    //   if (!mounted) {
+    //     return;
+    //   }
+    //       print(  e);
 
-      DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+
+    //   DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
+    // } finally {
+    //   if (mounted) {
+    //     setState(() {
+    //       _isLoading = false;
+    //     });
+    //   }
+    // }
   }
 
   @override
@@ -102,10 +103,9 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            child:
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text('Đăng nhập'),
+            child: _isLoading
+                ? const CircularProgressIndicator()
+                : const Text('Đăng nhập'),
           ),
         ],
       ),

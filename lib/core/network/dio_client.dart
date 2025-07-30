@@ -1,20 +1,35 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:locket/core/constants/api_url.dart';
+import 'package:locket/data/auth/repositories/token_store_impl.dart';
 
 import 'interceptors.dart';
 
 class DioClient {
   late final Dio _dio;
-  DioClient()
-    : _dio = Dio(
-        BaseOptions(
-          baseUrl: ApiUrl.baseUrl,
-          headers: {'Content-Type': 'application/json; charset=UTF-8'},
-          responseType: ResponseType.json,
-          // sendTimeout: const Duration(seconds: 20),
-          receiveTimeout: const Duration(seconds: 20),
-        ),
-      )..interceptors.addAll([AuthorizationInterceptor(), LoggerInterceptor()]);
+  late final FlutterSecureStorage secureStorage;
+  late final TokenStorageImpl tokenStorage;
+
+  DioClient() {
+    // Initialize secure storage and token storage
+    secureStorage = const FlutterSecureStorage();
+    tokenStorage = TokenStorageImpl(secureStorage);
+
+    // Set up token refresh interceptor
+    final tokenRefreshInterceptor = TokenRefreshInterceptor(tokenStorage);
+    final fresh = tokenRefreshInterceptor.fresh;
+
+    // Initialize Dio with base options and interceptors
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: ApiUrl.baseUrl,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        responseType: ResponseType.json,
+        // sendTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
+    )..interceptors.addAll([fresh, LoggerInterceptor()]);
+  }
 
   // GET METHOD
   Future<Response> get(
@@ -51,12 +66,13 @@ class DioClient {
       final Response response = await _dio.post(
         url,
         data: data,
+        queryParameters: queryParameters,
         options: options,
         onSendProgress: onSendProgress,
         onReceiveProgress: onReceiveProgress,
       );
       return response;
-    } catch (e) {
+    } on DioException {
       rethrow;
     }
   }
@@ -82,7 +98,7 @@ class DioClient {
         onReceiveProgress: onReceiveProgress,
       );
       return response;
-    } catch (e) {
+    } on DioException {
       rethrow;
     }
   }
@@ -104,7 +120,7 @@ class DioClient {
         cancelToken: cancelToken,
       );
       return response.data;
-    } catch (e) {
+    } on DioException {
       rethrow;
     }
   }
