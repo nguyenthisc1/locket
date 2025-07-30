@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:locket/common/wigets/auth_gate.dart';
 import 'package:locket/core/constants/routes.dart';
-import 'package:locket/presentation/home/pages/home_page.dart';
+import 'package:locket/di.dart';
 import 'package:locket/presentation/splash/pages/splash_page.dart';
 
 import 'core/configs/theme/index.dart';
@@ -10,7 +9,7 @@ final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  setupDependencies();
   // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // // Initialize dynamic links service for email link authentication
