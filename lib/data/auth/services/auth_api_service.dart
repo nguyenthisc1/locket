@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:fresh_dio/fresh_dio.dart';
 import 'package:locket/core/constants/api_url.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/mappers/user_mapper.dart';
@@ -13,6 +14,13 @@ abstract class AuthApiService {
     required String identifier,
     required String password,
   });
+
+  Future<void> logout();
+
+  // Future<Either<Failure, AuthTokenPair>> refreshToken({
+  //   required String accessToken,
+  //   required String refreshToken,
+  // });
 }
 
 class AuthApiServiceImpl extends AuthApiService {
@@ -22,6 +30,8 @@ class AuthApiServiceImpl extends AuthApiService {
   );
 
   AuthApiServiceImpl(this.dioClient);
+
+  
 
   @override
   Future<Either<Failure, UserEntity>> login({
@@ -61,5 +71,54 @@ class AuthApiServiceImpl extends AuthApiService {
     }
   }
 
+  @override
+  Future<void> logout() async {
+    try {
+      await dioClient.post(ApiUrl.logout);
+      await dioClient.tokenStorage.delete();
 
+      
+
+      final check = await dioClient.tokenStorage.read();
+      logger.d('check Token: $check');
+    } catch (e) {
+      logger.e('Failed login: ${e.toString()}');
+    }
+  }
+
+  // @override
+  // Future<Either<Failure, AuthTokenPair>> refreshToken({
+  //   required String accessToken,
+  //   required String refreshToken,
+  // }) async {
+  //   // Attempt to refresh the token when a 401 is encountered.
+  //   if (refreshToken.isEmpty || accessToken.isEmpty) {
+  //     // Defensive: If tokens are missing, trigger logout.
+  //     throw RevokeTokenException();
+  //   }
+
+  //   try {
+  //     final body = {'refreshToken': refreshToken, 'accessToken': accessToken};
+  //     final response = await dioClient.post(ApiUrl.refreshToken, data: body);
+  //     final newTokens = response.data;
+
+  //     if (newTokens == null ||
+  //         newTokens['accessToken'] == null ||
+  //         newTokens['refreshToken'] == null) {
+  //       throw RevokeTokenException();
+  //     }
+
+  //     final tokenPair = AuthTokenPair(
+  //       accessToken: newTokens['accessToken'] as String,
+  //       refreshToken: newTokens['refreshToken'] as String,
+  //     );
+
+  //     await dioClient.tokenStorage.write(tokenPair);
+
+  //     return Right(tokenPair);
+  //   } catch (e, stackTrace) {
+  //     logger.e('❌ Failed refreshToken: $e\n$stackTrace');
+  //     throw RevokeTokenException();
+  //   }
+  // }
 }

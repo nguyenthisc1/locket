@@ -1,12 +1,9 @@
 // splash_page.dart
 import 'package:flutter/material.dart';
-import 'package:locket/common/helper/navigation/app_navigation.dart';
-import 'package:locket/common/helper/share/app_preferences.dart';
-import 'package:locket/common/wigets/auth_gate.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/presentation/splash/pages/onboarding_page.dart';
+import 'package:locket/core/services/auth_middleware_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -20,6 +17,8 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late Animation<double> textAnimation;
   late AnimationController logoController;
   late AnimationController textController;
+
+  final AuthMiddlewareService _authMiddleware = AuthMiddlewareService();
 
   @override
   void initState() {
@@ -54,7 +53,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       textController.forward();
     });
 
-    _checkFirstLaunch();
+    _initializeApp();
   }
 
   @override
@@ -64,19 +63,14 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Future<void> _checkFirstLaunch() async {
-    // final appPreferences = AppPreferences();
-    // final isFirstLaunch = await appPreferences.isFirstLaunch();
+  Future<void> _initializeApp() async {
+    // Add any app initialization logic here
+    await Future.delayed(const Duration(seconds: 2));
 
-    // await Future.delayed(const Duration(milliseconds: 2000));
-
-    // if (mounted) {
-    //   if (isFirstLaunch) {
-    //     AppNavigator.pushReplacement(context, const OnboardingPage());
-    //   } else {
-    //     AppNavigator.pushReplacement(context, const AuthGate());
-    //   }
-    // }
+    if (mounted) {
+      final initialRoute = await _authMiddleware.getInitialRoute();
+      Navigator.of(context).pushReplacementNamed(initialRoute);
+    }
   }
 
   @override

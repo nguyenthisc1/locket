@@ -7,4 +7,7 @@ abstract class AuthRepository {
     required String identifier,
     required String password,
   });
+  Future<void> logout();
+
+
 }

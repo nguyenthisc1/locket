@@ -1,19 +1,17 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:locket/core/constants/api_url.dart';
 import 'package:locket/data/auth/repositories/token_store_impl.dart';
+import 'package:locket/di.dart';
 
 import 'interceptors.dart';
 
 class DioClient {
   late final Dio _dio;
-  late final FlutterSecureStorage secureStorage;
   late final TokenStorageImpl tokenStorage;
 
   DioClient() {
     // Initialize secure storage and token storage
-    secureStorage = const FlutterSecureStorage();
-    tokenStorage = TokenStorageImpl(secureStorage);
+    tokenStorage = getIt<TokenStorageImpl>();
 
     // Set up token refresh interceptor
     final tokenRefreshInterceptor = TokenRefreshInterceptor(tokenStorage);
