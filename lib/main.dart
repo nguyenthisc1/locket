@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:locket/core/constants/routes.dart';
-import 'package:locket/core/constants/routes_generator.dart';
+import 'package:locket/core/routes/router.dart';
 import 'package:locket/di.dart';
-import 'package:locket/presentation/splash/pages/splash_page.dart';
 
 import 'core/configs/theme/index.dart';
 
@@ -25,16 +23,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Locket Clone',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.dark,
-      home: const SplashPage(),
       debugShowCheckedModeBanner: false,
-      onGenerateRoute: AppRouteGenerator.generateRoute,
-      initialRoute: '/splash',
-      navigatorObservers: [routeObserver],
+      // navigatorObservers: [routeObserver],
+      routerConfig: AppRouter.instance.router,
     );
   }
 }

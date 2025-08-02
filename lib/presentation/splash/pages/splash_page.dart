@@ -1,9 +1,9 @@
 // splash_page.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/core/services/auth_middleware_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -18,7 +18,6 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late AnimationController logoController;
   late AnimationController textController;
 
-  final AuthMiddlewareService _authMiddleware = AuthMiddlewareService();
 
   @override
   void initState() {
@@ -68,8 +67,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
-      final initialRoute = await _authMiddleware.getInitialRoute();
-      Navigator.of(context).pushReplacementNamed(initialRoute);
+      // final initialRoute = await _authMiddleware.getInitialRoute();
+      // Navigator.of(context).pushReplacementNamed(initialRoute);
+      context.go('/onboarding');
     }
   }
 

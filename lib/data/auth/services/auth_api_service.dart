@@ -31,8 +31,6 @@ class AuthApiServiceImpl extends AuthApiService {
 
   AuthApiServiceImpl(this.dioClient);
 
-  
-
   @override
   Future<Either<Failure, UserEntity>> login({
     required String identifier,
@@ -76,8 +74,6 @@ class AuthApiServiceImpl extends AuthApiService {
     try {
       await dioClient.post(ApiUrl.logout);
       await dioClient.tokenStorage.delete();
-
-      
 
       final check = await dioClient.tokenStorage.read();
       logger.d('check Token: $check');

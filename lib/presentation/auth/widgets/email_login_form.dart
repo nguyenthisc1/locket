@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/messages/display_message.dart';
-import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/helper/validation.dart';
-import 'package:locket/common/wigets/auth_route_gate.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
+import 'package:locket/domain/auth/usecase/login_usecase.dart';
 
 class EmailLoginForm extends StatefulWidget {
-  // final LoginUseCase loginUseCase;
+  final LoginUsecase loginUsecase;
 
-  const EmailLoginForm({super.key});
+  const EmailLoginForm({super.key, required this.loginUsecase});
 
   @override
   State<EmailLoginForm> createState() => _EmailLoginFormState();
@@ -31,41 +30,41 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
       _isLoading = true;
     });
 
-    // try {
-    //   final result = await widget.loginUseCase(
-    //     identifier: _emailController.text,
-    //     password: _passwordController.text,
-    //   );
+    try {
+      final result = await widget.loginUsecase(
+        identifier: _emailController.text,
+        password: _passwordController.text,
+      );
 
-    //   result.fold(
-    //     (failure) {
-    //       print(  failure.message);
-    //       DisplayMessage.error(
-    //         context,
-    //         // 'Tài khoản hoặc mật khẩu không đúng',
-    //         failure.message,
-    //       );
-    //     },
-    //     (user) {
-    //       DisplayMessage.success(context, 'Đăng nhập thành công!');
-    //       AppNavigator.pushReplacement(context, const AuthGate());
-    //     },
-    //   );
-    // } catch (e) {
-    //   if (!mounted) {
-    //     return;
-    //   }
-    //       print(  e);
+      result.fold(
+        (failure) {
+          print(  failure.message);
+          DisplayMessage.error(
+            context,
+            // 'Tài khoản hoặc mật khẩu không đúng',
+            failure.message,
+          );
+        },
+        (user) {
+          DisplayMessage.success(context, 'Đăng nhập thành công!');
+          // AppNavigator.pushReplacement(context, const AuthGate());
+        },
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+          print(  e);
 
 
-    //   DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
-    // } finally {
-    //   if (mounted) {
-    //     setState(() {
-    //       _isLoading = false;
-    //     });
-    //   }
-    // }
+      DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
