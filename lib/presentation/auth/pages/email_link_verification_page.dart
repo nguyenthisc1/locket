@@ -61,7 +61,7 @@ class EmailLinkVerificationPage extends StatelessWidget {
               onPressed:
                   () => AppNavigator.pushReplacement(
                     context,
-                    const EmailLoginPage(),
+                    '/'
                   ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.dark,

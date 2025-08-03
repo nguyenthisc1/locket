@@ -82,7 +82,7 @@ class EmailLinkLoginFormState extends State<EmailLinkLoginForm> {
                   ElevatedButton(
                     onPressed:
                         () =>
-                            AppNavigator.push(context, const PhoneLoginPage()),
+                            AppNavigator.push(context, '/'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.dark,
                       textStyle: const TextStyle(

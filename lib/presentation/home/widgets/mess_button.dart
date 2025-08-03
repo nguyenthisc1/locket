@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/theme/index.dart';
-import 'package:locket/presentation/conversation/pages/conversation_page.dart';
 
 class MessButton extends StatelessWidget {
   const MessButton({super.key});
@@ -13,7 +12,7 @@ class MessButton extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         IconButton(
-          onPressed: () => AppNavigator.push(context, ConversationPage()),
+          onPressed: () => AppNavigator.push(context, '/conversation'),
           style: IconButton.styleFrom(
             padding: EdgeInsets.symmetric(
               horizontal: AppDimensions.sm,

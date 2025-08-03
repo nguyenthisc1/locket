@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:locket/common/helper/messages/display_message.dart';
+import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/helper/validation.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
@@ -38,24 +40,18 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
 
       result.fold(
         (failure) {
-          print(  failure.message);
-          DisplayMessage.error(
-            context,
-            // 'Tài khoản hoặc mật khẩu không đúng',
-            failure.message,
-          );
+          DisplayMessage.error(context, failure.message);
         },
-        (user) {
-          DisplayMessage.success(context, 'Đăng nhập thành công!');
-          // AppNavigator.pushReplacement(context, const AuthGate());
+        (data) {
+          DisplayMessage.success(context, data.data['message']);
+          AppNavigator.pushAndRemove(context, '/home');
         },
       );
     } catch (e) {
       if (!mounted) {
         return;
       }
-          print(  e);
-
+      print(e);
 
       DisplayMessage.error(context, 'Có lỗi xảy ra: ${e.toString()}');
     } finally {
@@ -102,9 +98,10 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            child: _isLoading
-                ? const CircularProgressIndicator()
-                : const Text('Đăng nhập'),
+            child:
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : const Text('Đăng nhập'),
           ),
         ],
       ),

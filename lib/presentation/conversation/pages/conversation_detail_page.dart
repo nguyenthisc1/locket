@@ -9,7 +9,8 @@ import 'package:locket/presentation/conversation/widgets/message.dart';
 import '../../../core/configs/theme/index.dart';
 
 class ConversationDetailPage extends StatefulWidget {
-  const ConversationDetailPage({super.key});
+  final String conversationId;
+  const ConversationDetailPage({super.key, required this.conversationId});
 
   @override
   State<ConversationDetailPage> createState() => _ConversationDetailPageState();

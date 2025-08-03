@@ -32,10 +32,11 @@ class FeedToolbar extends StatelessWidget {
           onPressed:
               () => AppNavigator.fadePush(
                 context,
-                ChangeNotifierProvider.value(
-                  value: context.read<FeedControllerState>(),
-                  child: GalleryPage(images: getImages),
-                ),
+                '/'
+                // ChangeNotifierProvider.value(
+                //   value: context.read<FeedControllerState>(),
+                //   child: GalleryPage(images: getImages),
+                // ),
               ),
           icon: Icons.menu,
         ),

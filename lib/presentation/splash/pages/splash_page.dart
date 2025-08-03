@@ -1,6 +1,7 @@
 // splash_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
@@ -67,7 +68,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
-      context.go('/onboarding');
+      AppNavigator.pushAndRemove(context, '/onboarding');
     }
   }
 

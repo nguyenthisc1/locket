@@ -170,7 +170,7 @@ class ConversationPage extends StatelessWidget {
               onTap:
                   () => AppNavigator.push(
                     context,
-                    const ConversationDetailPage(),
+                    '/converstion/:id',
                   ),
               child: ConverstationItem(data: conversation),
             );

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:locket/core/routes/middleware.dart';
 import 'package:locket/presentation/auth/pages/email_login_page.dart';
 import 'package:locket/presentation/auth/pages/phone_login_page.dart';
+import 'package:locket/presentation/conversation/pages/conversation_detail_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_page.dart';
 import 'package:locket/presentation/home/pages/home_page.dart';
 import 'package:locket/presentation/splash/pages/onboarding_page.dart';
@@ -63,8 +64,8 @@ class AppRouter {
         path: '/converstion/:id',
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return Container();
-          // return ConversationDetailPage(conversationId: id);
+          // return Container();
+          return ConversationDetailPage(conversationId: id);
         },
       ),
     ],

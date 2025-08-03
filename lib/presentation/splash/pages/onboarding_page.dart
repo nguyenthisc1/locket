@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/index.dart';
-import 'package:locket/presentation/auth/pages/email_login_page.dart';
 
 class OnboardingPage extends StatelessWidget {
   const OnboardingPage({super.key});
@@ -37,7 +36,7 @@ class OnboardingPage extends StatelessWidget {
 
               ElevatedButton(
                 onPressed:
-                    () => AppNavigator.push(context, const EmailLoginPage()),
+                    () => AppNavigator.push(context, '/email-login'),
                 style: ElevatedButton.styleFrom(
                   textStyle: TextStyle(
                     fontSize: 24,
