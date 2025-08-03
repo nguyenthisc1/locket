@@ -67,8 +67,6 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
-      // final initialRoute = await _authMiddleware.getInitialRoute();
-      // Navigator.of(context).pushReplacementNamed(initialRoute);
       context.go('/onboarding');
     }
   }

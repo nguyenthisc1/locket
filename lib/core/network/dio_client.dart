@@ -25,6 +25,9 @@ class DioClient {
         responseType: ResponseType.json,
         // sendTimeout: const Duration(seconds: 20),
         receiveTimeout: const Duration(seconds: 20),
+        validateStatus: (status) {
+          return status != null && status < 500;
+        },
       ),
     )..interceptors.addAll([fresh, LoggerInterceptor()]);
   }

@@ -40,18 +40,19 @@ class AuthApiServiceImpl extends AuthApiService {
       final body = {'email': identifier, 'password': password};
       final response = await dioClient.post(ApiUrl.login, data: body);
 
-      if (response.statusCode == 200 && response.data != null) {
+      if (response.statusCode == 200 && response.data.isNotEmpty) {
+        
         // Parse tokens from response
         final tokenPair = AuthTokenPair.fromJson({
-          'accessToken': response.data['accessToken'],
-          'refreshToken': response.data['refreshToken'],
+          'accessToken': response.data['data']['accessToken'],
+          'refreshToken': response.data['data']['refreshToken'],
         });
 
         // Store tokens securely
         await dioClient.tokenStorage.write(tokenPair);
-
+        
         final user = UserMapper.toEntity(
-          UserModel.fromJson(response.data['user']),
+          UserModel.fromJson(response.data['data']['user']),
         );
 
         return Right(user);
@@ -60,11 +61,11 @@ class AuthApiServiceImpl extends AuthApiService {
       final errors = response.data['errors'];
       final message = response.data['message'];
 
-      logger.e('❌ Login failed: $errors');
+      logger.e('❌ Login failed: $errors $message');
 
       return Left(AuthFailure(message: message));
     } catch (e) {
-      logger.e('Failed login: ${e.toString()}');
+      logger.e('❌ Login failed: ${e.toString()}');
       return Left(AuthFailure(message: e.toString()));
     }
   }

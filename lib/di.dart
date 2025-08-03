@@ -17,12 +17,12 @@ void setupDependencies() {
   // MIDDLEWARE
   getIt.registerLazySingleton<Middleware>(() => Middleware());
 
-  // FlutterSecureStorage 
+  // FLUTTER SECURE STORAGE
   getIt.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
   );
 
-  //  DioClient
+  //  DIOCLIENT
   getIt.registerLazySingleton<DioClient>(() => DioClient());
 
   // // AUTH DIO CLIENT
@@ -31,9 +31,11 @@ void setupDependencies() {
   );
 
   // AUTH REPOSITORIES
-  getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(getIt<AuthApiService>()),
-  );
+  // getIt.registerLazySingleton<AuthRepository>(
+  //   () => AuthRepositoryImpl(getIt<AuthApiService>()),
+  // );
+
+  getIt.registerLazySingleton<AuthRepositoryImpl>(() => AuthRepositoryImpl(getIt<AuthApiService>()));
 
   // IMAGE REPOSITORIES
   getIt.registerLazySingleton<ImageRepository>(() => ImageRepositoryImpl());
