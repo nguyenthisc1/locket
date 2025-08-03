@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:locket/core/routes/middleware.dart';
+import 'package:locket/di.dart';
 import 'package:locket/presentation/auth/pages/email_login_page.dart';
 import 'package:locket/presentation/auth/pages/phone_login_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_detail_page.dart';
@@ -16,7 +17,7 @@ class AppRouter {
   AppRouter._();
 
   static final AppRouter instance = AppRouter._();
-  static final Middleware _middleware = GetIt.instance<Middleware>();
+  static final Middleware _middleware = getIt<Middleware>();
 
   final GoRouter router = GoRouter(
     initialLocation: '/splash',
@@ -25,6 +26,7 @@ class AppRouter {
     redirect: (context, state) async {
       try {
         final redirectPath = await _middleware.routeMiddleware(state);
+        print('rediectPath: $redirectPath');
         return redirectPath;
       } catch (e) {
         print('❌ Error in router redirect: $e');

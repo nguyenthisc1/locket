@@ -1,10 +1,12 @@
 // splash_page.dart
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:fresh_dio/fresh_dio.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
+import 'package:locket/data/auth/models/token_model.dart';
+import 'package:locket/di.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -19,6 +21,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late AnimationController logoController;
   late AnimationController textController;
 
+  final _tokenStorage = getIt<TokenStorage<AuthTokenPair>>();
 
   @override
   void initState() {
@@ -48,12 +51,13 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     ).animate(CurvedAnimation(parent: textController, curve: Curves.easeInOut));
 
     // Start logo animation
-    logoController.forward().then((_) {
+    logoController.forward().then((_) async {
       // When logo animation completes, start text animation
       textController.forward();
-    });
 
-    _initializeApp();
+      await Future.delayed(const Duration(milliseconds: 500));
+      _initializeApp();
+    });
   }
 
   @override
@@ -64,11 +68,17 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   Future<void> _initializeApp() async {
+    final tokenPair = await _tokenStorage.read();
+
     // Add any app initialization logic here
     await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
-      AppNavigator.pushAndRemove(context, '/onboarding');
+      if (tokenPair != null && tokenPair.accessToken?.isNotEmpty == true) {
+        AppNavigator.pushAndRemove(context, '/home');
+      } else {
+        AppNavigator.pushAndRemove(context, '/onboarding');
+      }
     }
   }
 

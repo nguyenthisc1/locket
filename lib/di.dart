@@ -8,7 +8,6 @@ import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
 import 'package:locket/data/auth/repositories/token_store_impl.dart';
 import 'package:locket/data/auth/services/auth_api_service.dart';
 import 'package:locket/data/image/respositories/image_repository_impl.dart';
-import 'package:locket/domain/auth/repositories/auth_repository.dart';
 import 'package:locket/domain/image/repositories/image_repository.dart';
 
 final getIt = GetIt.instance;

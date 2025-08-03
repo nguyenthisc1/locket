@@ -1,7 +1,7 @@
 import 'package:fresh_dio/fresh_dio.dart';
-import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:locket/data/auth/models/token_model.dart';
+import 'package:locket/di.dart';
 import 'package:logger/logger.dart';
 
 class Middleware {
@@ -9,8 +9,7 @@ class Middleware {
     printer: PrettyPrinter(colors: true, printEmojis: true),
   );
 
-  TokenStorage<AuthTokenPair> get _tokenStorage =>
-      GetIt.instance<TokenStorage<AuthTokenPair>>();
+  final _tokenStorage = getIt<TokenStorage<AuthTokenPair>>();
 
   Future<bool> _hasValidTokens() async {
     try {
@@ -88,23 +87,23 @@ class Middleware {
       // _logger.d('Has valid tokens: $hasValidTokens');
 
       if (_isPublicRoute(path)) {
-        // _logger.d('Public route accessed: $path');
+        _logger.d('Public route accessed: $path');
         return null;
       }
 
       if (_isProtectedRoute(path) && !hasValidTokens) {
-        // _logger.d('Protected route accessed without tokens: $path');
-        // _logger.d('Redirecting to /onboarding');
+        _logger.d('Protected route accessed without tokens: $path');
+        _logger.d('Redirecting to /onboarding');
         return '/onboarding';
       }
 
       if (hasValidTokens && _isAuthOnlyRoute(path)) {
-        // _logger.d('Authenticated user accessing auth page: $path');
-        // _logger.d('Redirecting to /home');
+        _logger.d('Authenticated user accessing auth page: $path');
+        _logger.d('Redirecting to /home');
         return '/home';
       }
 
-      // _logger.d('Route access granted: $path');
+      _logger.d('Route access granted: $path');
       return null;
     } catch (e) {
       _logger.e('Error in middleware: $e');
