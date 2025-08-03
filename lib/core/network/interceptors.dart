@@ -87,7 +87,7 @@ class TokenRefreshInterceptor extends Interceptor {
         tokenStorage: _tokenStorage,
         tokenHeader: (token) {
           // Add the access token to the Authorization header for each request.
-          if (token == null || token.accessToken.isEmpty) {
+          if (token.accessToken.isEmpty) {
             // Defensive: Do not add header if token is missing.
             return <String, String>{};
           }

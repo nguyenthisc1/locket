@@ -1,12 +1,10 @@
 // splash_page.dart
 import 'package:flutter/material.dart';
-import 'package:fresh_dio/fresh_dio.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
 import 'package:locket/core/services/user_service.dart';
-import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/di.dart';
 
 class SplashPage extends StatefulWidget {
@@ -21,8 +19,6 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late Animation<double> textAnimation;
   late AnimationController logoController;
   late AnimationController textController;
-
-  final _tokenStorage = getIt<TokenStorage<AuthTokenPair>>();
 
   @override
   void initState() {

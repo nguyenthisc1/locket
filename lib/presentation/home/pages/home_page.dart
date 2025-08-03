@@ -102,9 +102,6 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    final UserRepository = getIt<UserRepositoryImpl>();
-    final GetProfileUsecase getProfileUsecase = GetProfileUsecase(UserRepository);
-
     return ListenableBuilder(
       listenable: _homeController,
       builder: (context, child) {
