@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:locket/core/error/failures.dart';
+import 'package:locket/core/models/base_response_model.dart';
 import 'package:locket/data/auth/services/auth_api_service.dart';
-import 'package:locket/domain/auth/entities/user_entity.dart';
 import 'package:locket/domain/auth/repositories/auth_repository.dart';
 import 'package:logger/logger.dart';
 
@@ -14,7 +14,7 @@ class AuthRepositoryImpl extends AuthRepository {
   AuthRepositoryImpl(this._authApiService);
 
   @override
-  Future<Either<Failure, UserEntity>> login({
+  Future<Either<Failure, BaseResponse<Map<String, dynamic>>>> login({
     required String identifier,
     required String password,
   }) async {
@@ -26,11 +26,10 @@ class AuthRepositoryImpl extends AuthRepository {
     return result.fold(
       (failure) {
         logger.e('Repository Login failed: ${failure.toString()}');
-
         return Left(failure);
       },
       (data) {
-        logger.d('Repository Login successful for: ${data.email}');
+        logger.d('Repository Login successful for: ${data.data?['user']}');
         return Right(data);
       },
     );

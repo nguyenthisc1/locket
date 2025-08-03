@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:locket/core/error/failures.dart';
-import 'package:locket/domain/auth/entities/user_entity.dart';
+import 'package:locket/core/models/base_response_model.dart';
 import 'package:locket/domain/auth/repositories/auth_repository.dart';
 
 class LoginUsecase {
@@ -9,7 +9,7 @@ class LoginUsecase {
   LoginUsecase(this._authRepository);
 
 
-  Future<Either<Failure, UserEntity>> call({
+  Future<Either<Failure, BaseResponse>> call({
     required String identifier,
     required String password,
   }) async {
