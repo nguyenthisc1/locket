@@ -18,14 +18,12 @@ class AppRouter {
   static final Middleware _middleware = GetIt.instance<Middleware>();
 
   final GoRouter router = GoRouter(
-    initialLocation: '/splashPage',
+    initialLocation: '/splash',
     routerNeglect: false,
     debugLogDiagnostics: true,
     redirect: (context, state) async {
       try {
-        print('🛣️ Router redirect called for: ${state.path}');
         final redirectPath = await _middleware.routeMiddleware(state);
-        print('🛣️ Router redirect result: ${state.path} -> $redirectPath');
         return redirectPath;
       } catch (e) {
         print('❌ Error in router redirect: $e');
@@ -34,7 +32,7 @@ class AppRouter {
     },
     routes: [
       GoRoute(
-        path: '/splashPage',
+        path: '/splash',
         builder: (context, state) => const SplashPage(),
       ),
       GoRoute(

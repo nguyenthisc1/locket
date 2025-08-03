@@ -78,32 +78,33 @@ class Middleware {
 
   Future<String?> routeMiddleware(GoRouterState state) async {
     try {
-      final path = state.path ?? '/';
-      _logger.d('Middleware checking path: $path');
-      _logger.d('Is public route: ${_isPublicRoute(path)}');
-      _logger.d('Is protected route: ${_isProtectedRoute(path)}');
+      // print('state Go ${state.path}');
+      final path = state.fullPath ?? '/onboarding';
+      // _logger.d('Middleware checking path: $path ${state.path}');
+      // _logger.d('Is public route: ${_isPublicRoute(path)}');
+      // _logger.d('Is protected route: ${_isProtectedRoute(path)}');
 
       final hasValidTokens = await _hasValidTokens();
-      _logger.d('Has valid tokens: $hasValidTokens');
+      // _logger.d('Has valid tokens: $hasValidTokens');
 
       if (_isPublicRoute(path)) {
-        _logger.d('Public route accessed: $path');
+        // _logger.d('Public route accessed: $path');
         return null;
       }
 
       if (_isProtectedRoute(path) && !hasValidTokens) {
-        _logger.d('Protected route accessed without tokens: $path');
-        _logger.d('Redirecting to /onboarding');
+        // _logger.d('Protected route accessed without tokens: $path');
+        // _logger.d('Redirecting to /onboarding');
         return '/onboarding';
       }
 
       if (hasValidTokens && _isAuthOnlyRoute(path)) {
-        _logger.d('Authenticated user accessing auth page: $path');
-        _logger.d('Redirecting to /home');
+        // _logger.d('Authenticated user accessing auth page: $path');
+        // _logger.d('Redirecting to /home');
         return '/home';
       }
 
-      _logger.d('Route access granted: $path');
+      // _logger.d('Route access granted: $path');
       return null;
     } catch (e) {
       _logger.e('Error in middleware: $e');

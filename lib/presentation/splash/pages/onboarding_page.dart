@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/index.dart';
@@ -38,9 +37,7 @@ class OnboardingPage extends StatelessWidget {
 
               ElevatedButton(
                 onPressed:
-                    () {
-                      context.go('/home');
-                    },
+                    () => AppNavigator.push(context, const EmailLoginPage()),
                 style: ElevatedButton.styleFrom(
                   textStyle: TextStyle(
                     fontSize: 24,
