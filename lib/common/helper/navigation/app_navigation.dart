@@ -1,43 +1,31 @@
-// ignore_for_file: unnecessary_underscores
-
 import 'package:flutter/material.dart';
-import 'package:locket/core/configs/theme/index.dart';
+import 'package:go_router/go_router.dart';
 
 class AppNavigator {
-  static void pushReplacement(BuildContext context, Widget widget) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => widget),
-    );
+  /// Navigates to a named route.
+  static void push(BuildContext context, String route, {Object? extra}) {
+    context.push(route, extra: extra);
   }
 
-  static void push(BuildContext context, Widget widget) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => widget));
+  /// Replaces the current route with a named route.
+  static void pushReplacement(BuildContext context, String route, {Object? extra}) {
+    context.pushReplacement(route, extra: extra);
   }
 
-  static void pushAndRemove(BuildContext context, Widget widget) {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => widget),
-      (Route<dynamic> route) => false,
-    );
+  /// Pushes a named route and removes all previous routes.
+  static void pushAndRemove(BuildContext context, String route, {Object? extra}) {
+    context.go(route, extra: extra);
   }
 
-  static void fadePush(BuildContext context, Widget page) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => page,
-        transitionsBuilder: (_, animation, __, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(
-          milliseconds: AppDimensions.durationFast,
-        ),
-      ),
-    );
+  /// Navigates with a fade transition to a named route.
+  /// Note: go_router handles transitions via route configuration.
+  /// This method simply navigates to the route.
+  static void fadePush(BuildContext context, String route, {Object? extra}) {
+    context.push(route, extra: extra);
   }
 
+  /// Pops the current route.
   static void pop(BuildContext context, [dynamic result]) {
-    Navigator.of(context).pop(result);
+    context.pop(result);
   }
 }
