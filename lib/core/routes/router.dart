@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:locket/core/routes/middleware.dart';
 import 'package:locket/di.dart';

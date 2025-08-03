@@ -3,6 +3,7 @@ import 'package:fresh_dio/fresh_dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:locket/core/network/dio_client.dart';
 import 'package:locket/core/routes/middleware.dart';
+import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
 import 'package:locket/data/auth/repositories/token_store_impl.dart';
@@ -36,8 +37,8 @@ void setupDependencies() {
 
   getIt.registerLazySingleton<AuthRepositoryImpl>(() => AuthRepositoryImpl(getIt<AuthApiService>()));
 
-  // IMAGE REPOSITORIES
-  getIt.registerLazySingleton<ImageRepository>(() => ImageRepositoryImpl());
+  // USER
+  getIt.registerLazySingleton<UserService>(() => UserService());
 
   // TOKEN REPOSITORIES
   getIt.registerLazySingleton<TokenStorage<AuthTokenPair>>(
@@ -51,4 +52,7 @@ void setupDependencies() {
   getIt.registerLazySingleton<TokenStorageImpl>(
     () => TokenStorageImpl(getIt<FlutterSecureStorage>()),
   );
+
+  // IMAGE REPOSITORIES
+  getIt.registerLazySingleton<ImageRepository>(() => ImageRepositoryImpl());
 }

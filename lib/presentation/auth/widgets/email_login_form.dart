@@ -42,8 +42,11 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
         (failure) {
           DisplayMessage.error(context, failure.message);
         },
-        (data) {
-          DisplayMessage.success(context, data.data['message']);
+        (result) {
+          DisplayMessage.success(
+            context,
+            result.message ?? 'Đăng nhập thành công',
+          );
           AppNavigator.pushAndRemove(context, '/home');
         },
       );

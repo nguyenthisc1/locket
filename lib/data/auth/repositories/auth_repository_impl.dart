@@ -28,9 +28,9 @@ class AuthRepositoryImpl extends AuthRepository {
         logger.e('Repository Login failed: ${failure.toString()}');
         return Left(failure);
       },
-      (data) {
-        logger.d('Repository Login successful for: ${data.data?['user']}');
-        return Right(data);
+      (result) {
+        logger.d('Repository Login successful for: ${result.data}');
+        return Right(result);
       },
     );
   }

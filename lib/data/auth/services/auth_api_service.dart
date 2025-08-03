@@ -1,11 +1,17 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:locket/core/constants/api_url.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/mappers/user_mapper.dart';
+import 'package:locket/core/mappers/user_profile_mapper.dart';
 import 'package:locket/core/models/base_response_model.dart';
 import 'package:locket/core/network/dio_client.dart';
+import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/data/auth/models/user_model.dart';
+import 'package:locket/data/user/models/user_profile_model.dart';
+import 'package:locket/di.dart';
+import 'package:locket/domain/user/entities/user_profile_entity.dart';
 import 'package:logger/logger.dart';
 
 abstract class AuthApiService {
@@ -53,18 +59,35 @@ class AuthApiServiceImpl extends AuthApiService {
           UserModel.fromJson(response.data['data']['user']),
         );
 
+        final userService = getIt<UserService>();
+
+        // Set the current user in UserService
+        // Extract id, username, email, and phoneNumber from the user object
+        userService.setUser(
+          UserProfileMapper.fromEntity(
+            UserProfileEntity(
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              phoneNumber: user.phoneNumber,
+              avatarUrl: null,
+              isVerified: false,
+              lastActiveAt: null,
+              friends: const [],
+              chatRooms: const [],
+            ),
+          ),
+        );
+
+        print('current User ${userService.currentUser?.email}');
         // Build the data map for BaseResponse
-        final data = {
-          'user': user,
-          'accessToken': tokenPair.accessToken,
-          'refreshToken': tokenPair.refreshToken,
-        };
+        final data = {'user': user};
 
         final baseResponse = BaseResponse<Map<String, dynamic>>(
           success: response.data['success'],
           message: response.data['message'],
           data: data,
-          error: response.data['error'],
+          errors: response.data['errors'],
         );
 
         return Right(baseResponse);
@@ -77,12 +100,15 @@ class AuthApiServiceImpl extends AuthApiService {
         success: false,
         message: response.data['message'],
         data: null,
-        error: errors,
+        errors: errors,
       );
 
-      return Right(baseResponse);
+      return Left(
+        AuthFailure(message: baseResponse.message ?? 'Unknown error'),
+      );
     } catch (e) {
       logger.e('❌ Login failed: ${e.toString()}');
+
       return Left(AuthFailure(message: e.toString()));
     }
   }

@@ -5,6 +5,7 @@ import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
+import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/di.dart';
 
@@ -68,16 +69,17 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   Future<void> _initializeApp() async {
-    final tokenPair = await _tokenStorage.read();
+    final userSerivce = getIt<UserService>();
 
     // Add any app initialization logic here
     await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
-      if (tokenPair != null && tokenPair.accessToken?.isNotEmpty == true) {
-        AppNavigator.pushAndRemove(context, '/home');
+      await userSerivce.loadUserFromStorage();
+      if (userSerivce.isLoggedIn) {
+        AppNavigator.pushReplacement(context, '/home');
       } else {
-        AppNavigator.pushAndRemove(context, '/onboarding');
+        AppNavigator.pushReplacement(context, '/onboarding');
       }
     }
   }
