@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:locket/core/constants/api_url.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/mappers/user_mapper.dart';
@@ -9,7 +8,6 @@ import 'package:locket/core/network/dio_client.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/data/auth/models/user_model.dart';
-import 'package:locket/data/user/models/user_profile_model.dart';
 import 'package:locket/di.dart';
 import 'package:locket/domain/user/entities/user_profile_entity.dart';
 import 'package:logger/logger.dart';
@@ -79,7 +77,7 @@ class AuthApiServiceImpl extends AuthApiService {
           ),
         );
 
-        print('current User ${userService.currentUser?.email}');
+        logger.d('current User ${userService.currentUser?.email}');
         // Build the data map for BaseResponse
         final data = {'user': user};
 

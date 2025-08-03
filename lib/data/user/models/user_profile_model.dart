@@ -25,7 +25,7 @@ class UserProfileModel {
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
     return UserProfileModel(
       id:
-          json['_id'] as String? ??
+          json['id'] as String? ??
           '', // MongoDB uses '_id' for the document id
       username: json['username'] as String? ?? '',
       email: json['email'] as String? ?? '',
@@ -52,7 +52,7 @@ class UserProfileModel {
   /// Converts this [UserProfileModel] to a JSON map.
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
+      'id': id,
       'username': username,
       'email': email,
       'phoneNumber': phoneNumber,

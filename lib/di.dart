@@ -9,6 +9,9 @@ import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
 import 'package:locket/data/auth/repositories/token_store_impl.dart';
 import 'package:locket/data/auth/services/auth_api_service.dart';
 import 'package:locket/data/image/respositories/image_repository_impl.dart';
+import 'package:locket/data/user/repositories/user_repository_impl.dart';
+import 'package:locket/data/user/services/user_api_service.dart';
+import 'package:locket/domain/auth/repositories/auth_repository.dart';
 import 'package:locket/domain/image/repositories/image_repository.dart';
 
 final getIt = GetIt.instance;
@@ -25,20 +28,28 @@ void setupDependencies() {
   //  DIOCLIENT
   getIt.registerLazySingleton<DioClient>(() => DioClient());
 
-  // // AUTH DIO CLIENT
+  // // AUTH
   getIt.registerLazySingleton<AuthApiService>(
     () => AuthApiServiceImpl(getIt<DioClient>()),
   );
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(getIt<AuthApiService>()),
+  );
 
-  // AUTH REPOSITORIES
-  // getIt.registerLazySingleton<AuthRepository>(
-  //   () => AuthRepositoryImpl(getIt<AuthApiService>()),
-  // );
-
-  getIt.registerLazySingleton<AuthRepositoryImpl>(() => AuthRepositoryImpl(getIt<AuthApiService>()));
+  getIt.registerLazySingleton<AuthRepositoryImpl>(
+    () => AuthRepositoryImpl(getIt<AuthApiService>()),
+  );
 
   // USER
   getIt.registerLazySingleton<UserService>(() => UserService());
+
+  getIt.registerLazySingleton<UserApiService>(
+    () => UserApiServiceImpl(getIt<DioClient>()),
+  );
+
+  getIt.registerLazySingleton<UserRepositoryImpl>(
+    () => UserRepositoryImpl(getIt<UserApiService>()),
+  );
 
   // TOKEN REPOSITORIES
   getIt.registerLazySingleton<TokenStorage<AuthTokenPair>>(
