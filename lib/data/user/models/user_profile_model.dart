@@ -1,4 +1,6 @@
-class UserProfileModel {
+import 'package:equatable/equatable.dart';
+
+class UserProfileModel extends Equatable {
   final String id;
   final String username;
   final String email;
@@ -24,9 +26,7 @@ class UserProfileModel {
   /// Creates a [UserProfileModel] from a JSON map.
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
     return UserProfileModel(
-      id:
-          json['id'] as String? ??
-          '', // MongoDB uses '_id' for the document id
+      id: json['id'] as String? ?? '', // MongoDB uses '_id' for the document id
       username: json['username'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phoneNumber: json['phoneNumber'] as String? ?? '',
@@ -64,5 +64,16 @@ class UserProfileModel {
     };
   }
 
-
+  @override
+  List<Object?> get props => [
+    id,
+    username,
+    email,
+    phoneNumber,
+    avatarUrl,
+    isVerified,
+    lastActiveAt,
+    friends,
+    chatRooms,
+  ];
 }

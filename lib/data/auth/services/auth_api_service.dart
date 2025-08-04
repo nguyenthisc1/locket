@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:locket/core/constants/api_url.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/mappers/user_mapper.dart';
@@ -106,6 +107,14 @@ class AuthApiServiceImpl extends AuthApiService {
       );
     } catch (e) {
       logger.e('❌ Login failed: ${e.toString()}');
+
+      if (e is DioException) {
+        return Left(
+          AuthFailure(
+            message: e.response?.data['message'] ?? 'Lỗi kết nối server',
+          ),
+        );
+      }
 
       return Left(AuthFailure(message: e.toString()));
     }

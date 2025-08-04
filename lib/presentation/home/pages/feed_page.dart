@@ -27,6 +27,17 @@ class FeedPage extends StatefulWidget {
 }
 
 class _FeedPageState extends State<FeedPage> with RouteAware {
+  late final FeedControllerState _feedController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _feedController = FeedControllerState();
+
+    _feedController.fetchFeed({});
+  }
+
   @override
   void didPopNext() {
     widget.innerController.jumpToPage(

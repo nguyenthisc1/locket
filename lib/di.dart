@@ -8,11 +8,11 @@ import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
 import 'package:locket/data/auth/repositories/token_store_impl.dart';
 import 'package:locket/data/auth/services/auth_api_service.dart';
-import 'package:locket/data/image/respositories/image_repository_impl.dart';
+import 'package:locket/data/feed/respositories/feed_repository_impl.dart';
+import 'package:locket/data/feed/services/feed_api_service.dart';
 import 'package:locket/data/user/repositories/user_repository_impl.dart';
 import 'package:locket/data/user/services/user_api_service.dart';
 import 'package:locket/domain/auth/repositories/auth_repository.dart';
-import 'package:locket/domain/image/repositories/image_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -51,7 +51,7 @@ void setupDependencies() {
     () => UserRepositoryImpl(getIt<UserApiService>()),
   );
 
-  // TOKEN REPOSITORIES
+  // TOKEN
   getIt.registerLazySingleton<TokenStorage<AuthTokenPair>>(
     () => TokenStorageImpl(getIt<FlutterSecureStorage>()),
   );
@@ -64,6 +64,12 @@ void setupDependencies() {
     () => TokenStorageImpl(getIt<FlutterSecureStorage>()),
   );
 
-  // IMAGE REPOSITORIES
-  getIt.registerLazySingleton<ImageRepository>(() => ImageRepositoryImpl());
+  // FEED
+  getIt.registerLazySingleton<FeedApiService>(
+    () => FeedApiServiceImpl(getIt<DioClient>()),
+  );
+
+  getIt.registerLazySingleton<FeedRepositoryImpl>(
+    () => FeedRepositoryImpl(getIt<FeedApiService>()),
+  );
 }

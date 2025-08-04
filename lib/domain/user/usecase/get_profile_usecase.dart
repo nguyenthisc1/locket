@@ -8,7 +8,6 @@ class GetProfileUsecase {
 
   GetProfileUsecase(this._userRepository);
 
-  // Remove the incorrect parameters - no need for identifier/password
   Future<Either<Failure, BaseResponse>> call() async {
     return await _userRepository.getProfile();
   }

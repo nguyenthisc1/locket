@@ -44,7 +44,6 @@ class UserApiServiceImpl extends UserApiService {
       );
 
       if (response.statusCode == 200 && response.data.isNotEmpty) {
-
         final userProfile = UserProfileMapper.toEntity(
           UserProfileModel.fromJson(response.data['data']['user']),
         );
@@ -95,6 +94,14 @@ class UserApiServiceImpl extends UserApiService {
       );
     } catch (e) {
       logger.e('❌ Get Profile failed: ${e.toString()}');
+
+      if (e is DioException) {
+        return Left(
+          AuthFailure(
+            message: e.response?.data['message'] ?? 'Lỗi kết nối server',
+          ),
+        );
+      }
 
       return Left(AuthFailure(message: e.toString()));
     }
