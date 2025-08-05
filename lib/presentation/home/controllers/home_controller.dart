@@ -14,12 +14,14 @@ class HomeControllerState extends ChangeNotifier {
   int _currentOuterPage = 0;
   bool _enteredFeed = false;
   bool _isLoadingProfile = true;
+  bool _hasProfileFetched = false; // Flag to ensure profile is fetched only once
 
   // Getters
   int get currentOuterPage => _currentOuterPage;
   bool get enteredFeed => _enteredFeed;
   List<String> get gallery => _galleryImages;
   bool get isLoadingProfile => _isLoadingProfile;
+  bool get hasProfileFetched => _hasProfileFetched;
 
   void init() {
     outerController.addListener(_outerPageListener);
@@ -56,21 +58,38 @@ class HomeControllerState extends ChangeNotifier {
   }
 
   Future<void> _initializeUser() async {
+    // Only initialize if not already done
+    if (_hasProfileFetched) {
+      return;
+    }
+
     final userService = getIt<UserService>();
     
-    // Load cached user data first
-    await userService.loadUserFromStorage();
-    
-    if (userService.isLoggedIn) {
+    try {
+      // Load cached user data first
+      await userService.loadUserFromStorage();
+      
+      // If we have cached user data, show it immediately
+      if (userService.isLoggedIn) {
+        _isLoadingProfile = false;
+        notifyListeners();
+      }
+      
+      // Fetch fresh data from API (only once)
+      await _fetchProfile();
+    } catch (e) {
+      print('Error initializing user: $e');
       _isLoadingProfile = false;
       notifyListeners();
     }
-    
-    // Fetch fresh data
-    await _fetchProfile();
   }
 
   Future<void> _fetchProfile() async {
+    // Don't fetch if already fetched
+    if (_hasProfileFetched) {
+      return;
+    }
+
     try {
       final userRepository = getIt<UserRepositoryImpl>();
       final getProfileUsecase = GetProfileUsecase(userRepository);
@@ -80,17 +99,49 @@ class HomeControllerState extends ChangeNotifier {
       result.fold(
         (failure) {
           print('Failed to fetch profile: ${failure.message}');
+          
+          // If API fails and no cached user, redirect to login
+          final userService = getIt<UserService>();
+          if (!userService.isLoggedIn) {
+            // Note: Navigation should be handled by the calling widget
+            print('No cached user data and API failed - should redirect to login');
+          }
         },
         (response) {
           print('Profile fetched successfully');
+          _hasProfileFetched = true; // Mark as fetched successfully
         },
       );
     } catch (e) {
       print('Error fetching profile: $e');
+      
+      // If there's an exception and no cached user, it's a critical error
+      final userService = getIt<UserService>();
+      if (!userService.isLoggedIn) {
+        print('Critical error: No user data available');
+      }
     } finally {
       _isLoadingProfile = false;
       notifyListeners();
     }
+  }
+
+  /// Manually refresh profile (useful for pull-to-refresh scenarios)
+  Future<void> refreshProfile() async {
+    _hasProfileFetched = false; // Reset the flag to allow re-fetching
+    _isLoadingProfile = true;
+    notifyListeners();
+    
+    await _fetchProfile();
+  }
+
+  /// Reset the controller state (useful when logging out)
+  void resetState() {
+    _hasProfileFetched = false;
+    _isLoadingProfile = true;
+    _currentOuterPage = 0;
+    _enteredFeed = false;
+    notifyListeners();
   }
 
   @override

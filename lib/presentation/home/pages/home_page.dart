@@ -4,9 +4,7 @@ import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/services/user_service.dart';
-import 'package:locket/data/user/repositories/user_repository_impl.dart';
 import 'package:locket/di.dart';
-import 'package:locket/domain/user/usecase/get_profile_usecase.dart';
 import 'package:locket/presentation/home/controllers/feed_controller.dart';
 import 'package:locket/presentation/home/controllers/home_controller.dart';
 import 'package:locket/presentation/home/pages/feed_page.dart';
@@ -26,61 +24,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final HomeControllerState _homeController;
-  bool _isLoadingProfile = true;
 
   @override
   void initState() {
     super.initState();
     _homeController = HomeControllerState();
     _homeController.init();
-    _initializeUser();
   }
 
-  Future<void> _initializeUser() async {
-    final userService = getIt<UserService>();
-    
-    // First try to load cached user data
-    await userService.loadUserFromStorage();
-    
-    // If we have cached user data, set loading to false
-    if (userService.isLoggedIn) {
-      setState(() {
-        _isLoadingProfile = false;
-      });
-    }
-    
-    // Then fetch fresh profile data from API (even if cached data exists)
-    await _fetchProfile();
-  }
 
-  Future<void> _fetchProfile() async {
-    try {
-      final userRepository = getIt<UserRepositoryImpl>();
-      final getProfileUsecase = GetProfileUsecase(userRepository);
-      
-      final result = await getProfileUsecase();
-      
-      result.fold(
-        (failure) {
-          print('Failed to fetch profile: ${failure.message}');
-          final userService = getIt<UserService>();
-          if (!userService.isLoggedIn) {
-            AppNavigator.pushAndRemove(context, '/login');
-          }
-        },
-        (response) {
-          print('Profile fetched successfully');
-        },
-      );
-    } catch (e) {
-      print('Error fetching profile: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingProfile = false;
-        });
-      }
-    }
+  /// Method to manually refresh user profile (e.g., for pull-to-refresh)
+  /// You can call this method when implementing pull-to-refresh functionality
+  // ignore: unused_element
+  Future<void> _refreshProfile() async {
+    await _homeController.refreshProfile();
   }
 
   @override
@@ -91,20 +48,31 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final userService = getIt<UserService>();
-    
-    // Show loading spinner while fetching profile
-    if (_isLoadingProfile && !userService.isLoggedIn) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
     return ListenableBuilder(
       listenable: _homeController,
       builder: (context, child) {
+        final userService = getIt<UserService>();
+        
+        // Show loading spinner while fetching profile
+        if (_homeController.isLoadingProfile && !userService.isLoggedIn) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        // If profile fetch failed and no user data, redirect to login
+        if (!_homeController.isLoadingProfile && 
+            _homeController.hasProfileFetched && 
+            !userService.isLoggedIn) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppNavigator.pushAndRemove(context, '/login');
+          });
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
         return Scaffold(
           extendBodyBehindAppBar: true,
           resizeToAvoidBottomInset: false,
