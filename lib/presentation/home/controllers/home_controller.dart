@@ -3,8 +3,13 @@ import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/user/repositories/user_repository_impl.dart';
 import 'package:locket/di.dart';
 import 'package:locket/domain/user/usecase/get_profile_usecase.dart';
+import 'package:logger/logger.dart';
 
 class HomeControllerState extends ChangeNotifier {
+  final Logger _logger = Logger(
+    printer: PrettyPrinter(colors: true, printEmojis: true),
+  );
+
   final PageController outerController = PageController();
   final PageController innerController = PageController();
 
@@ -14,7 +19,8 @@ class HomeControllerState extends ChangeNotifier {
   int _currentOuterPage = 0;
   bool _enteredFeed = false;
   bool _isLoadingProfile = true;
-  bool _hasProfileFetched = false; // Flag to ensure profile is fetched only once
+  bool _hasProfileFetched =
+      false; // Flag to ensure profile is fetched only once
 
   // Getters
   int get currentOuterPage => _currentOuterPage;
@@ -59,26 +65,29 @@ class HomeControllerState extends ChangeNotifier {
 
   Future<void> _initializeUser() async {
     // Only initialize if not already done
+
+    _logger.d('Profile fetched: $_hasProfileFetched');
+
     if (_hasProfileFetched) {
       return;
     }
 
     final userService = getIt<UserService>();
-    
+
     try {
       // Load cached user data first
       await userService.loadUserFromStorage();
-      
+
       // If we have cached user data, show it immediately
       if (userService.isLoggedIn) {
         _isLoadingProfile = false;
         notifyListeners();
       }
-      
+
       // Fetch fresh data from API (only once)
       await _fetchProfile();
     } catch (e) {
-      print('Error initializing user: $e');
+      _logger.e('Error initializing user: $e');
       _isLoadingProfile = false;
       notifyListeners();
     }
@@ -93,32 +102,34 @@ class HomeControllerState extends ChangeNotifier {
     try {
       final userRepository = getIt<UserRepositoryImpl>();
       final getProfileUsecase = GetProfileUsecase(userRepository);
-      
+
       final result = await getProfileUsecase();
-      
+
       result.fold(
         (failure) {
-          print('Failed to fetch profile: ${failure.message}');
-          
+          _logger.e('Failed to fetch profile: ${failure.message}');
+
           // If API fails and no cached user, redirect to login
           final userService = getIt<UserService>();
           if (!userService.isLoggedIn) {
             // Note: Navigation should be handled by the calling widget
-            print('No cached user data and API failed - should redirect to login');
+            _logger.d(
+              'No cached user data and API failed - should redirect to login',
+            );
           }
         },
         (response) {
-          print('Profile fetched successfully');
+          _logger.d('Profile fetched successfully');
           _hasProfileFetched = true; // Mark as fetched successfully
         },
       );
     } catch (e) {
-      print('Error fetching profile: $e');
-      
+      _logger.e('Error fetching profile: $e');
+
       // If there's an exception and no cached user, it's a critical error
       final userService = getIt<UserService>();
       if (!userService.isLoggedIn) {
-        print('Critical error: No user data available');
+        _logger.e('Critical error: No user data available');
       }
     } finally {
       _isLoadingProfile = false;
@@ -131,7 +142,7 @@ class HomeControllerState extends ChangeNotifier {
     _hasProfileFetched = false; // Reset the flag to allow re-fetching
     _isLoadingProfile = true;
     notifyListeners();
-    
+
     await _fetchProfile();
   }
 
