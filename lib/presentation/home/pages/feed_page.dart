@@ -35,7 +35,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
 
     _feedController = FeedControllerState();
 
-    _feedController.fetchFeed({});
+    _feedController.init();
   }
 
   @override

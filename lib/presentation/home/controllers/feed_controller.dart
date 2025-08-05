@@ -25,6 +25,10 @@ class FeedControllerState extends ChangeNotifier {
     messageFieldFocusNode.addListener(_handleKeyboardFocus);
   }
 
+  void init() async {
+    await fetchFeed({});
+  }
+
   Future<void> fetchFeed(Map<String, dynamic> query) async {
     try {
       final feedRepository = getIt<FeedRepositoryImpl>();
