@@ -92,44 +92,127 @@ class AuthApiServiceImpl extends AuthApiService {
         return Right(baseResponse);
       }
 
+      // Handle specific status codes (since they're not treated as exceptions)
+      final statusCode = response.statusCode;
+      final message = response.data['message'] ?? 'Unknown error';
       final errors = response.data['errors'];
-      logger.e('❌ Login failed: $errors ${response.data['message']}');
+      
+      logger.e('❌ Login failed: $errors $message (Status: $statusCode)');
 
-      final baseResponse = BaseResponse<Map<String, dynamic>>(
-        success: false,
-        message: response.data['message'],
-        data: null,
-        errors: errors,
-      );
-
-      return Left(
-        AuthFailure(message: baseResponse.message ?? 'Unknown error'),
-      );
+      if (statusCode == 401) {
+        return Left(UnauthorizedFailure(
+          message: message,
+          statusCode: statusCode,
+        ));
+      } else if (statusCode == 422) {
+        return Left(ValidationFailure(
+          message: message,
+          statusCode: statusCode,
+        ));
+      } else if (statusCode == 429) {
+        return Left(LoginFailure(
+          message: 'Too many login attempts. Please try again later.',
+          statusCode: statusCode,
+        ));
+      } else {
+        return Left(LoginFailure(
+          message: message,
+          statusCode: statusCode,
+        ));
+      }
     } catch (e) {
       logger.e('❌ Login failed: ${e.toString()}');
 
       if (e is DioException) {
-        return Left(
-          AuthFailure(
-            message: e.response?.data['message'] ?? 'Lỗi kết nối server',
-          ),
-        );
+        final statusCode = e.response?.statusCode;
+        final message = e.response?.data['message'] ?? 'Lỗi kết nối server';
+        
+        // DioException will only occur for network issues or server errors (5xx)
+        if (statusCode != null && statusCode >= 500) {
+          return Left(ServerFailure(
+            message: message,
+            statusCode: statusCode,
+          ));
+        } else {
+          return Left(NetworkFailure(
+            message: message,
+            statusCode: statusCode,
+          ));
+        }
       }
 
-      return Left(AuthFailure(message: e.toString()));
+      return Left(LoginFailure(message: e.toString()));
     }
   }
 
   @override
-  Future<void> logout() async {
+  Future<Either<Failure, void>> logout() async {
     try {
-      await dioClient.post(ApiUrl.logout);
-      await dioClient.tokenStorage.delete();
+      final response = await dioClient.post(ApiUrl.logout);
+      
+      // Handle different status codes for logout
+      if (response.statusCode == 200) {
+        await dioClient.tokenStorage.delete();
 
-      final check = await dioClient.tokenStorage.read();
-      logger.d('check Token: $check');
+        // Clear user data from UserService
+        final userService = getIt<UserService>();
+        await userService.clearUser();
+
+        final check = await dioClient.tokenStorage.read();
+        logger.d('check Token: $check');
+        
+        return const Right(null);
+      }
+
+      // Handle non-200 status codes
+      final statusCode = response.statusCode;
+      final message = response.data['message'] ?? 'Logout failed';
+      
+      logger.e('❌ Logout failed: $message (Status: $statusCode)');
+      
+      return Left(LogoutFailure(
+        message: message,
+        statusCode: statusCode,
+      ));
     } catch (e) {
-      logger.e('Failed login: ${e.toString()}');
+      logger.e('Failed logout: ${e.toString()}');
+      
+      if (e is DioException) {
+        final statusCode = e.response?.statusCode;
+        final message = e.response?.data['message'] ?? 'Lỗi đăng xuất';
+        
+        // Even if logout API fails, clear local data
+        try {
+          await dioClient.tokenStorage.delete();
+          final userService = getIt<UserService>();
+          await userService.clearUser();
+        } catch (clearError) {
+          logger.e('Failed to clear local data: $clearError');
+        }
+        
+        if (statusCode != null && statusCode >= 500) {
+          return Left(ServerFailure(
+            message: message,
+            statusCode: statusCode,
+          ));
+        } else {
+          return Left(NetworkFailure(
+            message: message,
+            statusCode: statusCode,
+          ));
+        }
+      }
+      
+      // Even if there's an error, try to clear local data
+      try {
+        await dioClient.tokenStorage.delete();
+        final userService = getIt<UserService>();
+        await userService.clearUser();
+      } catch (clearError) {
+        logger.e('Failed to clear local data: $clearError');
+      }
+      
+      return Left(LogoutFailure(message: e.toString()));
     }
   }
 
