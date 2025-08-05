@@ -75,7 +75,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
           child: FeedToolbar(
             onScrollToTop: widget.handleScrollFeedToTop,
             onGalleryToggle: feedController.toggleGalleryVisibility,
-            images: widget.images,
+            images: _feedController.listFeed,
           ),
         ),
       ),
@@ -102,7 +102,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                 PageView.builder(
                   controller: widget.innerController,
                   scrollDirection: Axis.vertical,
-                  itemCount: widget.images.length,
+                  itemCount: _feedController.listFeed.length,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.only(
@@ -123,7 +123,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
-                                    FeedImage(image: widget.images[index]),
+                                    FeedImage(image: _feedController.listFeed[index].imageUrl),
                                     const SizedBox(height: AppDimensions.lg),
                                     FeedUser(),
                                   ],
