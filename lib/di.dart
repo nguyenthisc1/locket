@@ -3,6 +3,7 @@ import 'package:fresh_dio/fresh_dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:locket/core/network/dio_client.dart';
 import 'package:locket/core/routes/middleware.dart';
+import 'package:locket/core/services/feed_cache_service.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
@@ -72,4 +73,7 @@ void setupDependencies() {
   getIt.registerLazySingleton<FeedRepositoryImpl>(
     () => FeedRepositoryImpl(getIt<FeedApiService>()),
   );
+
+  getIt.registerLazySingleton<FeedCacheService>(() => FeedCacheService());
+
 }
