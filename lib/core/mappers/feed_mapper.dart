@@ -5,7 +5,7 @@ class FeedMapper {
   static FeedEntity toEntity(FeedModel model) {
     return FeedEntity(
       id: model.id,
-      userId: model.userId,
+      user: model.user, 
       imageUrl: model.imageUrl,
       publicId: model.publicId,
       caption: model.caption,
@@ -20,7 +20,7 @@ class FeedMapper {
   static FeedModel fromEntity(FeedEntity entity) {
     return FeedModel(
       id: entity.id,
-      userId: entity.userId,
+      user: entity.user,
       imageUrl: entity.imageUrl,
       publicId: entity.publicId,
       caption: entity.caption,
@@ -32,10 +32,10 @@ class FeedMapper {
     );
   }
 
-    static FeedModel toModel(FeedModel model) {
+  static FeedModel toModel(FeedModel model) {
     return FeedModel(
       id: model.id,
-      userId: model.userId,
+      user: model.user, 
       imageUrl: model.imageUrl,
       publicId: model.publicId,
       caption: model.caption,
@@ -48,5 +48,5 @@ class FeedMapper {
   }
 
   static List<FeedEntity> toEntityList(List<FeedModel> models) =>
-    models.map(toEntity).toList();
+      models.map(toEntity).toList();
 }

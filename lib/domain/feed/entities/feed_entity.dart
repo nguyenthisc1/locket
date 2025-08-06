@@ -3,9 +3,22 @@ import 'package:locket/core/models/location_model.dart';
 import 'package:locket/core/models/reaction_model.dart';
 import 'package:locket/core/models/share_with_user_model.dart';
 
+class FeedUser extends Equatable {
+  final String id;
+  final String username;
+
+  const FeedUser({
+    required this.id,
+    required this.username,
+  });
+
+  @override
+  List<Object?> get props => [id, username];
+}
+
 class FeedEntity extends Equatable {
   final String id;
-  final String userId;
+  final FeedUser user;
   final String imageUrl;
   final String? publicId;
   final String? caption;
@@ -17,7 +30,7 @@ class FeedEntity extends Equatable {
 
   const FeedEntity({
     required this.id,
-    required this.userId,
+    required this.user,
     required this.imageUrl,
     this.publicId,
     this.caption,
@@ -31,7 +44,7 @@ class FeedEntity extends Equatable {
   @override
   List<Object?> get props => [
         id,
-        userId,
+        user,
         imageUrl,
         publicId,
         caption,

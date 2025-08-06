@@ -2,10 +2,11 @@ import 'package:equatable/equatable.dart';
 import 'package:locket/core/models/location_model.dart';
 import 'package:locket/core/models/reaction_model.dart';
 import 'package:locket/core/models/share_with_user_model.dart';
+import 'package:locket/domain/feed/entities/feed_entity.dart';
 
 class FeedModel extends Equatable {
   final String id;
-  final String userId;
+  final FeedUser user;
   final String imageUrl;
   final String? publicId;
   final String? caption;
@@ -17,7 +18,7 @@ class FeedModel extends Equatable {
 
   const FeedModel({
     required this.id,
-    required this.userId,
+    required this.user,
     required this.imageUrl,
     this.publicId,
     this.caption,
@@ -29,19 +30,24 @@ class FeedModel extends Equatable {
   });
 
   factory FeedModel.fromJson(Map<String, dynamic> json) {
-    // Handle userId as either a string or an object with _id
-    String extractUserId(dynamic userIdField) {
-      if (userIdField is String) {
-        return userIdField;
-      } else if (userIdField is Map<String, dynamic> && userIdField['_id'] != null) {
-        return userIdField['_id'] as String;
+    // Handle user as either a string (id) or an object with _id and username
+    FeedUser extractUser(dynamic userField) {
+      if (userField is String) {
+        // Only id is available, username unknown
+        return FeedUser(id: userField, username: '');
+      } else if (userField is Map<String, dynamic>) {
+        final id = userField['_id'] as String? ?? userField['id'] as String?;
+        final username = userField['username'] as String? ?? '';
+        if (id != null) {
+          return FeedUser(id: id, username: username);
+        }
       }
-      throw Exception('Invalid userId format');
+      throw Exception('Invalid user format');
     }
 
     return FeedModel(
       id: json['_id'] as String? ?? json['id'] as String,
-      userId: extractUserId(json['userId']),
+      user: extractUser(json['userId']),
       imageUrl: json['imageUrl'] as String,
       publicId: json['publicId'] as String?,
       caption: json['caption'] as String?,
@@ -65,7 +71,10 @@ class FeedModel extends Equatable {
 
   Map<String, dynamic> toJson() => {
         '_id': id,
-        'userId': userId,
+        'userId': {
+          '_id': user.id,
+          'username': user.username,
+        },
         'imageUrl': imageUrl,
         'publicId': publicId,
         'caption': caption,
@@ -79,7 +88,7 @@ class FeedModel extends Equatable {
   @override
   List<Object?> get props => [
         id,
-        userId,
+        user,
         imageUrl,
         publicId,
         caption,
@@ -90,4 +99,3 @@ class FeedModel extends Equatable {
         updatedAt,
       ];
 }
-
