@@ -36,6 +36,6 @@ String formatVietnameseTimestamp(DateTime dateTime) {
   } else {
     final day = dateTime.day.toString();
     final month = vietnameseMonths[dateTime.month];
-    return '$day $month, $hourMinute';
+    return '$day $month';
   }
 }
