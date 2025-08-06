@@ -19,7 +19,7 @@ class EmailLoginForm extends StatefulWidget {
 class _EmailLoginFormState extends State<EmailLoginForm> {
   // Set default values for email and password fields
   final _emailController = TextEditingController(text: 'admin@gmail.com');
-  final _passwordController = TextEditingController(text: 'Adminadmin12');
+  final _passwordController = TextEditingController(text: 'User123');
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 

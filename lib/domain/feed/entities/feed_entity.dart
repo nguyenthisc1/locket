@@ -6,14 +6,16 @@ import 'package:locket/core/models/share_with_user_model.dart';
 class FeedUser extends Equatable {
   final String id;
   final String username;
+  final String avatarUrl;
 
   const FeedUser({
     required this.id,
-    required this.username,
+  required this.username,
+    required this.avatarUrl,
   });
 
   @override
-  List<Object?> get props => [id, username];
+  List<Object?> get props => [id, username, avatarUrl];
 }
 
 class FeedEntity extends Equatable {

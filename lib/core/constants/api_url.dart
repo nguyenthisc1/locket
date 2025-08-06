@@ -66,4 +66,13 @@ class ApiUrl {
   static const String updateProfile = '/users';
   static String deleteAccount(String userId) => '/users/$userId';
   static const String searchUsers = '/users/search';
+
+  // Friends Feature
+  static const String sendFriendRequest = '/user/friends/request';
+  static String respondToFriendRequest(String requestId) => '/user/friends/request/$requestId';
+  static const String getFriendRequests = '/user/friends/requests';
+  static const String getFriends = '/user/friends';
+  static String removeFriend(String friendId) => '/user/friends/$friendId';
+  static String blockUser(String userId) => '/user/friends/block/$userId';
+  static String getMutualFriends(String userId) => '/user/friends/mutual/$userId';
 }

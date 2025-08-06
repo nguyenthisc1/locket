@@ -33,13 +33,14 @@ class FeedModel extends Equatable {
     // Handle user as either a string (id) or an object with _id and username
     FeedUser extractUser(dynamic userField) {
       if (userField is String) {
-        // Only id is available, username unknown
-        return FeedUser(id: userField, username: '');
+        // Only id is available, username and avatarUrl unknown
+        return FeedUser(id: userField, username: '', avatarUrl: '');
       } else if (userField is Map<String, dynamic>) {
         final id = userField['_id'] as String? ?? userField['id'] as String?;
         final username = userField['username'] as String? ?? '';
+        final avatarUrl = userField['avatarUrl'] as String? ?? '';
         if (id != null) {
-          return FeedUser(id: id, username: username);
+          return FeedUser(id: id, username: username, avatarUrl: avatarUrl);
         }
       }
       throw Exception('Invalid user format');

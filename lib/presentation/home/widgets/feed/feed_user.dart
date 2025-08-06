@@ -5,11 +5,11 @@ import 'package:locket/core/configs/theme/index.dart';
 
 class FeedUser extends StatelessWidget {
 
-  final String avatar;
+  final String avatarUrl;
   final String username;
   final DateTime createdAt;
 
-  const FeedUser({super.key, required this.avatar, required this.username, required this.createdAt});
+  const FeedUser({super.key, required this.username, required this.createdAt, required this.avatarUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +18,7 @@ class FeedUser extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         UserImage(
-          imageUrl: avatar ??
-              'https://images.unsplash.com/photo-1751217052634-cd51e3519355?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyNHx8fGVufDB8fHx8fA%3D%3D',
+          imageUrl: avatarUrl,
           size: 40,
         ),
         const SizedBox(width: AppDimensions.sm),

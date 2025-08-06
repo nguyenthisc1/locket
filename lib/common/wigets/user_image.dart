@@ -17,6 +17,7 @@ class UserImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('ImageUrl: $imageUrl');
     return Container(
       width: size,
       height: size,
@@ -32,7 +33,7 @@ class UserImage extends StatelessWidget {
                 )
                 : null,
         // ignore: deprecated_member_use
-        color: imageUrl == null ? Colors.white.safeOpacity(0.2) : null,
+        color: imageUrl == null ? Colors.white.safeOpacity(0.2) : Colors.white,
       ),
       child:
           imageUrl == null

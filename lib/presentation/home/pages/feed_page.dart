@@ -3,6 +3,7 @@ import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/main.dart';
 import 'package:locket/presentation/home/controllers/feed_controller.dart';
+import 'package:locket/presentation/home/widgets/feed/feed_caption.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_image.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_toolbar.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_user.dart';
@@ -179,19 +180,39 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
-                                    FeedImage(
-                                      image:
-                                          feedController
-                                              .listFeed[index]
-                                              .imageUrl,
+                                    Stack(
+                                      children: [
+                                        FeedImage(
+                                          image:
+                                              feedController
+                                                  .listFeed[index]
+                                                  .imageUrl,
+                                        ),
+                                        if (feedController
+                                                .listFeed[index]
+                                                .caption !=
+                                            null)
+                                          Positioned(
+                                            bottom: AppDimensions.md,
+                                            left: AppDimensions.md,
+                                            right: AppDimensions.md,
+                                            child: FeedCaption(
+                                              caption:
+                                                  feedController
+                                                      .listFeed[index]
+                                                      .caption,
+                                            ),
+                                          ),
+                                      ],
                                     ),
+
                                     const SizedBox(height: AppDimensions.lg),
                                     FeedUser(
-                                      avatar:
+                                      avatarUrl:
                                           feedController
                                               .listFeed[index]
                                               .user
-                                              .id,
+                                              .avatarUrl,
                                       username:
                                           feedController
                                               .listFeed[index]
