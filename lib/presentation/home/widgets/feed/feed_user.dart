@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 class FeedUser extends StatelessWidget {
-  const FeedUser({super.key});
+
+  final String avatar;
+  final String username;
+  final DateTime createdAt;
+
+  const FeedUser({super.key, required this.avatar, required this.username, required this.createdAt});
 
   @override
   Widget build(BuildContext context) {
@@ -12,13 +18,13 @@ class FeedUser extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         UserImage(
-          imageUrl:
+          imageUrl: avatar ??
               'https://images.unsplash.com/photo-1751217052634-cd51e3519355?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyNHx8fGVufDB8fHx8fA%3D%3D',
           size: 40,
         ),
         const SizedBox(width: AppDimensions.sm),
         Text(
-          'Yến',
+          username,
           style: AppTypography.bodyLarge.copyWith(
             fontWeight: FontWeight.w800,
             color: Colors.white,
@@ -26,7 +32,7 @@ class FeedUser extends StatelessWidget {
         ),
         const SizedBox(width: AppDimensions.md),
         Text(
-          '1ngày',
+          formatVietnameseTimestamp(createdAt) ,
           style: AppTypography.bodyLarge.copyWith(color: AppColors.offline),
         ),
       ],

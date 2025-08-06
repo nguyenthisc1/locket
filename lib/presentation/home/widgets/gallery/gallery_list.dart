@@ -32,7 +32,7 @@ class GalleryList extends StatelessWidget {
           return GestureDetector(
             onTap:
                 () => {
-                  feedController.setPopImageIndex = index,
+                  feedController.setPopImageIndex(index),
                   AppNavigator.pop(context, index),
                 },
             child: Hero(

@@ -27,15 +27,16 @@ class FeedPage extends StatefulWidget {
 }
 
 class _FeedPageState extends State<FeedPage> with RouteAware {
-  late final FeedControllerState _feedController;
-
   @override
   void initState() {
     super.initState();
 
-    _feedController = FeedControllerState();
-
-    _feedController.init();
+    // Initialize the feed controller after the first frame is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<FeedControllerState>().init();
+      }
+    });
   }
 
   @override
@@ -60,6 +61,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
   @override
   Widget build(BuildContext context) {
     final feedController = context.watch<FeedControllerState>();
+
     return Scaffold(
       extendBodyBehindAppBar: false,
       resizeToAvoidBottomInset: false,
@@ -75,7 +77,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
           child: FeedToolbar(
             onScrollToTop: widget.handleScrollFeedToTop,
             onGalleryToggle: feedController.toggleGalleryVisibility,
-            images: _feedController.listFeed,
+            images: feedController.listFeed,
           ),
         ),
       ),
@@ -96,13 +98,67 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
         child: AnimatedBuilder(
           animation: feedController,
           builder: (context, _) {
+            // Show loading state
+            if (feedController.isLoading && !feedController.hasInitialized) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            // Show error state
+            if (feedController.errorMessage != null &&
+                feedController.listFeed.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      feedController.errorMessage!,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => feedController.refreshFeed(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Show empty state
+            if (!feedController.isLoading && feedController.listFeed.isEmpty) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.photo_library_outlined,
+                      size: 64,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'No feeds available',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                  ],
+                ),
+              );
+            }
+
             return Stack(
               alignment: AlignmentDirectional.bottomEnd,
               children: [
                 PageView.builder(
                   controller: widget.innerController,
                   scrollDirection: Axis.vertical,
-                  itemCount: _feedController.listFeed.length,
+                  itemCount: feedController.listFeed.length,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.only(
@@ -123,9 +179,29 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
-                                    FeedImage(image: _feedController.listFeed[index].imageUrl),
+                                    FeedImage(
+                                      image:
+                                          feedController
+                                              .listFeed[index]
+                                              .imageUrl,
+                                    ),
                                     const SizedBox(height: AppDimensions.lg),
-                                    FeedUser(),
+                                    FeedUser(
+                                      avatar:
+                                          feedController
+                                              .listFeed[index]
+                                              .user
+                                              .id,
+                                      username:
+                                          feedController
+                                              .listFeed[index]
+                                              .user
+                                              .username,
+                                      createdAt:
+                                          feedController
+                                              .listFeed[index]
+                                              .createdAt,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -138,7 +214,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                 ),
 
                 AnimatedPadding(
-                  duration: Duration(milliseconds: 0),
+                  duration: const Duration(milliseconds: 0),
                   curve: Curves.linear,
                   padding: EdgeInsets.only(
                     bottom:

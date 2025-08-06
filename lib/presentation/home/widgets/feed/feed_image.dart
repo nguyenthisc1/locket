@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
+import 'package:locket/core/configs/theme/index.dart';
 
 class FeedImage extends StatelessWidget {
   final String image;
@@ -8,6 +9,7 @@ class FeedImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return SizedBox(
       width: double.infinity,
       height: MediaQuery.of(context).size.height * 0.45,
@@ -15,7 +17,7 @@ class FeedImage extends StatelessWidget {
         tag: image,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-          child: Image.network(image, fit: BoxFit.cover),
+          child: Image.network(image, fit: BoxFit.cover,),
         ),
       ),
     );
