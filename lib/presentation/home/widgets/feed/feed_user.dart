@@ -4,12 +4,16 @@ import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 class FeedUser extends StatelessWidget {
-
   final String avatarUrl;
   final String username;
   final DateTime createdAt;
 
-  const FeedUser({super.key, required this.username, required this.createdAt, required this.avatarUrl});
+  const FeedUser({
+    super.key,
+    required this.username,
+    required this.createdAt,
+    required this.avatarUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,10 +21,7 @@ class FeedUser extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        UserImage(
-          imageUrl: avatarUrl,
-          size: 40,
-        ),
+        UserImage(imageUrl: avatarUrl),
         const SizedBox(width: AppDimensions.sm),
         Text(
           username,
@@ -31,7 +32,7 @@ class FeedUser extends StatelessWidget {
         ),
         const SizedBox(width: AppDimensions.md),
         Text(
-          formatVietnameseTimestamp(createdAt) ,
+          formatVietnameseTimestamp(createdAt),
           style: AppTypography.bodyLarge.copyWith(color: AppColors.offline),
         ),
       ],

@@ -8,9 +8,8 @@ import 'package:locket/presentation/home/widgets/gallery/gallery_toolbar.dart';
 import 'package:locket/presentation/home/widgets/mess_button.dart';
 
 class GalleryPage extends StatelessWidget {
-  final List<String> images;
 
-  const GalleryPage({super.key, required this.images});
+  const GalleryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +48,7 @@ class GalleryPage extends StatelessWidget {
           child: GalleryToolbar(),
         ),
       ),
-      body: GalleryList(images: images),
+      body: GalleryList(),
     );
   }
 }

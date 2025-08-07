@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/utils.dart';
+import 'package:locket/core/constants/images_url.dart';
 
 class UserImage extends StatelessWidget {
   final String? imageUrl;
@@ -17,7 +18,6 @@ class UserImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('ImageUrl: $imageUrl');
     return Container(
       width: size,
       height: size,
@@ -25,13 +25,13 @@ class UserImage extends StatelessWidget {
         shape: borderRadius != null ? BoxShape.rectangle : shape,
         borderRadius:
             borderRadius != null ? BorderRadius.circular(borderRadius!) : null,
-        image:
-            imageUrl != null
-                ? DecorationImage(
-                  image: NetworkImage(imageUrl!),
-                  fit: BoxFit.cover,
-                )
-                : null,
+        image: DecorationImage(
+          image:
+              imageUrl != null
+                  ? NetworkImage(imageUrl!)
+                  : AssetImage(ImagesUrl.user),
+          fit: BoxFit.cover,
+        ),
         // ignore: deprecated_member_use
         color: imageUrl == null ? Colors.white.safeOpacity(0.2) : Colors.white,
       ),

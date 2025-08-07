@@ -163,6 +163,7 @@ class FeedControllerState extends ChangeNotifier {
   }
 
   void setPopImageIndex(int? value) {
+    print('index value $value');
     if (value != null && value != _popImageIndex) {
       _popImageIndex = value;
       notifyListeners();

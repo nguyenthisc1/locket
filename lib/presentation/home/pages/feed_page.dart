@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
-import 'package:locket/main.dart';
+import 'package:locket/core/routes/router.dart'; // Import for goRouterObserver
 import 'package:locket/presentation/home/controllers/feed_controller.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_caption.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_image.dart';
@@ -13,14 +13,12 @@ class FeedPage extends StatefulWidget {
   final PageController innerController;
   final PageController outerController;
   final void Function() handleScrollFeedToTop;
-  final List<String> images;
 
   const FeedPage({
     super.key,
     required this.innerController,
     required this.outerController,
     required this.handleScrollFeedToTop,
-    required this.images,
   });
 
   @override
@@ -28,6 +26,8 @@ class FeedPage extends StatefulWidget {
 }
 
 class _FeedPageState extends State<FeedPage> with RouteAware {
+  bool _isNavigatingFromGallery = false;
+
   @override
   void initState() {
     super.initState();
@@ -36,26 +36,43 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<FeedControllerState>().init();
+
+        print(context.read<FeedControllerState>().popImageIndex);
       }
     });
   }
 
   @override
   void didPopNext() {
-    widget.innerController.jumpToPage(
-      context.read<FeedControllerState>().popImageIndex,
-    );
+    final controller = context.read<FeedControllerState>();
+    final index = controller.popImageIndex;
+
+    if (index != null) {
+      _isNavigatingFromGallery = true; // Set flag
+      controller.setPopImageIndex(null);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.innerController.jumpToPage(index);
+
+        // Reset flag after a short delay
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            _isNavigatingFromGallery = false;
+          }
+        });
+      });
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    // Use the GoRouter observer instead of the old routeObserver
+    goRouterObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
   void dispose() {
-    routeObserver.unsubscribe(this);
+    goRouterObserver.unsubscribe(this);
     super.dispose();
   }
 
@@ -84,7 +101,9 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
-          if (widget.innerController.page == 0 &&
+          // Don't trigger outer scroll if we just navigated from gallery
+          if (!_isNavigatingFromGallery &&
+              widget.innerController.page == 0 &&
               notification is ScrollUpdateNotification &&
               notification.metrics.pixels <= 0 &&
               notification.scrollDelta! < -10) {

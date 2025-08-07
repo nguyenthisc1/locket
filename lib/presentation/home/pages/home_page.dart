@@ -32,7 +32,6 @@ class _HomePageState extends State<HomePage> {
     _homeController.init();
   }
 
-
   /// Method to manually refresh user profile (e.g., for pull-to-refresh)
   /// You can call this method when implementing pull-to-refresh functionality
   // ignore: unused_element
@@ -122,6 +121,7 @@ class _HomePageState extends State<HomePage> {
                       left: 0,
                       right: 0,
                       child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
                         onTap:
                             () => _homeController.handleScrollPageViewOuter(1),
                         child: Center(child: HistoryFeed()),
@@ -139,7 +139,6 @@ class _HomePageState extends State<HomePage> {
                   outerController: _homeController.outerController,
                   handleScrollFeedToTop:
                       () => _homeController.handleScrollPageViewOuter(0),
-                  images: _homeController.gallery,
                 ),
               );
             },

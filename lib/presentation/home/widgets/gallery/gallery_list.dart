@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/domain/feed/entities/feed_entity.dart';
 import 'package:locket/presentation/home/controllers/feed_controller.dart';
 import 'package:provider/provider.dart';
 
 class GalleryList extends StatelessWidget {
-  final List<String> images;
-
-  const GalleryList({super.key, required this.images});
+  const GalleryList({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +25,9 @@ class GalleryList extends StatelessWidget {
           crossAxisSpacing: 4,
           mainAxisSpacing: 4,
         ),
-        itemCount: images.length,
+        itemCount: feedController.listFeed.length,
         itemBuilder: (_, index) {
-          final imageUrl = images[index];
+          final imageUrl = feedController.listFeed[index].imageUrl;
           return GestureDetector(
             onTap:
                 () => {
@@ -38,7 +37,7 @@ class GalleryList extends StatelessWidget {
             child: Hero(
               tag: imageUrl,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                borderRadius: BorderRadius.circular(AppDimensions.radiusXl * 0.8),
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
