@@ -32,7 +32,7 @@ String formatVietnameseTimestamp(DateTime dateTime) {
   if (messageDay == today) {
     return hourMinute;
   } else if (messageDay == yesterday) {
-    return 'Hôm qua, $hourMinute';
+    return 'Hôm qua';
   } else {
     final day = dateTime.day.toString();
     final month = vietnameseMonths[dateTime.month];
