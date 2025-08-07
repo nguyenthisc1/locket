@@ -4,8 +4,6 @@ import 'package:locket/di.dart';
 
 import 'core/configs/theme/index.dart';
 
-final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setupDependencies();
@@ -29,7 +27,6 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: false,
-      // navigatorObservers: [routeObserver],
       routerConfig: AppRouter.instance.router,
     );
   }

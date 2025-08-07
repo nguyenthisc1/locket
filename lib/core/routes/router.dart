@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:locket/core/routes/middleware.dart';
 import 'package:locket/di.dart';
@@ -7,9 +8,17 @@ import 'package:locket/presentation/auth/pages/email_login_page.dart';
 import 'package:locket/presentation/auth/pages/phone_login_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_detail_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_page.dart';
+import 'package:locket/presentation/home/controllers/feed_controller.dart';
+import 'package:locket/presentation/home/controllers/home_controller.dart';
+import 'package:locket/presentation/home/pages/gallery_page.dart';
 import 'package:locket/presentation/home/pages/home_page.dart';
 import 'package:locket/presentation/splash/pages/onboarding_page.dart';
 import 'package:locket/presentation/splash/pages/splash_page.dart';
+import 'package:logging/logging.dart';
+import 'package:provider/provider.dart';
+
+// Global RouteObserver for GoRouter
+final RouteObserver<ModalRoute> goRouterObserver = RouteObserver<ModalRoute>();
 
 class AppRouter {
   AppRouter._();
@@ -21,6 +30,10 @@ class AppRouter {
     initialLocation: '/splash',
     routerNeglect: false,
     debugLogDiagnostics: true,
+    observers: [
+      LocketNavObserver(),
+      goRouterObserver, // Add this for RouteAware support
+    ],
     redirect: (context, state) async {
       try {
         final redirectPath = await _middleware.routeMiddleware(state);
@@ -32,10 +45,7 @@ class AppRouter {
       }
     },
     routes: [
-      GoRoute(
-        path: '/splash',
-        builder: (context, state) => const SplashPage(),
-      ),
+      GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingPage(),
@@ -54,20 +64,94 @@ class AppRouter {
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => const HomePage(),
+        builder:
+            (context, state) => ChangeNotifierProvider(
+              create: (_) => HomeControllerState()..init(),
+              child: const HomePage(),
+            ),
       ),
       GoRoute(
         path: '/converstion',
         builder: (context, state) => ConversationPage(),
       ),
       GoRoute(
+        path: '/gallery',
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map;
+          final controller = extra['controller'] as FeedControllerState;
+
+          return CustomTransitionPage(
+            key: state.pageKey,
+            transitionsBuilder: (
+              context,
+              animation,
+              secondaryAnimation,
+              child,
+            ) {
+              return FadeTransition(
+                opacity: CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                  reverseCurve: Curves.easeInOut,
+                ),
+                child: child,
+              );
+            },
+            child: ChangeNotifierProvider.value(
+              value: controller,
+              child: GalleryPage(),
+            ),
+          );
+        },
+      ),
+      GoRoute(
         path: '/converstion/:id',
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          // return Container();
           return ConversationDetailPage(conversationId: id);
         },
       ),
     ],
   );
+}
+
+/// Custom NavigatorObserver for logging navigation events.
+class LocketNavObserver extends NavigatorObserver {
+  LocketNavObserver() {
+    log.onRecord.listen((e) => debugPrint('$e'));
+  }
+
+  final log = Logger('LocketNavObserver');
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      log.info('didPush: ${route.str}, previousRoute= ${previousRoute?.str}');
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      log.info('didPop: ${route.str}, previousRoute= ${previousRoute?.str}');
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      log.info('didRemove: ${route.str}, previousRoute= ${previousRoute?.str}');
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) =>
+      log.info('didReplace: new= ${newRoute?.str}, old= ${oldRoute?.str}');
+
+  @override
+  void didStartUserGesture(
+    Route<dynamic> route,
+    Route<dynamic>? previousRoute,
+  ) => log.info(
+    'didStartUserGesture: ${route.str}, '
+    'previousRoute= ${previousRoute?.str}',
+  );
+
+  @override
+  void didStopUserGesture() => log.info('didStopUserGesture');
+}
+
+extension on Route<dynamic> {
+  String get str => 'route(${settings.name}: ${settings.arguments})';
 }
