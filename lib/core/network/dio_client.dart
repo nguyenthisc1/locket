@@ -1,17 +1,18 @@
 import 'package:dio/dio.dart';
+import 'package:fresh_dio/fresh_dio.dart';
 import 'package:locket/core/constants/api_url.dart';
-import 'package:locket/data/auth/repositories/token_store_impl.dart';
+import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/di.dart';
 
 import 'interceptors.dart';
 
 class DioClient {
   late final Dio _dio;
-  late final TokenStorageImpl tokenStorage;
+  late final TokenStorage<AuthTokenPair> tokenStorage;
 
   DioClient() {
-    // Initialize secure storage and token storage
-    tokenStorage = getIt<TokenStorageImpl>();
+    // Use the interface instead of the concrete implementation
+    tokenStorage = getIt<TokenStorage<AuthTokenPair>>();
 
     // Set up token refresh interceptor
     final tokenRefreshInterceptor = TokenRefreshInterceptor(tokenStorage);
@@ -23,7 +24,6 @@ class DioClient {
         baseUrl: ApiUrl.baseUrl,
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         responseType: ResponseType.json,
-        // sendTimeout: const Duration(seconds: 20),
         receiveTimeout: const Duration(seconds: 20),
         validateStatus: (status) {
           return status != null && status < 500;

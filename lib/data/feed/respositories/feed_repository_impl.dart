@@ -30,4 +30,10 @@ class FeedRepositoryImpl extends FeedRepository {
       },
     );
   }
+  
+  // @override
+  // Future<Either<Failure, void>> refreshFeed() {
+  //   // TODO: implement refreshFeed
+  //   throw UnimplementedError();
+  // }
 }

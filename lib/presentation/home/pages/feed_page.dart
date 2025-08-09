@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
-import 'package:locket/core/routes/router.dart'; // Import for goRouterObserver
-import 'package:locket/presentation/home/controllers/feed_controller.dart';
+import 'package:locket/core/routes/router.dart';
+import 'package:locket/di.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_caption.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_image.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_toolbar.dart';
@@ -26,33 +29,35 @@ class FeedPage extends StatefulWidget {
 }
 
 class _FeedPageState extends State<FeedPage> with RouteAware {
+  late final FeedController _feedController;
   bool _isNavigatingFromGallery = false;
 
   @override
   void initState() {
     super.initState();
+    
+    // Get controller from GetIt - it should have the same state instance as Provider
+    _feedController = getIt<FeedController>();
 
-    // Initialize the feed controller after the first frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<FeedControllerState>().init();
-
-        print(context.read<FeedControllerState>().popImageIndex);
+        _feedController.init();
       }
     });
   }
 
   @override
   void didPopNext() {
-    final controller = context.read<FeedControllerState>();
-    final index = controller.popImageIndex;
-
+    final feedState = context.read<FeedControllerState>();
+    final index = feedState.popImageIndex;
+    
     if (index != null) {
-      _isNavigatingFromGallery = true; // Set flag
-      controller.setPopImageIndex(null);
+      _isNavigatingFromGallery = true;
+      _feedController.setPopImageIndex(null);
+      
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.innerController.jumpToPage(index);
-
+        
         // Reset flag after a short delay
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
@@ -66,19 +71,27 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Use the GoRouter observer instead of the old routeObserver
     goRouterObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
-  @override
-  void dispose() {
-    goRouterObserver.unsubscribe(this);
-    super.dispose();
+  Future<void> _navigateToGallery() async {
+    final result = await context.push('/gallery', extra: {
+      'controller': _feedController,
+    });
+    
+    if (result != null && result is int) {
+      widget.innerController.animateToPage(
+        result,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final feedController = context.watch<FeedControllerState>();
+    // Use Provider to watch state changes
+    final feedState = context.watch<FeedControllerState>();
 
     return Scaffold(
       extendBodyBehindAppBar: false,
@@ -94,8 +107,9 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
           ),
           child: FeedToolbar(
             onScrollToTop: widget.handleScrollFeedToTop,
-            onGalleryToggle: feedController.toggleGalleryVisibility,
-            images: feedController.listFeed,
+            onGalleryToggle: _feedController.toggleGalleryVisibility,
+            images: feedState.listFeed,
+            onGalleryTap: _navigateToGallery,
           ),
         ),
       ),
@@ -116,16 +130,15 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
           return false;
         },
         child: AnimatedBuilder(
-          animation: feedController,
+          animation: feedState,
           builder: (context, _) {
             // Show loading state
-            if (feedController.isLoading && !feedController.hasInitialized) {
+            if (feedState.isLoading && !feedState.hasInitialized) {
               return const Center(child: CircularProgressIndicator());
             }
 
             // Show error state
-            if (feedController.errorMessage != null &&
-                feedController.listFeed.isEmpty) {
+            if (feedState.errorMessage != null && feedState.listFeed.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -137,13 +150,13 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      feedController.errorMessage!,
+                      feedState.errorMessage!,
                       style: TextStyle(color: Colors.grey[600], fontSize: 16),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => feedController.refreshFeed(),
+                      onPressed: () => _feedController.refreshFeed(),
                       child: const Text('Retry'),
                     ),
                   ],
@@ -152,7 +165,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
             }
 
             // Show empty state
-            if (!feedController.isLoading && feedController.listFeed.isEmpty) {
+            if (!feedState.isLoading && feedState.listFeed.isEmpty) {
               return const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -178,7 +191,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                 PageView.builder(
                   controller: widget.innerController,
                   scrollDirection: Axis.vertical,
-                  itemCount: feedController.listFeed.length,
+                  itemCount: feedState.listFeed.length,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.only(
@@ -202,45 +215,24 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                                     Stack(
                                       children: [
                                         FeedImage(
-                                          image:
-                                              feedController
-                                                  .listFeed[index]
-                                                  .imageUrl,
+                                          image: feedState.listFeed[index].imageUrl,
                                         ),
-                                        if (feedController
-                                                .listFeed[index]
-                                                .caption !=
-                                            null)
+                                        if (feedState.listFeed[index].caption != null)
                                           Positioned(
                                             bottom: AppDimensions.md,
                                             left: AppDimensions.md,
                                             right: AppDimensions.md,
                                             child: FeedCaption(
-                                              caption:
-                                                  feedController
-                                                      .listFeed[index]
-                                                      .caption,
+                                              caption: feedState.listFeed[index].caption,
                                             ),
                                           ),
                                       ],
                                     ),
-
                                     const SizedBox(height: AppDimensions.lg),
                                     FeedUser(
-                                      avatarUrl:
-                                          feedController
-                                              .listFeed[index]
-                                              .user
-                                              .avatarUrl,
-                                      username:
-                                          feedController
-                                              .listFeed[index]
-                                              .user
-                                              .username,
-                                      createdAt:
-                                          feedController
-                                              .listFeed[index]
-                                              .createdAt,
+                                      avatarUrl: feedState.listFeed[index].user.avatarUrl,
+                                      username: feedState.listFeed[index].user.username,
+                                      createdAt: feedState.listFeed[index].createdAt,
                                     ),
                                   ],
                                 ),
@@ -252,18 +244,16 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                     );
                   },
                 ),
-
                 AnimatedPadding(
                   duration: const Duration(milliseconds: 0),
                   curve: Curves.linear,
                   padding: EdgeInsets.only(
-                    bottom:
-                        feedController.isKeyboardOpen
-                            ? MediaQuery.of(context).viewInsets.bottom
-                            : MediaQuery.of(context).viewInsets.bottom + 96,
+                    bottom: feedState.isKeyboardOpen
+                        ? MediaQuery.of(context).viewInsets.bottom
+                        : MediaQuery.of(context).viewInsets.bottom + 96,
                   ),
                   child: MessageField(
-                    focusNode: feedController.messageFieldFocusNode,
+                    focusNode: _feedController.messageFieldFocusNode,
                   ),
                 ),
               ],
@@ -272,5 +262,11 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    goRouterObserver.unsubscribe(this);
+    super.dispose();
   }
 }

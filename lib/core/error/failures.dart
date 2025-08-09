@@ -60,7 +60,7 @@ class NetworkFailure extends Failure {
 }
 
 class ServerFailure extends Failure {
-  const ServerFailure({required super.message, super.statusCode});
+  const ServerFailure( {required super.message, super.statusCode});
 }
 
 class TimeoutFailure extends Failure {

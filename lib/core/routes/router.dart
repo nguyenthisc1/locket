@@ -8,8 +8,8 @@ import 'package:locket/presentation/auth/pages/email_login_page.dart';
 import 'package:locket/presentation/auth/pages/phone_login_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_detail_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_page.dart';
-import 'package:locket/presentation/home/controllers/feed_controller.dart';
-import 'package:locket/presentation/home/controllers/home_controller.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
+import 'package:locket/presentation/home/controllers/home/home_controller.dart';
 import 'package:locket/presentation/home/pages/gallery_page.dart';
 import 'package:locket/presentation/home/pages/home_page.dart';
 import 'package:locket/presentation/splash/pages/onboarding_page.dart';
@@ -31,7 +31,7 @@ class AppRouter {
     routerNeglect: false,
     debugLogDiagnostics: true,
     observers: [
-      LocketNavObserver(),
+      NavObserver(),
       goRouterObserver, // Add this for RouteAware support
     ],
     redirect: (context, state) async {
@@ -64,11 +64,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/home',
-        builder:
-            (context, state) => ChangeNotifierProvider(
-              create: (_) => HomeControllerState()..init(),
-              child: const HomePage(),
-            ),
+        builder: (context, state) => const HomePage(),
       ),
       GoRoute(
         path: '/converstion',
@@ -78,7 +74,7 @@ class AppRouter {
         path: '/gallery',
         pageBuilder: (context, state) {
           final extra = state.extra as Map;
-          final controller = extra['controller'] as FeedControllerState;
+          final controller = extra['controller'] as FeedController;
 
           return CustomTransitionPage(
             key: state.pageKey,
@@ -97,7 +93,8 @@ class AppRouter {
                 child: child,
               );
             },
-            child: ChangeNotifierProvider.value(
+            // Provide the FeedController, not the state
+            child: Provider<FeedController>.value(
               value: controller,
               child: GalleryPage(),
             ),
@@ -116,12 +113,12 @@ class AppRouter {
 }
 
 /// Custom NavigatorObserver for logging navigation events.
-class LocketNavObserver extends NavigatorObserver {
-  LocketNavObserver() {
+class NavObserver extends NavigatorObserver {
+  NavObserver() {
     log.onRecord.listen((e) => debugPrint('$e'));
   }
 
-  final log = Logger('LocketNavObserver');
+  final log = Logger('NavObserver');
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
