@@ -215,7 +215,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                                     Stack(
                                       children: [
                                         FeedImage(
-                                          image: feedState.listFeed[index].imageUrl,
+                                          imageUrl: feedState.listFeed[index].imageUrl,
                                         ),
                                         if (feedState.listFeed[index].caption != null)
                                           Positioned(

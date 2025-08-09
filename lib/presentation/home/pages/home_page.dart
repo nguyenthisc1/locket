@@ -5,7 +5,6 @@ import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';
-import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller_state.dart';
@@ -118,11 +117,8 @@ class _HomePageState extends State<HomePage> {
                 }
 
                 // FEEDS
-                return ChangeNotifierProvider<FeedControllerState>(
-                  create: (context) {
-                    final controller = getIt<FeedController>();
-                    return controller.state;
-                  },
+                return ChangeNotifierProvider<FeedControllerState>.value(
+                  value: getIt<FeedControllerState>(),
                   child: FeedPage(
                     innerController: _homeController.innerController,
                     outerController: _homeController.outerController,

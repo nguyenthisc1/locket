@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
+import 'package:locket/common/wigets/ratio_clip.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 import 'package:provider/provider.dart';
@@ -35,8 +36,8 @@ class GalleryList extends StatelessWidget {
             },
             child: Hero(
               tag: imageUrl,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+              child: RatioClip(
+                radiusRatio: 0.15,
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
