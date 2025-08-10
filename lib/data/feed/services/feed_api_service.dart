@@ -31,10 +31,9 @@ class FeedApiServiceImpl extends FeedApiService {
 
       // Handle different status codes since validateStatus < 500 treats them as successful
       if (response.statusCode == 200 && response.data.isNotEmpty) {
-        final feedModels =
-            (response.data['data']['photos'] as List<dynamic>)
-                .map((json) => FeedMapper.toModel(FeedModel.fromJson(json)))
-                .toList();
+        final feedModels = (response.data['data']['photos'] as List<dynamic>)
+            .map((json) => FeedModel.fromJson(json))
+            .toList();
 
         final feeds = FeedMapper.toEntityList(feedModels);
 

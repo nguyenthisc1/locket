@@ -15,6 +15,13 @@ class FeedModel extends Equatable {
   final List<ReactionModel> reactions;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  
+  // New media properties
+  final MediaType mediaType;
+  final String format;
+  final int width;
+  final int height;
+  final int fileSize;
 
   const FeedModel({
     required this.id,
@@ -27,13 +34,32 @@ class FeedModel extends Equatable {
     this.reactions = const [],
     required this.createdAt,
     this.updatedAt,
+    this.mediaType = MediaType.image,
+    this.format = 'jpg',
+    this.width = 0,
+    this.height = 0,
+    this.fileSize = 0,
   });
 
   factory FeedModel.fromJson(Map<String, dynamic> json) {
-    // Handle user as either a string (id) or an object with _id and username
+    // Handle both nested and simple photo structure
+    Map<String, dynamic>? photoData;
+    
+    // Check if it's the new simple structure (direct photo object)
+    if (json.containsKey('id') && json.containsKey('userId')) {
+      photoData = json;
+    } else {
+      // Old nested structure
+      photoData = json['photo']?['photo'] as Map<String, dynamic>?;
+    }
+    
+    if (photoData == null) {
+      throw Exception('Invalid feed format: missing photo data');
+    }
+
+    // Extract user information
     FeedUser extractUser(dynamic userField) {
       if (userField is String) {
-        // Only id is available, username and avatarUrl unknown
         return FeedUser(id: userField, username: '', avatarUrl: '');
       } else if (userField is Map<String, dynamic>) {
         final id = userField['_id'] as String? ?? userField['id'] as String?;
@@ -46,44 +72,77 @@ class FeedModel extends Equatable {
       throw Exception('Invalid user format');
     }
 
+    // Parse media type - check format since API mediaType is inconsistent
+    MediaType parseMediaType(String? type, String? format) {
+      // First check format since it's more reliable
+      if (format?.toLowerCase() == 'mp4' || format?.toLowerCase() == 'mov' || format?.toLowerCase() == 'avi') {
+        return MediaType.video;
+      }
+      
+      // Fallback to mediaType field
+      switch (type?.toLowerCase()) {
+        case 'video':
+          return MediaType.video;
+        case 'image':
+        default:
+          return MediaType.image;
+      }
+    }
+
     return FeedModel(
-      id: json['_id'] as String? ?? json['id'] as String,
-      user: extractUser(json['userId']),
-      imageUrl: json['imageUrl'] as String,
-      publicId: json['publicId'] as String?,
-      caption: json['caption'] as String?,
-      sharedWith: (json['sharedWith'] as List<dynamic>?)
+      id: photoData['id'] as String? ?? photoData['_id'] as String,
+      user: extractUser(photoData['userId']),
+      imageUrl: photoData['imageUrl'] as String,
+      publicId: photoData['publicId'] as String?,
+      caption: photoData['caption'] as String?,
+      sharedWith: (photoData['sharedWith'] as List<dynamic>?)
               ?.map((e) => SharedWithUser.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      location: json['location'] != null
-          ? LocationModel.fromJson(json['location'] as Map<String, dynamic>)
+      location: photoData['location'] != null
+          ? LocationModel.fromJson(photoData['location'] as Map<String, dynamic>)
           : null,
-      reactions: (json['reactions'] as List<dynamic>?)
+      reactions: (photoData['reactions'] as List<dynamic>?)
               ?.map((e) => ReactionModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'] as String)
+      createdAt: DateTime.parse(photoData['createdAt'] as String),
+      updatedAt: photoData['updatedAt'] != null
+          ? DateTime.tryParse(photoData['updatedAt'] as String)
           : null,
+      format: photoData['format'] as String? ??  'jpg',
+      mediaType: parseMediaType(photoData['mediaType'] as String?, photoData['format'] as String?),
+      width: photoData['width'] as int? ?? 0,
+      height: photoData['height'] as int? ?? 0,
+      fileSize: photoData['fileSize'] as int? ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        'userId': {
-          '_id': user.id,
-          'username': user.username,
+        'photo': {
+          'photo': {
+            'id': id,
+            'userId': {
+              '_id': user.id,
+              'username': user.username,
+              'avatarUrl': user.avatarUrl,
+            },
+            'imageUrl': imageUrl,
+            'caption': caption,
+            'sharedWith': sharedWith.map((u) => u.toJson()).toList(),
+            'location': location?.toJson(),
+            'reactions': reactions.map((r) => r.toJson()).toList(),
+            'mediaType': mediaType == MediaType.video ? 'video' : 'image',
+            'format': format,
+            'width': width,
+            'height': height,
+            'fileSize': fileSize,
+            'createdAt': createdAt.toIso8601String(),
+            'updatedAt': updatedAt?.toIso8601String(),
+          },
+          'user': null,
         },
-        'imageUrl': imageUrl,
-        'publicId': publicId,
-        'caption': caption,
-        'sharedWith': sharedWith.map((u) => u.toJson()).toList(),
-        'location': location?.toJson(),
-        'reactions': reactions.map((r) => r.toJson()).toList(),
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt?.toIso8601String(),
+     
       };
 
   @override
@@ -98,5 +157,10 @@ class FeedModel extends Equatable {
         reactions,
         createdAt,
         updatedAt,
+        mediaType,
+        format,
+        width,
+        height,
+        fileSize,
       ];
 }

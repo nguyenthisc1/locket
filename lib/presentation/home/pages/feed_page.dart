@@ -10,6 +10,7 @@ import 'package:locket/presentation/home/widgets/feed/feed_caption.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_image.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_toolbar.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_user.dart';
+import 'package:locket/presentation/home/widgets/feed/feed_video.dart';
 import 'package:provider/provider.dart';
 
 class FeedPage extends StatefulWidget {
@@ -35,7 +36,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
   @override
   void initState() {
     super.initState();
-    
+
     // Get controller from GetIt - it should have the same state instance as Provider
     _feedController = getIt<FeedController>();
 
@@ -50,14 +51,14 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
   void didPopNext() {
     final feedState = context.read<FeedControllerState>();
     final index = feedState.popImageIndex;
-    
+
     if (index != null) {
       _isNavigatingFromGallery = true;
       _feedController.setPopImageIndex(null);
-      
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.innerController.jumpToPage(index);
-        
+
         // Reset flag after a short delay
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
@@ -75,10 +76,11 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
   }
 
   Future<void> _navigateToGallery() async {
-    final result = await context.push('/gallery', extra: {
-      'controller': _feedController,
-    });
-    
+    final result = await context.push(
+      '/gallery',
+      extra: {'controller': _feedController},
+    );
+
     if (result != null && result is int) {
       widget.innerController.animateToPage(
         result,
@@ -157,7 +159,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => _feedController.refreshFeed(),
-                      child: const Text('Retry'),
+                      child: const Text('Thử lại'),
                     ),
                   ],
                 ),
@@ -177,7 +179,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                     ),
                     SizedBox(height: 16),
                     Text(
-                      'No feeds available',
+                      'Chưa có ảnh nào được đăng',
                       style: TextStyle(color: Colors.grey, fontSize: 16),
                     ),
                   ],
@@ -215,24 +217,43 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                                     Stack(
                                       children: [
                                         FeedImage(
-                                          imageUrl: feedState.listFeed[index].imageUrl,
+                                          imageUrl:
+                                              feedState
+                                                  .listFeed[index]
+                                                  .imageUrl,
+                                          format:
+                                              feedState.listFeed[index].format,
                                         ),
-                                        if (feedState.listFeed[index].caption != null)
+
+                                        if (feedState.listFeed[index].caption !=
+                                            null)
                                           Positioned(
                                             bottom: AppDimensions.md,
                                             left: AppDimensions.md,
                                             right: AppDimensions.md,
                                             child: FeedCaption(
-                                              caption: feedState.listFeed[index].caption,
+                                              caption:
+                                                  feedState
+                                                      .listFeed[index]
+                                                      .caption,
                                             ),
                                           ),
                                       ],
                                     ),
                                     const SizedBox(height: AppDimensions.lg),
                                     FeedUser(
-                                      avatarUrl: feedState.listFeed[index].user.avatarUrl,
-                                      username: feedState.listFeed[index].user.username,
-                                      createdAt: feedState.listFeed[index].createdAt,
+                                      avatarUrl:
+                                          feedState
+                                              .listFeed[index]
+                                              .user
+                                              .avatarUrl,
+                                      username:
+                                          feedState
+                                              .listFeed[index]
+                                              .user
+                                              .username,
+                                      createdAt:
+                                          feedState.listFeed[index].createdAt,
                                     ),
                                   ],
                                 ),
@@ -248,9 +269,10 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                   duration: const Duration(milliseconds: 0),
                   curve: Curves.linear,
                   padding: EdgeInsets.only(
-                    bottom: feedState.isKeyboardOpen
-                        ? MediaQuery.of(context).viewInsets.bottom
-                        : MediaQuery.of(context).viewInsets.bottom + 96,
+                    bottom:
+                        feedState.isKeyboardOpen
+                            ? MediaQuery.of(context).viewInsets.bottom
+                            : MediaQuery.of(context).viewInsets.bottom + 96,
                   ),
                   child: MessageField(
                     focusNode: _feedController.messageFieldFocusNode,

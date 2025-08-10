@@ -5,7 +5,7 @@ class FeedMapper {
   static FeedEntity toEntity(FeedModel model) {
     return FeedEntity(
       id: model.id,
-      user: model.user, 
+      user: model.user,
       imageUrl: model.imageUrl,
       publicId: model.publicId,
       caption: model.caption,
@@ -14,6 +14,11 @@ class FeedMapper {
       reactions: model.reactions,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
+      mediaType: model.mediaType,
+      format: model.format,
+      width: model.width,
+      height: model.height,
+      fileSize: model.fileSize,
     );
   }
 
@@ -29,24 +34,24 @@ class FeedMapper {
       reactions: entity.reactions,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+      mediaType: entity.mediaType,
+      format: entity.format,
+      width: entity.width,
+      height: entity.height,
+      fileSize: entity.fileSize,
     );
   }
 
-  static FeedModel toModel(FeedModel model) {
-    return FeedModel(
-      id: model.id,
-      user: model.user, 
-      imageUrl: model.imageUrl,
-      publicId: model.publicId,
-      caption: model.caption,
-      sharedWith: model.sharedWith,
-      location: model.location,
-      reactions: model.reactions,
-      createdAt: model.createdAt,
-      updatedAt: model.updatedAt,
-    );
+  static FeedModel toModel(FeedEntity entity) {
+    return fromEntity(entity);
   }
 
   static List<FeedEntity> toEntityList(List<FeedModel> models) =>
       models.map(toEntity).toList();
+
+  static List<FeedModel> fromEntityList(List<FeedEntity> entities) =>
+      entities.map(fromEntity).toList();
+
+  static List<FeedModel> toModelList(List<FeedEntity> entities) =>
+      entities.map(toModel).toList();
 }
