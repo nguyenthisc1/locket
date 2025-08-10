@@ -8,4 +8,6 @@ class AppImages {
   static const logoUrl = 'https://your-cdn-or-image-url.com/logo.webp';
 
   static const hiLottie = '$basePathLotties/hi.json';
+
+  static const user = '$basePathImages/user.png';
 }

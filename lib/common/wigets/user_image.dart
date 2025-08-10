@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/utils.dart';
-import 'package:locket/core/constants/images_url.dart';
+import 'package:locket/core/configs/assets/app_images.dart';
 
 class UserImage extends StatelessWidget {
   final String? imageUrl;
@@ -29,7 +29,7 @@ class UserImage extends StatelessWidget {
           image:
               imageUrl != null
                   ? NetworkImage(imageUrl!)
-                  : AssetImage(ImagesUrl.user),
+                  : AssetImage(AppImages.user),
           fit: BoxFit.cover,
         ),
         // ignore: deprecated_member_use
