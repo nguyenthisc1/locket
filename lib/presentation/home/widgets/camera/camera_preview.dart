@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:camera/camera.dart';
+import 'package:camera/camera.dart' as cam;
 import 'package:flutter/material.dart';
 import 'package:locket/common/animations/fade_animation_controller.dart';
 import 'package:locket/common/wigets/message_field.dart';
@@ -11,13 +11,13 @@ import 'package:locket/presentation/home/widgets/camera/video_preview.dart';
 import 'camera_controls.dart';
 
 class CameraPreviewWrapper extends StatefulWidget {
-  final CameraController controller;
+  final cam.CameraController controller;
   final bool isFlashOn;
   final VoidCallback onFlashToggle;
   final double currentZoomLevel;
   final Future<void> Function(double) onZoomlevel;
-  final XFile? imageFile;
-  final XFile? videoFile;
+  final cam.XFile? imageFile;
+  final cam.XFile? videoFile;
   final bool isPictureTaken;
   final FadeAnimationController? fadeController;
 
@@ -40,7 +40,7 @@ class CameraPreviewWrapper extends StatefulWidget {
 
 class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
   bool get _isFrontCamera =>
-      widget.controller.description.lensDirection == CameraLensDirection.front;
+      widget.controller.description.lensDirection == cam.CameraLensDirection.front;
 
   double get _previewHeight => MediaQuery.of(context).size.height * 0.45;
 
@@ -102,7 +102,7 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
             child: FadeTransition(
               opacity:
                   widget.fadeController?.animation ?? kAlwaysCompleteAnimation,
-              child: CameraPreview(widget.controller),
+              child: cam.CameraPreview(widget.controller),
             ),
           ),
         ),
@@ -111,16 +111,16 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
   }
 
   Widget _buildAnimatedPreview() {
-    final showImage =
-        widget.isPictureTaken && widget.imageFile != null ||
-        widget.videoFile != null;
+    // More precise logic for showing image preview
+    final showImage = widget.isPictureTaken && 
+        (widget.imageFile != null || widget.videoFile != null);
+    
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: AppDimensions.durationFast),
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
-      transitionBuilder:
-          (child, animation) =>
-              FadeTransition(opacity: animation, child: child),
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
       child: showImage ? _buildImagePreview() : _buildCameraPreview(),
     );
   }

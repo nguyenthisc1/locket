@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/ratio_clip.dart';
-import 'package:locket/core/configs/theme/app_dimensions.dart';
-import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/presentation/home/widgets/feed/feed_video.dart';
 
 class FeedImage extends StatelessWidget {
   final String imageUrl;
+  final String format;
 
-  const FeedImage({super.key, required this.imageUrl});
+  const FeedImage({
+    super.key,
+    required this.imageUrl,
+    required this.format,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,11 +20,20 @@ class FeedImage extends StatelessWidget {
       child: Hero(
         tag: imageUrl,
         child: RatioClip(
-          // borderRadius: BorderRadius.circular(36),
           radiusRatio: 0.15,
-          child: Image.network(imageUrl, fit: BoxFit.cover),
+          child: _buildMediaWidget(),
         ),
       ),
     );
+  }
+
+  Widget _buildMediaWidget() {
+    if (format == 'jpg') {
+      return Image.network(imageUrl, fit: BoxFit.cover);
+    } else if (format == 'mp4') {
+      return FeedVideo(videoUrl: imageUrl);
+    } else {
+      return const Center(child: Text('Unsupported format'));
+    }
   }
 }

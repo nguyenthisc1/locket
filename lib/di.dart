@@ -21,6 +21,8 @@ import 'package:locket/domain/user/repositories/user_repository.dart';
 import 'package:locket/domain/user/usecase/get_profile_usecase.dart';
 import 'package:locket/presentation/auth/controllers/auth/auth_controller.dart';
 import 'package:locket/presentation/auth/controllers/auth/auth_controller_state.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller.dart';
@@ -114,6 +116,13 @@ void setupDependencies() {
       getProfileUsecase: getIt<GetProfileUsecase>(),
       userService: getIt<UserService>(),
     ),
+  );
+
+  // Camera controller dependencies
+  getIt.registerFactory<CameraControllerState>(() => CameraControllerState());
+  
+  getIt.registerFactory<CameraController>(
+    () => CameraController(getIt<CameraControllerState>()),
   );
 
   // Feed controller dependencies

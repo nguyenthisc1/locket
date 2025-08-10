@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
-import '../../controllers/camera_controller.dart';
+import 'package:locket/di.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
+import 'package:provider/provider.dart';
 import 'camera_preview.dart';
 import 'camera_bottom_controls.dart';
 
@@ -12,26 +15,26 @@ class Camera extends StatefulWidget {
 }
 
 class _CameraState extends State<Camera> with WidgetsBindingObserver {
-  late final CameraControllerState _cameraController;
+  late final CameraController _cameraController;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _cameraController = CameraControllerState();
+    _cameraController = getIt<CameraController>();
     _cameraController.initialize();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // App state changed before we got the chance to initialize.
-    if (_cameraController.controller == null ||
-        !_cameraController.controller!.value.isInitialized) {
+    if (_cameraController.state.controller == null ||
+        !_cameraController.state.controller!.value.isInitialized) {
       return;
     }
     if (state == AppLifecycleState.inactive) {
       // App is in background
-      _cameraController.controller?.dispose();
+      _cameraController.state.controller?.dispose();
     } else if (state == AppLifecycleState.resumed) {
       // App is in foreground
       _cameraController.initialize();
@@ -51,41 +54,43 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _cameraController,
-      builder: (context, child) {
-        if (!_cameraController.isInitialized) {
-          return _buildLoadingState();
-        }
+    return ChangeNotifierProvider<CameraControllerState>.value(
+      value: _cameraController.state,
+      child: Consumer<CameraControllerState>(
+        builder: (context, cameraState, child) {
+          if (!cameraState.isInitialized) {
+            return _buildLoadingState();
+          }
 
-        return Column(
-          children: [
-            CameraPreviewWrapper(
-              controller: _cameraController.controller!,
-              isFlashOn: _cameraController.isFlashOn,
-              currentZoomLevel: _cameraController.currentZoomLevel,
-              onFlashToggle: _cameraController.toggleFlash,
-              onZoomlevel: _cameraController.setZoomLevel,
-              isPictureTaken: _cameraController.isPictureTaken,
-              imageFile: _cameraController.imageFile,
-              videoFile: _cameraController.videoFile,
-              fadeController: _cameraController.fadeController,
-            ),
+          return Column(
+            children: [
+              CameraPreviewWrapper(
+                controller: cameraState.controller!,
+                isFlashOn: cameraState.isFlashOn,
+                currentZoomLevel: cameraState.currentZoomLevel,
+                onFlashToggle: _cameraController.toggleFlash,
+                onZoomlevel: _cameraController.setZoom,
+                isPictureTaken: cameraState.isPictureTaken,
+                imageFile: cameraState.imageFile,
+                videoFile: cameraState.videoFile,
+                fadeController: cameraState.fadeController,
+              ),
 
-            const SizedBox(height: AppDimensions.xxl),
+              const SizedBox(height: AppDimensions.xxl),
 
-            CameraBottomControls(
-              onLibraryTap: _onLibraryTap,
-              onTakePicture: _cameraController.takePicture,
-              onResetPicture: _cameraController.resetPictureTakenState,
-              onStartRecording: _cameraController.startRecording,
-              onStopRecording: _cameraController.stopRecording,
-              onSwitchCamera: _cameraController.switchCamera,
-              isPictureTaken: _cameraController.isPictureTaken,
-            ),
-          ],
-        );
-      },
+              CameraBottomControls(
+                onLibraryTap: _onLibraryTap,
+                onTakePicture: _cameraController.takePicture,
+                onResetPicture: _cameraController.resetState,
+                onStartRecording: _cameraController.startVideoRecording,
+                onStopRecording: _cameraController.stopVideoRecording,
+                onSwitchCamera: _cameraController.switchCamera,
+                isPictureTaken: cameraState.isPictureTaken,
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
