@@ -26,6 +26,7 @@ class FeedEntity extends Equatable {
   final String imageUrl; 
   final String? publicId;
   final String? caption;
+  final bool isFrontCamera;
   final List<SharedWithUser> sharedWith;
   final LocationModel? location;
   final List<ReactionModel> reactions;
@@ -45,6 +46,7 @@ class FeedEntity extends Equatable {
     required this.imageUrl,
     this.publicId,
     this.caption,
+    this.isFrontCamera = true,
     this.sharedWith = const [],
     this.location,
     this.reactions = const [],
@@ -74,6 +76,7 @@ class FeedEntity extends Equatable {
         imageUrl,
         publicId,
         caption,
+        isFrontCamera,
         sharedWith,
         location,
         reactions,

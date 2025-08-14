@@ -1,7 +1,7 @@
 
 class ApiUrl {
   // static const String baseUrl = 'https://locket-backend.onrender.com/api/v1';
-  static const String baseUrl = 'http://192.168.110.105:8000/api/v1';
+  static const String baseUrl = 'http://192.168.1.234:8000/api/v1';
 
   static const String register = '/auth/register';
   static const String login = '/auth/login';
@@ -46,15 +46,15 @@ class ApiUrl {
   static const String forwardMessages = '/message/forward';
 
   // Photos
-  static const String getPhotos = '/photo';
-  static String getPhotoById(String photoId) => '/photo/$photoId';
-  static String getUserPhotos(String userId) => '/photo/user/$userId';
-  static const String createPhoto = '/photos';
-  static String updatePhoto(String photoId) => '/photo/$photoId';
-  static String deletePhoto(String photoId) => '/photo/$photoId';
-  static String addPhotoReaction(String photoId) => '/photo/$photoId/reactions';
+  static const String getPhotos = '/feed';
+  static String getPhotoById(String photoId) => '/feed/$photoId';
+  static String getUserPhotos(String userId) => '/feed/user/$userId';
+  static const String createPhoto = '/feed';
+  static String updatePhoto(String photoId) => '/feed/$photoId';
+  static String deletePhoto(String photoId) => '/feed/$photoId';
+  static String addPhotoReaction(String photoId) => '/feed/$photoId/reactions';
   static String removePhotoReaction(String photoId) =>
-      '/photo/$photoId/reactions';
+      '/feed/$photoId/reactions';
 
   static const String uploadPhoto = '/upload';
   static const String uploadMultiplePhotos = '/upload/upload-multiple';

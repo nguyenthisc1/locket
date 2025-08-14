@@ -10,6 +10,7 @@ class FeedModel extends Equatable {
   final String imageUrl;
   final String? publicId;
   final String? caption;
+  final bool isFrontCamera;
   final List<SharedWithUser> sharedWith;
   final LocationModel? location;
   final List<ReactionModel> reactions;
@@ -29,6 +30,7 @@ class FeedModel extends Equatable {
     required this.imageUrl,
     this.publicId,
     this.caption,
+    this.isFrontCamera = true,
     this.sharedWith = const [],
     this.location,
     this.reactions = const [],
@@ -95,6 +97,7 @@ class FeedModel extends Equatable {
       imageUrl: photoData['imageUrl'] as String,
       publicId: photoData['publicId'] as String?,
       caption: photoData['caption'] as String?,
+      isFrontCamera: photoData['isFrontCamera'] as bool,
       sharedWith: (photoData['sharedWith'] as List<dynamic>?)
               ?.map((e) => SharedWithUser.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -129,6 +132,7 @@ class FeedModel extends Equatable {
             },
             'imageUrl': imageUrl,
             'caption': caption,
+            'isFrontCamera': isFrontCamera,
             'sharedWith': sharedWith.map((u) => u.toJson()).toList(),
             'location': location?.toJson(),
             'reactions': reactions.map((r) => r.toJson()).toList(),
@@ -152,6 +156,7 @@ class FeedModel extends Equatable {
         imageUrl,
         publicId,
         caption,
+        isFrontCamera,
         sharedWith,
         location,
         reactions,

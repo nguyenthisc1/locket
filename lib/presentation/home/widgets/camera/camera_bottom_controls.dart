@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/presentation/home/widgets/build_icon_button.dart';
+import 'package:provider/provider.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 
 import 'camera_button.dart';
 
@@ -11,6 +13,7 @@ class CameraBottomControls extends StatelessWidget {
   final VoidCallback onStartRecording;
   final VoidCallback onStopRecording;
   final VoidCallback onSwitchCamera;
+  final VoidCallback onUploadMedia;
   final bool isPictureTaken;
 
   const CameraBottomControls({
@@ -22,6 +25,7 @@ class CameraBottomControls extends StatelessWidget {
     required this.onSwitchCamera,
     required this.isPictureTaken,
     required this.onResetPicture,
+    required this.onUploadMedia,
   });
 
   @override
@@ -67,28 +71,43 @@ class CameraBottomControls extends StatelessWidget {
   }
 
   Widget _buildAfterControlsTakePictureWidgets(BuildContext context) {
-    return Row(
-      key: const ValueKey('after'),
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        BuildIconButton(onPressed: onResetPicture, icon: Icons.close),
+    return Consumer<CameraControllerState>(
+      builder: (context, cameraState, child) {
+        return Row(
+          key: const ValueKey('after'),
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            BuildIconButton(onPressed: onResetPicture, icon: Icons.close),
 
-        SizedBox(
-          width: AppDimensions.xxl * 2,
-          height: AppDimensions.xxl * 2,
-          child: Transform.rotate(
-            angle: -0.785398,
-            child: BuildIconButton(
-              onPressed: () {},
-              icon: Icons.send,
-              color: AppColors.dark,
+            // Upload button with loading state
+            SizedBox(
+              width: AppDimensions.xxl * 2,
+              height: AppDimensions.xxl * 2,
+              child: cameraState.isUploading
+                  ? const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    )
+                  : cameraState.uploadSuccess != null
+                      ? const Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                          size: AppDimensions.xxl,
+                        )
+                      : Transform.rotate(
+                          angle: -0.785398,
+                          child: BuildIconButton(
+                            onPressed: cameraState.isUploading ? () {} : onUploadMedia,
+                            icon: Icons.send,
+                            color: cameraState.isUploading ? Colors.grey : AppColors.primary,
+                          ),
+                        ),
             ),
-          ),
-        ),
 
-        BuildIconButton(onPressed: onSwitchCamera, icon: Icons.edit_note),
-      ],
+            BuildIconButton(onPressed: onSwitchCamera, icon: Icons.edit_note),
+          ],
+        );
+      },
     );
   }
 }

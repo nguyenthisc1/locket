@@ -223,10 +223,11 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                                                   .imageUrl,
                                           format:
                                               feedState.listFeed[index].format,
+                                          isFront: feedState.listFeed[index].isFrontCamera
                                         ),
 
                                         if (feedState.listFeed[index].caption !=
-                                            null)
+                                            '')
                                           Positioned(
                                             bottom: AppDimensions.md,
                                             left: AppDimensions.md,

@@ -3,12 +3,16 @@
 import 'package:camera/camera.dart' as cam;
 import 'package:locket/common/animations/fade_animation_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
+import 'package:locket/domain/feed/usecases/upload_feed_usecase.dart';
+import 'package:dio/dio.dart';
+import 'dart:io';
 
 /// Business logic class for camera operations - uses CameraControllerState
 class CameraController {
   final CameraControllerState _state;
+  final UploadFeedUsecase _uploadFeedUsecase;
 
-  CameraController(this._state);
+  CameraController(this._state, this._uploadFeedUsecase);
 
   // Getter for state
   CameraControllerState get state => _state;
@@ -199,6 +203,85 @@ class CameraController {
     // Reset fade animation to show camera preview again
     _state.fadeController?.fadeIn();
     print('Camera state reset completed. isPictureTaken: ${_state.isPictureTaken}');
+  }
+
+  /// Upload captured media (photo or video)
+  Future<void> uploadMedia({String? caption}) async {
+    if (!_state.isPictureTaken) {
+      _logError('Upload error', 'No media captured to upload');
+      return;
+    }
+
+    final mediaFile = _state.imageFile ?? _state.videoFile;
+    if (mediaFile == null) {
+      _logError('Upload error', 'No media file found');
+      return;
+    }
+
+    _state.setUploading(true);
+    _state.clearError();
+    _state.clearUploadStatus();
+
+    try {
+      // Determine media type
+      final isVideo = _state.videoFile != null;
+      final mediaType = isVideo ? 'video' : 'image';
+
+      // Create multipart file
+      final file = File(mediaFile.path);
+      final fileName = mediaFile.name;
+      final multipartFile = await MultipartFile.fromFile(
+        file.path,
+        filename: fileName,
+      );
+
+      // Prepare payload with conditional key based on mediaType
+      final payload = <String, dynamic>{
+        'filePath': file.path,
+        'fileName': fileName,
+        'mediaType': mediaType,
+        'isFrontCamera': _state.controller?.description.lensDirection == cam.CameraLensDirection.front,
+        if (caption != null && caption.isNotEmpty) 'caption': caption,
+      };
+
+      print('Uploading $mediaType: $fileName');
+      print('Caption: ${caption ?? 'No caption'}');
+
+      // Upload via use case
+      final result = await _uploadFeedUsecase.call(payload);
+
+      result.fold(
+        (failure) {
+          _logError('Upload failed', failure.message);
+          _state.setUploading(false);
+        },
+        (success) {
+          print('Upload successful! Response: ${success.message}');
+          _state.setUploadSuccess(success.message ?? 'Upload successful!');
+          _state.setUploading(false);
+          
+          // Reset state after successful upload with delay to show success
+          Future.delayed(const Duration(seconds: 2), () {
+            resetState();
+          });
+        },
+      );
+    } catch (e) {
+      _logError('Upload exception', e.toString());
+      _state.setUploading(false);
+    } finally {
+      _state.setUploading(false);
+    }
+  }
+
+  /// Quick upload without caption
+  Future<void> quickUpload() async {
+    await uploadMedia();
+  }
+
+  /// Upload with caption
+  Future<void> uploadWithCaption(String caption) async {
+    await uploadMedia(caption: caption);
   }
 
   /// Dispose resources

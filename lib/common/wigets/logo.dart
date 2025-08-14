@@ -11,7 +11,7 @@ class Logo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RatioClip(
-      radiusRatio: 0.9,
+      radiusRatio: 0.5,
       child: Image.asset(
         AppImages.logo,
         width: size ?? AppDimensions.avatarLg,

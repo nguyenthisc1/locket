@@ -19,6 +19,8 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   DateTime? _pictureTakenAt;
   String? _errorMessage;
   bool _isLoading = false;
+  bool _isUploading = false;
+  String? _uploadSuccess;
 
   FadeAnimationController? _fadeController;
 
@@ -36,6 +38,8 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   DateTime? get pictureTakenAt => _pictureTakenAt;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
+  bool get isUploading => _isUploading;
+  String? get uploadSuccess => _uploadSuccess;
 
   // Animation getter
   FadeAnimationController? get fadeController => _fadeController;
@@ -115,6 +119,16 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     notifyListeners();
   }
 
+  void setUploading(bool uploading) {
+    _isUploading = uploading;
+    notifyListeners();
+  }
+
+  void setUploadSuccess(String? message) {
+    _uploadSuccess = message;
+    notifyListeners();
+  }
+
   void setFadeController(FadeAnimationController? controller) {
     _fadeController = controller;
     notifyListeners();
@@ -132,6 +146,12 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
 
   void clearError() {
     _errorMessage = null;
+    notifyListeners();
+  }
+
+  void clearUploadStatus() {
+    _uploadSuccess = null;
+    _isUploading = false;
     notifyListeners();
   }
 

@@ -9,7 +9,6 @@ import 'package:locket/presentation/auth/pages/phone_login_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_detail_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_page.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
-import 'package:locket/presentation/home/controllers/home/home_controller.dart';
 import 'package:locket/presentation/home/pages/gallery_page.dart';
 import 'package:locket/presentation/home/pages/home_page.dart';
 import 'package:locket/presentation/splash/pages/onboarding_page.dart';

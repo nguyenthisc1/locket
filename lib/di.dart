@@ -17,6 +17,7 @@ import 'package:locket/domain/auth/repositories/auth_repository.dart';
 import 'package:locket/domain/auth/usecase/login_usecase.dart';
 import 'package:locket/domain/feed/repositories/feed_repository.dart';
 import 'package:locket/domain/feed/usecases/get_feed_usecase.dart';
+import 'package:locket/domain/feed/usecases/upload_feed_usecase.dart';
 import 'package:locket/domain/user/repositories/user_repository.dart';
 import 'package:locket/domain/user/usecase/get_profile_usecase.dart';
 import 'package:locket/presentation/auth/controllers/auth/auth_controller.dart';
@@ -122,7 +123,10 @@ void setupDependencies() {
   getIt.registerFactory<CameraControllerState>(() => CameraControllerState());
   
   getIt.registerFactory<CameraController>(
-    () => CameraController(getIt<CameraControllerState>()),
+    () => CameraController(
+      getIt<CameraControllerState>(),
+      getIt<UploadFeedUsecase>(),
+    ),
   );
 
   // Feed controller dependencies
@@ -130,6 +134,10 @@ void setupDependencies() {
   
   getIt.registerFactory<GetFeedUsecase>(
     () => GetFeedUsecase(getIt<FeedRepository>()),
+  );
+
+    getIt.registerFactory<UploadFeedUsecase>(
+    () => UploadFeedUsecase(getIt<FeedRepository>()),
   );
   
   getIt.registerLazySingleton<FeedController>(

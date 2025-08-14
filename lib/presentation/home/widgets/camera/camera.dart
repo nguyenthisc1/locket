@@ -85,6 +85,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
                 onStartRecording: _cameraController.startVideoRecording,
                 onStopRecording: _cameraController.stopVideoRecording,
                 onSwitchCamera: _cameraController.switchCamera,
+                onUploadMedia: _cameraController.quickUpload,
                 isPictureTaken: cameraState.isPictureTaken,
               ),
             ],
