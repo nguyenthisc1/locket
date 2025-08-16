@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class FadeAnimationController {
   late final AnimationController controller;
   late final Animation<double> animation;
+  bool _isDisposed = false;
 
   FadeAnimationController({
     required TickerProvider vsync,
@@ -15,9 +16,24 @@ class FadeAnimationController {
     animation = CurvedAnimation(parent: controller, curve: curve);
   }
 
-  void fadeIn() => controller.forward();
+  void fadeIn() {
+    if (!_isDisposed) {
+      controller.forward();
+    }
+  }
 
-  void fadeOut() => controller.reverse();
+  void fadeOut() {
+    if (!_isDisposed) {
+      controller.reverse();
+    }
+  }
 
-  void dispose() => controller.dispose();
+  void dispose() {
+    if (!_isDisposed) {
+      _isDisposed = true;
+      controller.dispose();
+    }
+  }
+
+  bool get isDisposed => _isDisposed;
 }
