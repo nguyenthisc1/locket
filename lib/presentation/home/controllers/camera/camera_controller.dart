@@ -4,7 +4,6 @@ import 'package:camera/camera.dart' as cam;
 import 'package:locket/common/animations/fade_animation_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 import 'package:locket/domain/feed/usecases/upload_feed_usecase.dart';
-import 'package:dio/dio.dart';
 import 'dart:io';
 
 /// Business logic class for camera operations - uses CameraControllerState
@@ -27,9 +26,9 @@ class CameraController {
     _state.setLoading(true);
     _state.clearError();
     
-    // Dispose previous fade controller if exists
-    _state.fadeController?.dispose();
-    _state.setFadeController(FadeAnimationController(vsync: _state));
+    if (_state.fadeController == null || _state.fadeController!.isDisposed) {
+      _state.setFadeController(FadeAnimationController(vsync: _state));
+    }
 
     try {
       final cameras = await cam.availableCameras();
@@ -53,7 +52,15 @@ class CameraController {
 
   /// Initialize camera controller for specific camera
   Future<void> _initCameraController(cam.CameraDescription cameraDescription) async {
-    _state.controller?.dispose();
+    // Safely dispose existing controller
+    final existingController = _state.controller;
+    if (existingController != null) {
+      try {
+        existingController.dispose();
+      } catch (e) {
+        print('Warning: Error disposing camera controller: $e');
+      }
+    }
     
     final controller = cam.CameraController(
       cameraDescription,
@@ -137,11 +144,13 @@ class CameraController {
     if (!_state.hasCamera || _state.isRecording) return;
 
     try {
-      // First trigger fade out animation
-      _state.fadeController?.fadeOut();
-      
-      // Small delay to let animation start
-      await Future.delayed(const Duration(milliseconds: 100));
+      // First trigger fade out animation (if not disposed)
+      if (_state.fadeController != null && !_state.fadeController!.isDisposed) {
+        _state.fadeController!.fadeOut();
+        
+        // Small delay to let animation start
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
       
       final image = await _state.controller!.takePicture();
       _state.setImageFile(image);
@@ -200,8 +209,10 @@ class CameraController {
     _state.resetPictureTakenState();
     _state.clearError();
     
-    // Reset fade animation to show camera preview again
-    _state.fadeController?.fadeIn();
+    // Reset fade animation to show camera preview again (if not disposed)
+    if (_state.fadeController != null && !_state.fadeController!.isDisposed) {
+      _state.fadeController!.fadeIn();
+    }
     print('Camera state reset completed. isPictureTaken: ${_state.isPictureTaken}');
   }
 
@@ -230,10 +241,6 @@ class CameraController {
       // Create multipart file
       final file = File(mediaFile.path);
       final fileName = mediaFile.name;
-      final multipartFile = await MultipartFile.fromFile(
-        file.path,
-        filename: fileName,
-      );
 
       // Prepare payload with conditional key based on mediaType
       final payload = <String, dynamic>{
@@ -286,7 +293,15 @@ class CameraController {
 
   /// Dispose resources
   void dispose() {
-    _state.controller?.dispose();
-    _state.fadeController?.dispose();
+    // Safely dispose camera controller
+    if (_state.controller != null) {
+      try {
+        _state.controller!.dispose();
+      } catch (e) {
+        print('Warning: Error disposing camera controller: $e');
+      }
+    }
+    // Note: Don't dispose fade controller here as it's managed by the state
+    // and will be disposed in CameraControllerState.dispose()
   }
 }

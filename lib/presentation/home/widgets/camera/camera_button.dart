@@ -3,20 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/common/wigets/take_button.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
+import 'package:provider/provider.dart';
 
 class CameraButton extends StatefulWidget {
-  final VoidCallback onTap;
-  final VoidCallback onRecordStart;
-  final VoidCallback onRecordEnd;
-  final VoidCallback onRecordComplete;
-
-  const CameraButton({
-    super.key,
-    required this.onTap,
-    required this.onRecordStart,
-    required this.onRecordEnd,
-    required this.onRecordComplete,
-  });
+  const CameraButton({super.key});
 
   @override
   State<CameraButton> createState() => _CameraButtonState();
@@ -42,7 +33,7 @@ class _CameraButtonState extends State<CameraButton>
 
     _progressController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        widget.onRecordComplete();
+        // onRecordComplete - handled automatically
         _progressController.reset();
         _handleLongPressEnd(force: true);
       }
@@ -54,7 +45,11 @@ class _CameraButtonState extends State<CameraButton>
       _handleLongPressEnd(force: true);
       return;
     }
-    widget.onRecordStart();
+    
+    // Access controller via provider - no props needed!
+    final cameraController = Provider.of<CameraController>(context, listen: false);
+    cameraController.startVideoRecording();
+    
     _progressController.forward(from: 0);
     setState(() {
       _isLongPress = true;
@@ -71,7 +66,11 @@ class _CameraButtonState extends State<CameraButton>
 
   void _handleLongPressEnd({bool force = false}) {
     if (!_isLongPress && !force) return;
-    widget.onRecordEnd();
+    
+    // Access controller via provider - no props needed!
+    final cameraController = Provider.of<CameraController>(context, listen: false);
+    cameraController.stopVideoRecording();
+    
     _progressController.reset();
     _longPressTimer?.cancel();
     setState(() {
@@ -91,20 +90,24 @@ class _CameraButtonState extends State<CameraButton>
     final double baseSize = AppDimensions.xxl;
     final double press = _isLongPress ? baseSize * 1.5 : baseSize * 2;
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      onLongPressStart: (_) => _handleLongPressStart(),
-      onLongPressEnd: (_) => _handleLongPressEnd(),
-      child: AnimatedBuilder(
-        animation: _progressController,
-        builder: (context, _) {
-          return TakeButton(
-            size: press,
-            progress: _progressController,
-            isSizeSync: false,
-          );
-        },
-      ),
+    return Consumer<CameraController>(
+      builder: (context, cameraController, child) {
+        return GestureDetector(
+          onTap: cameraController.takePicture,
+          onLongPressStart: (_) => _handleLongPressStart(),
+          onLongPressEnd: (_) => _handleLongPressEnd(),
+          child: AnimatedBuilder(
+            animation: _progressController,
+            builder: (context, _) {
+              return TakeButton(
+                size: press,
+                progress: _progressController,
+                isSizeSync: false,
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

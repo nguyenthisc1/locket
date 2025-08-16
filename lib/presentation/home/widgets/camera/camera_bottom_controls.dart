@@ -1,35 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 import 'package:locket/presentation/home/widgets/build_icon_button.dart';
 import 'package:provider/provider.dart';
-import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 
 import 'camera_button.dart';
 
 class CameraBottomControls extends StatelessWidget {
-  final VoidCallback onLibraryTap;
-  final VoidCallback onTakePicture;
-  final VoidCallback onResetPicture;
-  final VoidCallback onStartRecording;
-  final VoidCallback onStopRecording;
-  final VoidCallback onSwitchCamera;
-  final VoidCallback onUploadMedia;
-  final bool isPictureTaken;
-
-  const CameraBottomControls({
-    super.key,
-    required this.onLibraryTap,
-    required this.onTakePicture,
-    required this.onStartRecording,
-    required this.onStopRecording,
-    required this.onSwitchCamera,
-    required this.isPictureTaken,
-    required this.onResetPicture,
-    required this.onUploadMedia,
-  });
+  const CameraBottomControls({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Access state via provider - no props needed!
+    final cameraState = context.watch<CameraControllerState>();
+    
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: AppDimensions.durationFast),
       switchInCurve: Curves.easeOut,
@@ -37,14 +22,16 @@ class CameraBottomControls extends StatelessWidget {
       transitionBuilder: (child, animation) {
         return FadeTransition(opacity: animation, child: child);
       },
-      child:
-          !isPictureTaken
-              ? _buildDefaultControlsWidgets(context)
-              : _buildAfterControlsTakePictureWidgets(context),
+      child: !cameraState.isPictureTaken
+          ? _buildDefaultControlsWidgets(context)
+          : _buildAfterControlsTakePictureWidgets(context),
     );
   }
 
   Widget _buildDefaultControlsWidgets(BuildContext context) {
+    // Access controller via provider - no props needed!
+    final cameraController = context.read<CameraController>();
+    
     return Row(
       key: const ValueKey('before'),
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -52,62 +39,70 @@ class CameraBottomControls extends StatelessWidget {
       children: [
         // LIBRARY BUTTON
         BuildIconButton(
-          onPressed: onLibraryTap,
+          onPressed: _onLibraryTap,
           icon: Icons.photo_library_outlined,
         ),
 
-        // TAKE PICTURE BUTTON
-        CameraButton(
-          onTap: onTakePicture,
-          onRecordStart: onStartRecording,
-          onRecordEnd: onStopRecording,
-          onRecordComplete: () {},
-        ),
+        // TAKE PICTURE BUTTON - No props needed!
+        const CameraButton(),
 
         // CHANGE CAMERA
-        BuildIconButton(onPressed: onSwitchCamera, icon: Icons.loop),
+        BuildIconButton(
+          onPressed: cameraController.switchCamera,
+          icon: Icons.loop,
+        ),
       ],
     );
   }
 
   Widget _buildAfterControlsTakePictureWidgets(BuildContext context) {
-    return Consumer<CameraControllerState>(
-      builder: (context, cameraState, child) {
-        return Row(
-          key: const ValueKey('after'),
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            BuildIconButton(onPressed: onResetPicture, icon: Icons.close),
+    // Access both state and controller via provider - no props needed!
+    final cameraState = context.watch<CameraControllerState>();
+    final cameraController = context.read<CameraController>();
+    
+    return Row(
+      key: const ValueKey('after'),
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        BuildIconButton(
+          onPressed: cameraController.resetState,
+          icon: Icons.close,
+        ),
 
-            // Upload button with loading state
-            SizedBox(
-              width: AppDimensions.xxl * 2,
-              height: AppDimensions.xxl * 2,
-              child: cameraState.isUploading
-                  ? const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+        // Upload button with loading state
+        SizedBox(
+          width: AppDimensions.xxl * 2,
+          height: AppDimensions.xxl * 2,
+          child: cameraState.isUploading
+              ? const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                )
+              : cameraState.uploadSuccess != null
+                  ? const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: AppDimensions.xxl,
                     )
-                  : cameraState.uploadSuccess != null
-                      ? const Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                          size: AppDimensions.xxl,
-                        )
-                      : Transform.rotate(
-                          angle: -0.785398,
-                          child: BuildIconButton(
-                            onPressed: cameraState.isUploading ? () {} : onUploadMedia,
-                            icon: Icons.send,
-                            color: cameraState.isUploading ? Colors.grey : AppColors.primary,
-                          ),
-                        ),
-            ),
+                  : Transform.rotate(
+                      angle: -0.785398,
+                      child: BuildIconButton(
+                        onPressed: cameraState.isUploading ? () {} : cameraController.quickUpload,
+                        icon: Icons.send,
+                        color: cameraState.isUploading ? Colors.grey : AppColors.primary,
+                      ),
+                    ),
+        ),
 
-            BuildIconButton(onPressed: onSwitchCamera, icon: Icons.edit_note),
-          ],
-        );
-      },
+        BuildIconButton(
+          onPressed: cameraController.switchCamera,
+          icon: Icons.edit_note,
+        ),
+      ],
     );
+  }
+
+  void _onLibraryTap() {
+    // TODO: Implement gallery access
   }
 }

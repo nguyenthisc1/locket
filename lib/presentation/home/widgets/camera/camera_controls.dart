@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
+import 'package:provider/provider.dart';
 
 class CameraControls extends StatelessWidget {
-  final bool isFlashOn;
-  final double currentZoomLevel;
-  final VoidCallback onFlashToggle;
-
-  const CameraControls({
-    super.key,
-    required this.isFlashOn,
-    required this.currentZoomLevel,
-    required this.onFlashToggle,
-  });
+  const CameraControls({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Access both state and controller via provider - no props needed!
+    final cameraState = context.watch<CameraControllerState>();
+    final cameraController = context.read<CameraController>();
+    
     return Column(
       children: [
         // Top controls row
@@ -25,13 +23,13 @@ class CameraControls extends StatelessWidget {
           children: [
             // FLASH BUTTON
             _buildControlButton(
-              onTap: onFlashToggle,
-              icon: isFlashOn ? Icons.flash_on : Icons.flash_off,
-              iconColor: isFlashOn ? AppColors.primary : Colors.white70,
+              onTap: cameraController.toggleFlash,
+              icon: cameraState.isFlashOn ? Icons.flash_on : Icons.flash_off,
+              iconColor: cameraState.isFlashOn ? AppColors.primary : Colors.white70,
             ),
 
             // ZOOM CONTROLS
-            _buildZoomDisplay(),
+            _buildZoomDisplay(cameraState.currentZoomLevel),
           ],
         ),
       ],
@@ -58,7 +56,7 @@ class CameraControls extends StatelessWidget {
     );
   }
 
-  Widget _buildZoomDisplay() {
+  Widget _buildZoomDisplay(double currentZoomLevel) {
     return Container(
       width: AppDimensions.xl,
       height: AppDimensions.xl,

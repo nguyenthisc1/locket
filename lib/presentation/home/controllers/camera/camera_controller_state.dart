@@ -157,7 +157,16 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
 
   @override
   void dispose() {
-    _controller?.dispose();
+    // Safely dispose camera controller
+    if (_controller != null) {
+      try {
+        _controller!.dispose();
+      } catch (e) {
+        print('Warning: Error disposing camera controller in state: $e');
+      }
+    }
+    
+    // Safely dispose fade controller
     _fadeController?.dispose();
     super.dispose();
   }

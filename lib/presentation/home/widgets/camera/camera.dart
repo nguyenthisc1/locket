@@ -21,8 +21,15 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    
+    // Get controller from GetIt - following feed pattern
     _cameraController = getIt<CameraController>();
-    _cameraController.initialize();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _cameraController.initialize();
+      }
+    });
   }
 
   @override
@@ -33,65 +40,41 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
       return;
     }
     if (state == AppLifecycleState.inactive) {
-      // App is in background
-      _cameraController.state.controller?.dispose();
+      // App is in background - let the controller manage disposal properly
+      // Don't dispose directly as it causes issues with the widget tree
     } else if (state == AppLifecycleState.resumed) {
-      // App is in foreground
-      _cameraController.initialize();
+      // App is in foreground - reinitialize if needed
+      if (!_cameraController.state.isInitialized) {
+        _cameraController.initialize();
+      }
     }
-  }
-
-  void _onLibraryTap() {
-    // TODO: Implement gallery access
   }
 
   @override
   void dispose() {
-    _cameraController.dispose();
+    // Don't dispose the controller since it's a singleton managed by DI
+    // The camera controller will be disposed when the app closes
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<CameraControllerState>.value(
-      value: _cameraController.state,
-      child: Consumer<CameraControllerState>(
-        builder: (context, cameraState, child) {
-          if (!cameraState.isInitialized) {
-            return _buildLoadingState();
-          }
+    // Use context.watch to get state - following feed pattern
+    final cameraState = context.watch<CameraControllerState>();
+    
+    if (!cameraState.isInitialized) {
+      return _buildLoadingState();
+    }
 
-          return Column(
-            children: [
-              CameraPreviewWrapper(
-                controller: cameraState.controller!,
-                isFlashOn: cameraState.isFlashOn,
-                currentZoomLevel: cameraState.currentZoomLevel,
-                onFlashToggle: _cameraController.toggleFlash,
-                onZoomlevel: _cameraController.setZoom,
-                isPictureTaken: cameraState.isPictureTaken,
-                imageFile: cameraState.imageFile,
-                videoFile: cameraState.videoFile,
-                fadeController: cameraState.fadeController,
-              ),
+    return const Column(
+      children: [
+        CameraPreviewWrapper(),
 
-              const SizedBox(height: AppDimensions.xxl),
+        SizedBox(height: AppDimensions.xxl),
 
-              CameraBottomControls(
-                onLibraryTap: _onLibraryTap,
-                onTakePicture: _cameraController.takePicture,
-                onResetPicture: _cameraController.resetState,
-                onStartRecording: _cameraController.startVideoRecording,
-                onStopRecording: _cameraController.stopVideoRecording,
-                onSwitchCamera: _cameraController.switchCamera,
-                onUploadMedia: _cameraController.quickUpload,
-                isPictureTaken: cameraState.isPictureTaken,
-              ),
-            ],
-          );
-        },
-      ),
+        CameraBottomControls(),
+      ],
     );
   }
 
