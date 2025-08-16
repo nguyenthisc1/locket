@@ -5,6 +5,8 @@ import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller_state.dart';
@@ -34,21 +36,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void dispose() {
+    _homeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<HomeControllerState>(
-      create: (context) => _homeController.state,
+      create: (_) => _homeController.state,
       child: Consumer<HomeControllerState>(
-        builder: (context, homeState, child) {
+        builder: (context, homeState, _) {
           final userService = getIt<UserService>();
 
-          // Show loading spinner while fetching profile
           if (homeState.isLoadingProfile && !userService.isLoggedIn) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
 
-          // If profile fetch failed and no user data, redirect to login
           if (_homeController.shouldRedirectToLogin()) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               AppNavigator.pushAndRemove(context, '/login');
@@ -63,69 +69,23 @@ class _HomePageState extends State<HomePage> {
             resizeToAvoidBottomInset: false,
             appBar: BasicAppbar(
               hideBack: true,
-              action: Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: AppDimensions.md,
-                    right: AppDimensions.md,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const UserImage(),
-                      homeState.enteredFeed
-                          ? const FriendSelect()
-                          : const FriendTopbar(),
-                      const MessButton(),
-                    ],
-                  ),
-                ),
-              ),
+              action: _buildAppBarActions(homeState),
             ),
-            body: PageView.builder(
+            body: PageView(
               controller: _homeController.outerController,
               scrollDirection: Axis.vertical,
-              itemCount: 2,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Stack(
-                    children: [
-                      // CAMERA REVIEW
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: AppDimensions.md,
-                          right: AppDimensions.md,
-                          top: AppDimensions.appBarHeight + AppDimensions.xl,
-                        ),
-                        child: Camera(),
-                      ),
-
-                      // HISTORY BUTTON
-                      Positioned(
-                        bottom: AppDimensions.xl,
-                        left: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onTap: () => _homeController.handleScrollPageViewOuter(1),
-                          child: Center(child: HistoryFeed()),
-                        ),
-                      ),
-                    ],
-                  );
-                }
-
-                // FEEDS
-                return ChangeNotifierProvider<FeedControllerState>.value(
-                  value: getIt<FeedControllerState>(),
-                  child: FeedPage(
-                    innerController: _homeController.innerController,
-                    outerController: _homeController.outerController,
-                    handleScrollFeedToTop: () => _homeController.handleScrollPageViewOuter(0),
-                  ),
-                );
-              },
+              children: [
+                _CameraSection(
+                  onHistoryFeedTap: () =>
+                      _homeController.handleScrollPageViewOuter(1),
+                ),
+                _FeedSection(
+                  innerController: _homeController.innerController,
+                  outerController: _homeController.outerController,
+                  onScrollFeedToTop: () =>
+                      _homeController.handleScrollPageViewOuter(0),
+                ),
+              ],
             ),
           );
         },
@@ -133,9 +93,90 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildAppBarActions(HomeControllerState homeState) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.md,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const UserImage(),
+            homeState.enteredFeed
+                ? const FriendSelect()
+                : const FriendTopbar(),
+            const MessButton(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CameraSection extends StatelessWidget {
+  final VoidCallback onHistoryFeedTap;
+
+  const _CameraSection({required this.onHistoryFeedTap});
+
   @override
-  void dispose() {
-    _homeController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<CameraControllerState>.value(
+          value: getIt<CameraControllerState>(),
+        ),
+        Provider<CameraController>.value(
+          value: getIt<CameraController>(),
+        ),
+      ],
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppDimensions.md,
+              right: AppDimensions.md,
+              top: AppDimensions.appBarHeight + AppDimensions.xl,
+            ),
+            child: const Camera(),
+          ),
+          Positioned(
+            bottom: AppDimensions.xl,
+            left: 0,
+            right: 0,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: onHistoryFeedTap,
+              child: const Center(child: HistoryFeed()),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeedSection extends StatelessWidget {
+  final PageController innerController;
+  final PageController outerController;
+  final VoidCallback onScrollFeedToTop;
+
+  const _FeedSection({
+    required this.innerController,
+    required this.outerController,
+    required this.onScrollFeedToTop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<FeedControllerState>.value(
+      value: getIt<FeedControllerState>(),
+      child: FeedPage(
+        innerController: innerController,
+        outerController: outerController,
+        handleScrollFeedToTop: onScrollFeedToTop,
+      ),
+    );
   }
 }
