@@ -120,9 +120,9 @@ void setupDependencies() {
   );
 
   // Camera controller dependencies
-  getIt.registerFactory<CameraControllerState>(() => CameraControllerState());
+  getIt.registerLazySingleton<CameraControllerState>(() => CameraControllerState());
   
-  getIt.registerFactory<CameraController>(
+  getIt.registerLazySingleton<CameraController>(
     () => CameraController(
       getIt<CameraControllerState>(),
       getIt<UploadFeedUsecase>(),
