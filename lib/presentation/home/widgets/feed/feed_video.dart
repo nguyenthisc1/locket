@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:locket/common/wigets/ratio_clip.dart';
 import 'package:video_player/video_player.dart';
 
 class FeedVideo extends StatefulWidget {
   final String videoUrl;
   final String? heroTag;
+  final bool isFront;
 
-  const FeedVideo({super.key, required this.videoUrl, this.heroTag});
+  const FeedVideo({super.key, required this.videoUrl, this.heroTag, required this.isFront});
 
   @override
   State<FeedVideo> createState() => _FeedVideoState();
@@ -37,42 +37,24 @@ class _FeedVideoState extends State<FeedVideo> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: MediaQuery.of(context).size.height * 0.45,
-      child: widget.heroTag != null
-          ? Hero(
-              tag: widget.heroTag!,
-              child: _buildVideoContent(),
-            )
-          : _buildVideoContent(),
-    );
+    return widget.heroTag != null
+        ? Hero(tag: widget.heroTag!, child: _buildVideoContent())
+        : _buildVideoContent();
   }
 
   Widget _buildVideoContent() {
     if (!_isInitialized) {
       return const Center(child: CircularProgressIndicator());
     }
-    return RatioClip(
-      radiusRatio: 0.15,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            child: VideoPlayer(_controller),
-          ),
-          if (!_controller.value.isPlaying)
-            IconButton(
-              icon: const Icon(Icons.play_arrow, size: 48, color: Colors.white),
-              onPressed: () {
-                setState(() {
-                  _controller.play();
-                });
-              },
-            ),
-        ],
-      ),
+    return Transform(
+      alignment: Alignment.center,
+       transform:  
+             widget.isFront ? (Matrix4.identity()
+                ..scale(-1.0, 1.65)
+                ..scale(1.0, 1.3))
+              : (Matrix4.identity()..scale(1.0, 1.65)),
+      child: VideoPlayer(_controller),
     );
+
   }
 }

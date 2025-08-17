@@ -10,7 +10,6 @@ import 'package:locket/presentation/home/widgets/feed/feed_caption.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_image.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_toolbar.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_user.dart';
-import 'package:locket/presentation/home/widgets/feed/feed_video.dart';
 import 'package:provider/provider.dart';
 
 class FeedPage extends StatefulWidget {

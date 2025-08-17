@@ -186,6 +186,4 @@ class FeedApiServiceImpl extends FeedApiService {
       return Left(FeedFailure(message: e.toString()));
     }
   }
-
-
 }

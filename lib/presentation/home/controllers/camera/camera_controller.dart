@@ -169,12 +169,24 @@ class CameraController {
     if (!_state.hasCamera || _state.isRecording) return;
 
     try {
+      // Start camera recording
       await _state.controller!.startVideoRecording();
+      
+      // Set recording state with timestamp
+      final now = DateTime.now();
       _state.setRecording(true);
+      _state.setRecordingStartedAt(now);
+      _state.clearError();
+      
+      print('Video recording started at: $now');
     } on cam.CameraException catch (e) {
       _logError(e.code, e.description);
+      _state.setRecording(false);
+      _state.setRecordingStartedAt(null);
     } catch (e) {
       _logError('Start recording error', e.toString());
+      _state.setRecording(false);
+      _state.setRecordingStartedAt(null);
     }
   }
 
@@ -183,13 +195,29 @@ class CameraController {
     if (!_state.hasCamera || !_state.isRecording) return;
 
     try {
+      // Calculate recording duration
+      final recordingDuration = _state.getCurrentRecordingDuration();
+      final endTime = DateTime.now();
+      
+      // Stop camera recording
       final video = await _state.controller!.stopVideoRecording();
+      
+      // Update state with video file and duration
       _state.setVideoFile(video);
       _state.setRecording(false);
+      _state.setRecordingDuration(recordingDuration);
+      _state.setPictureTaken(true, endTime); // Mark as media captured
+      
+      print('Video recording stopped at: $endTime');
+      print('Recording duration: ${_state.getFormattedRecordingDuration()}');
+      print('Video saved: ${video.path}');
+      
     } on cam.CameraException catch (e) {
       _logError(e.code, e.description);
+      _state.setRecording(false);
     } catch (e) {
       _logError('Stop recording error', e.toString());
+      _state.setRecording(false);
     }
   }
 
@@ -207,6 +235,7 @@ class CameraController {
   void resetState() {
     print('Resetting camera state...');
     _state.resetPictureTakenState();
+    _state.resetRecordingState();
     _state.clearError();
     
     // Reset fade animation to show camera preview again (if not disposed)
@@ -291,8 +320,52 @@ class CameraController {
     await uploadMedia(caption: caption);
   }
 
+  /// Get current recording status for UI
+  String getRecordingStatus() {
+    if (!_state.isRecording) return 'Not recording';
+    return 'Recording: ${_state.getFormattedRecordingDuration()}';
+  }
+
+  /// Check if recording has started
+  bool get isRecordingStarted => _state.isRecording && _state.recordingStartedAt != null;
+
+  /// Check if recording duration exceeds limit (optional safety check)
+  bool isRecordingOverLimit({Duration limit = const Duration(minutes: 5)}) {
+    if (!_state.isRecording) return false;
+    final duration = _state.getCurrentRecordingDuration();
+    return duration != null && duration > limit;
+  }
+
+  /// Get recording progress as percentage (0.0 to 1.0) based on max duration
+  double getRecordingProgress({Duration maxDuration = const Duration(minutes: 5)}) {
+    final currentDuration = _state.getCurrentRecordingDuration();
+    if (currentDuration == null) return 0.0;
+    
+    final progress = currentDuration.inMilliseconds / maxDuration.inMilliseconds;
+    return progress.clamp(0.0, 1.0);
+  }
+
+  /// Force stop recording if needed (safety method)
+  Future<void> forceStopRecording() async {
+    if (_state.isRecording) {
+      print('Force stopping recording...');
+      await stopVideoRecording();
+    }
+  }
+
   /// Dispose resources
   void dispose() {
+    // Force stop any ongoing recording before disposal
+    if (_state.isRecording) {
+      print('Warning: Disposing while recording is active, force stopping...');
+      // Note: Can't await here in dispose, but try to stop
+      _state.controller?.stopVideoRecording().catchError((e) {
+        print('Error force stopping recording during dispose: $e');
+        // Return a dummy XFile since we can't properly handle this in dispose
+        return cam.XFile('');
+      });
+    }
+    
     // Safely dispose camera controller
     if (_state.controller != null) {
       try {

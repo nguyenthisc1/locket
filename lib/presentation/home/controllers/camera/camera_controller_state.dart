@@ -14,6 +14,8 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   cam.XFile? _imageFile;
   cam.XFile? _videoFile;
   bool _isRecording = false;
+  DateTime? _recordingStartedAt;
+  Duration? _recordingDuration;
   bool _isInitialized = false;
   bool _isPictureTaken = false;
   DateTime? _pictureTakenAt;
@@ -33,6 +35,8 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   cam.XFile? get imageFile => _imageFile;
   cam.XFile? get videoFile => _videoFile;
   bool get isRecording => _isRecording;
+  DateTime? get recordingStartedAt => _recordingStartedAt;
+  Duration? get recordingDuration => _recordingDuration;
   bool get isInitialized => _isInitialized;
   bool get isPictureTaken => _isPictureTaken;
   DateTime? get pictureTakenAt => _pictureTakenAt;
@@ -98,6 +102,16 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     notifyListeners();
   }
 
+  void setRecordingStartedAt(DateTime? startedAt) {
+    _recordingStartedAt = startedAt;
+    notifyListeners();
+  }
+
+  void setRecordingDuration(Duration? duration) {
+    _recordingDuration = duration;
+    notifyListeners();
+  }
+
   void setInitialized(bool initialized) {
     _isInitialized = initialized;
     notifyListeners();
@@ -142,6 +156,32 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     _pictureTakenAt = null;
     print('State reset: isPictureTaken=$_isPictureTaken, imageFile=$_imageFile, videoFile=$_videoFile');
     notifyListeners();
+  }
+
+  void resetRecordingState() {
+    print('Resetting recording state...');
+    _isRecording = false;
+    _recordingStartedAt = null;
+    _recordingDuration = null;
+    _videoFile = null;
+    print('Recording state reset');
+    notifyListeners();
+  }
+
+  /// Get current recording duration if recording is active
+  Duration? getCurrentRecordingDuration() {
+    if (!_isRecording || _recordingStartedAt == null) return null;
+    return DateTime.now().difference(_recordingStartedAt!);
+  }
+
+  /// Get formatted recording duration string
+  String getFormattedRecordingDuration() {
+    final duration = getCurrentRecordingDuration();
+    if (duration == null) return '00:00';
+    
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   void clearError() {

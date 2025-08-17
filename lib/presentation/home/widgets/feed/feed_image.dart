@@ -33,7 +33,7 @@ class FeedImage extends StatelessWidget {
     if (format == 'jpg') {
       child = Image.network(imageUrl, fit: BoxFit.cover);
     } else if (format == 'mp4') {
-      child = FeedVideo(videoUrl: imageUrl);
+      child =   FeedVideo(videoUrl: imageUrl, isFront: isFront);
     } else {
       child = const Center(child: Text('Unsupported format'));
     }
