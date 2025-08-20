@@ -8,6 +8,7 @@ class MessageField extends StatefulWidget {
   final FocusNode? focusNode;
   final EdgeInsetsGeometry? padding;
   final bool? isVisibleBackdrop;
+  final ValueChanged<String>? onChanged;
 
   const MessageField({
     super.key,
@@ -19,6 +20,7 @@ class MessageField extends StatefulWidget {
     ),
     this.isVisibleBackdrop = false,
     this.focusNode,
+    this.onChanged,
   });
 
   @override
@@ -95,8 +97,8 @@ class _MessageFieldState extends State<MessageField>
         const EdgeInsets.only(
           left: AppDimensions.md,
           right: AppDimensions.md,
-          top: AppDimensions.lg,
-          bottom: AppDimensions.lg,
+          top: AppDimensions.md,
+          bottom: AppDimensions.md,
         );
 
     return Stack(
@@ -131,6 +133,7 @@ class _MessageFieldState extends State<MessageField>
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: TextField(
                   focusNode: _effectiveFocusNode,
+                  onChanged: widget.onChanged,
                   decoration: InputDecoration(
                     hintText: 'Gửi tin nhắn...',
                     filled: true,
@@ -142,6 +145,7 @@ class _MessageFieldState extends State<MessageField>
                       borderSide: BorderSide.none,
                     ),
                   ),
+                  style: AppTypography.headlineLarge,
                 ),
               ),
             ),
