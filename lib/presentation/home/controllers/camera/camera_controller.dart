@@ -1,9 +1,11 @@
 // ignore_for_file: avoid_print
-
 import 'package:camera/camera.dart' as cam;
 import 'package:locket/common/animations/fade_animation_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 import 'package:locket/domain/feed/usecases/upload_feed_usecase.dart';
+import 'package:locket/domain/feed/entities/feed_entity.dart';
+import 'package:locket/core/services/user_service.dart';
+import 'package:locket/di.dart';
 import 'dart:io';
 
 /// Business logic class for camera operations - uses CameraControllerState
@@ -25,7 +27,7 @@ class CameraController {
   Future<void> initialize() async {
     _state.setLoading(true);
     _state.clearError();
-    
+
     if (_state.fadeController == null || _state.fadeController!.isDisposed) {
       _state.setFadeController(FadeAnimationController(vsync: _state));
     }
@@ -33,7 +35,7 @@ class CameraController {
     try {
       final cameras = await cam.availableCameras();
       _state.setCameras(cameras);
-      
+
       if (cameras.isNotEmpty) {
         // Use index 0 by default for safety, fallback if index 1 doesn't exist
         final selectedIndex = cameras.length > 1 ? 1 : 0;
@@ -51,7 +53,9 @@ class CameraController {
   }
 
   /// Initialize camera controller for specific camera
-  Future<void> _initCameraController(cam.CameraDescription cameraDescription) async {
+  Future<void> _initCameraController(
+    cam.CameraDescription cameraDescription,
+  ) async {
     // Safely dispose existing controller
     final existingController = _state.controller;
     if (existingController != null) {
@@ -61,13 +65,13 @@ class CameraController {
         print('Warning: Error disposing camera controller: $e');
       }
     }
-    
+
     final controller = cam.CameraController(
       cameraDescription,
       cam.ResolutionPreset.high,
       enableAudio: false,
     );
-    
+
     _state.setController(controller);
 
     try {
@@ -75,7 +79,8 @@ class CameraController {
       _state.setInitialized(true);
 
       // Apply flash mode again only if supported
-      final hasFlash = cameraDescription.lensDirection == cam.CameraLensDirection.back;
+      final hasFlash =
+          cameraDescription.lensDirection == cam.CameraLensDirection.back;
       if (_state.isFlashOn && hasFlash) {
         await controller.setFlashMode(cam.FlashMode.always);
       } else {
@@ -143,19 +148,24 @@ class CameraController {
   Future<void> takePicture() async {
     if (!_state.hasCamera || _state.isRecording) return;
 
+    _state.clearUploadStatus();
+
     try {
       // First trigger fade out animation (if not disposed)
       if (_state.fadeController != null && !_state.fadeController!.isDisposed) {
         _state.fadeController!.fadeOut();
-        
+
         // Small delay to let animation start
         await Future.delayed(const Duration(milliseconds: 100));
       }
-      
+
       final image = await _state.controller!.takePicture();
       _state.setImageFile(image);
       _state.setPictureTaken(true, DateTime.now());
-      
+
+      // Create draft feed entity for preview/caching
+      _createDraftFeed(image.path, MediaType.image, image.name);
+
       print('Picture taken successfully: ${image.path}');
     } on cam.CameraException catch (e) {
       _logError(e.code, e.description);
@@ -168,16 +178,18 @@ class CameraController {
   Future<void> startVideoRecording() async {
     if (!_state.hasCamera || _state.isRecording) return;
 
+    _state.clearUploadStatus();
+
     try {
       // Start camera recording
       await _state.controller!.startVideoRecording();
-      
+
       // Set recording state with timestamp
       final now = DateTime.now();
       _state.setRecording(true);
       _state.setRecordingStartedAt(now);
       _state.clearError();
-      
+
       print('Video recording started at: $now');
     } on cam.CameraException catch (e) {
       _logError(e.code, e.description);
@@ -198,20 +210,23 @@ class CameraController {
       // Calculate recording duration
       final recordingDuration = _state.getCurrentRecordingDuration();
       final endTime = DateTime.now();
-      
+
       // Stop camera recording
       final video = await _state.controller!.stopVideoRecording();
-      
+
+      // Update state with video file and duration
       // Update state with video file and duration
       _state.setVideoFile(video);
       _state.setRecording(false);
       _state.setRecordingDuration(recordingDuration);
       _state.setPictureTaken(true, endTime); // Mark as media captured
-      
+
+      // Create draft feed entity for preview/caching
+      _createDraftFeed(video.path, MediaType.video, video.name);
+
       print('Video recording stopped at: $endTime');
       print('Recording duration: ${_state.getFormattedRecordingDuration()}');
       print('Video saved: ${video.path}');
-      
     } on cam.CameraException catch (e) {
       _logError(e.code, e.description);
       _state.setRecording(false);
@@ -237,16 +252,19 @@ class CameraController {
     _state.resetPictureTakenState();
     _state.resetRecordingState();
     _state.clearError();
-    
+    _state.setUploadSuccess(false);
+
     // Reset fade animation to show camera preview again (if not disposed)
     if (_state.fadeController != null && !_state.fadeController!.isDisposed) {
       _state.fadeController!.fadeIn();
     }
-    print('Camera state reset completed. isPictureTaken: ${_state.isPictureTaken}');
+    print(
+      'Camera state reset completed. isPictureTaken: ${_state.isPictureTaken}',
+    );
   }
 
   /// Upload captured media (photo or video)
-  Future<void> uploadMedia({String? caption}) async {
+  Future<void> uploadMedia() async {
     if (!_state.isPictureTaken) {
       _logError('Upload error', 'No media captured to upload');
       return;
@@ -258,9 +276,9 @@ class CameraController {
       return;
     }
 
-    _state.setUploading(true);
     _state.clearError();
     _state.clearUploadStatus();
+    _state.setUploading(true);
 
     try {
       // Determine media type
@@ -276,12 +294,14 @@ class CameraController {
         'filePath': file.path,
         'fileName': fileName,
         'mediaType': mediaType,
-        'isFrontCamera': _state.controller?.description.lensDirection == cam.CameraLensDirection.front,
-        if (caption != null && caption.isNotEmpty) 'caption': caption,
+        'isFrontCamera':
+            _state.controller?.description.lensDirection ==
+            cam.CameraLensDirection.front,
+        'caption': _state.captionFeed,
       };
 
       print('Uploading $mediaType: $fileName');
-      print('Caption: ${caption ?? 'No caption'}');
+      print('Caption: ${_state.captionFeed ?? 'No caption'}');
 
       // Upload via use case
       final result = await _uploadFeedUsecase.call(payload);
@@ -293,10 +313,11 @@ class CameraController {
         },
         (success) {
           print('Upload successful! Response: ${success.message}');
-          _state.setUploadSuccess(success.message ?? 'Upload successful!');
-          _state.setUploading(false);
-          
-          // Reset state after successful upload with delay to show success
+          _state.setUploadSuccess(true);
+
+          // Add the draft feed to the feed list
+          _state.addNewFeedToList();
+
           Future.delayed(const Duration(seconds: 2), () {
             resetState();
           });
@@ -309,17 +330,7 @@ class CameraController {
       _state.setUploading(false);
     }
   }
-
-  /// Quick upload without caption
-  Future<void> quickUpload() async {
-    await uploadMedia();
-  }
-
-  /// Upload with caption
-  Future<void> uploadWithCaption(String caption) async {
-    await uploadMedia(caption: caption);
-  }
-
+  
   /// Get current recording status for UI
   String getRecordingStatus() {
     if (!_state.isRecording) return 'Not recording';
@@ -327,7 +338,8 @@ class CameraController {
   }
 
   /// Check if recording has started
-  bool get isRecordingStarted => _state.isRecording && _state.recordingStartedAt != null;
+  bool get isRecordingStarted =>
+      _state.isRecording && _state.recordingStartedAt != null;
 
   /// Check if recording duration exceeds limit (optional safety check)
   bool isRecordingOverLimit({Duration limit = const Duration(minutes: 5)}) {
@@ -337,11 +349,14 @@ class CameraController {
   }
 
   /// Get recording progress as percentage (0.0 to 1.0) based on max duration
-  double getRecordingProgress({Duration maxDuration = const Duration(minutes: 5)}) {
+  double getRecordingProgress({
+    Duration maxDuration = const Duration(minutes: 5),
+  }) {
     final currentDuration = _state.getCurrentRecordingDuration();
     if (currentDuration == null) return 0.0;
-    
-    final progress = currentDuration.inMilliseconds / maxDuration.inMilliseconds;
+
+    final progress =
+        currentDuration.inMilliseconds / maxDuration.inMilliseconds;
     return progress.clamp(0.0, 1.0);
   }
 
@@ -350,6 +365,46 @@ class CameraController {
     if (_state.isRecording) {
       print('Force stopping recording...');
       await stopVideoRecording();
+    }
+  }
+
+  /// Create a draft feed entity for preview/caching before upload
+  void _createDraftFeed(String filePath, MediaType mediaType, String fileName) {
+    try {
+      final userService = getIt<UserService>();
+      final currentUser = userService.currentUser;
+
+      if (currentUser == null) {
+        print('Warning: Cannot create draft feed - no current user');
+        return;
+      }
+
+      // Create a temporary feed entity with a special draft indicator
+      print('caption draft ${_state.captionFeed}');
+      
+      final draftFeed = FeedEntity(
+        id: 'draft_${DateTime.now().millisecondsSinceEpoch}', // Temporary ID
+        user: FeedUser(
+          id: currentUser.id,
+          username: currentUser.username,
+          avatarUrl: currentUser.avatarUrl ?? '',
+        ),
+        imageUrl: 'local:///$filePath',
+        caption: _state.captionFeed,
+        isFrontCamera:
+            _state.controller?.description.lensDirection ==
+            cam.CameraLensDirection.front,
+        mediaType: mediaType,
+        format: mediaType == MediaType.video ? 'mp4' : 'jpg',
+        createdAt: DateTime.now(),
+        width: 0,
+        height: 0,
+        fileSize: 0,
+      );
+      _state.setNewFeed(draftFeed);
+      print('Draft feed created: $draftFeed ${draftFeed.id}');
+    } catch (e) {
+      print('Error creating draft feed: $e');
     }
   }
 
@@ -365,7 +420,7 @@ class CameraController {
         return cam.XFile('');
       });
     }
-    
+
     // Safely dispose camera controller
     if (_state.controller != null) {
       try {

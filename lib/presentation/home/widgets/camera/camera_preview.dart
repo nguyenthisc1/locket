@@ -36,8 +36,10 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
   Widget _buildImagePreview() {
     // Access state via provider - no props needed!
     final cameraState = context.watch<CameraControllerState>();
-    final isFrontCamera = cameraState.controller?.description.lensDirection == cam.CameraLensDirection.front;
-    
+    final isFrontCamera =
+        cameraState.controller?.description.lensDirection ==
+        cam.CameraLensDirection.front;
+
     return SizedBox(
       key: const ValueKey('image_preview'),
       width: double.infinity,
@@ -47,11 +49,16 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
         child: Transform(
           alignment: Alignment.center,
           transform:
-              (isFrontCamera == true ? Matrix4.rotationY(math.pi) : Matrix4.identity())
+              (isFrontCamera == true
+                    ? Matrix4.rotationY(math.pi)
+                    : Matrix4.identity())
                 ..scale(1.2, 1.2),
           child:
               cameraState.imageFile != null
-                  ? Image.file(File(cameraState.imageFile!.path), fit: BoxFit.cover)
+                  ? Image.file(
+                    File(cameraState.imageFile!.path),
+                    fit: BoxFit.cover,
+                  )
                   : cameraState.videoFile != null
                   ? VideoPreview(
                     file: File(cameraState.videoFile!.path),
@@ -67,9 +74,9 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
     // Access state and controller via provider - no props needed!
     final cameraState = context.watch<CameraControllerState>();
     final cameraController = context.read<CameraController>();
-    
+
     // Safety check: ensure controller exists and is not disposed
-    if (cameraState.controller == null || 
+    if (cameraState.controller == null ||
         !cameraState.controller!.value.isInitialized) {
       return SizedBox(
         key: const ValueKey('camera_preview_loading'),
@@ -86,7 +93,7 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
         ),
       );
     }
-    
+
     return SizedBox(
       key: const ValueKey('camera_preview'),
       width: double.infinity,
@@ -106,7 +113,8 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
             },
             child: FadeTransition(
               opacity:
-                  cameraState.fadeController?.animation ?? kAlwaysCompleteAnimation,
+                  cameraState.fadeController?.animation ??
+                  kAlwaysCompleteAnimation,
               child: cam.CameraPreview(cameraState.controller!),
             ),
           ),
@@ -118,17 +126,19 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
   Widget _buildAnimatedPreview() {
     // Access state via provider - no props needed!
     final cameraState = context.watch<CameraControllerState>();
-    
+
     // More precise logic for showing image preview
-    final showImage = cameraState.isPictureTaken && 
+    final showImage =
+        cameraState.isPictureTaken &&
         (cameraState.imageFile != null || cameraState.videoFile != null);
-    
+
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: AppDimensions.durationFast),
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
-      transitionBuilder: (child, animation) =>
-          FadeTransition(opacity: animation, child: child),
+      transitionBuilder:
+          (child, animation) =>
+              FadeTransition(opacity: animation, child: child),
       child: showImage ? _buildImagePreview() : _buildCameraPreview(),
     );
   }
@@ -136,7 +146,7 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
   Widget _buildCameraControls() {
     // Access state via provider - no props needed!
     final cameraState = context.watch<CameraControllerState>();
-    
+
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: AppDimensions.durationFast),
       transitionBuilder:
@@ -159,7 +169,7 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
   Widget _buildMessageField() {
     // Access state via provider - no props needed!
     final cameraState = context.watch<CameraControllerState>();
-    
+
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: AppDimensions.durationFast),
       switchInCurve: Curves.easeOut,
@@ -182,9 +192,10 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
           cameraState.isPictureTaken
               ? SizedBox.expand(
                 key: const ValueKey('text_field'),
-                child: const MessageField(
+                child: MessageField(
                   isVisibleBackdrop: true,
-                  padding: EdgeInsets.only(
+                  onChanged: cameraState.setCaption,
+                  padding: const EdgeInsets.only(
                     left: AppDimensions.lg,
                     right: AppDimensions.lg,
                     bottom: AppDimensions.md,

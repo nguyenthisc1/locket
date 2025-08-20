@@ -48,7 +48,7 @@ class CameraControls extends StatelessWidget {
         width: AppDimensions.xl,
         height: AppDimensions.xl,
         decoration: BoxDecoration(
-          color: backgroundColor ?? Colors.black.safeOpacity(0.5),
+          color: backgroundColor ?? Colors.white.safeOpacity(0.2),
           borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
         ),
         child: Icon(icon, size: 24, color: iconColor),

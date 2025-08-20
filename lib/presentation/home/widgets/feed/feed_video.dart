@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -5,8 +6,15 @@ class FeedVideo extends StatefulWidget {
   final String videoUrl;
   final String? heroTag;
   final bool isFront;
+  final bool autoplay;
 
-  const FeedVideo({super.key, required this.videoUrl, this.heroTag, required this.isFront});
+  const FeedVideo({
+    super.key,
+    this.heroTag,
+    required this.videoUrl,
+    required this.isFront,
+    this.autoplay = true,
+  });
 
   @override
   State<FeedVideo> createState() => _FeedVideoState();
@@ -15,18 +23,62 @@ class FeedVideo extends StatefulWidget {
 class _FeedVideoState extends State<FeedVideo> {
   late VideoPlayerController _controller;
   bool _isInitialized = false;
+  bool _hasError = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(widget.videoUrl)
-      ..initialize().then((_) {
+    _initializeVideoController();
+  }
+
+  void _initializeVideoController() {
+    // Check if it's a local file or network URL
+    String videoPath = widget.videoUrl;
+
+    if (_isLocalFilePath(widget.videoUrl)) {
+      videoPath = _getActualFilePath(widget.videoUrl);
+      print('Loading local video: $videoPath');
+      _controller = VideoPlayerController.file(File(videoPath));
+    } else {
+      print('Loading network video: $videoPath');
+      _controller = VideoPlayerController.network(videoPath);
+    }
+
+    _controller.initialize().then((_) {
+      if (mounted) {
         setState(() {
           _isInitialized = true;
         });
         _controller.setLooping(true);
-        _controller.play();
-      });
+        if (widget.autoplay) {
+          _controller.play();
+        }
+      }
+    }).catchError((error) {
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+        });
+      }
+      print('Video player error: $error');
+    });
+  }
+
+  bool _isLocalFilePath(String path) {
+    // Check if it's a local file path or has local prefix
+    return path.startsWith('local:///') ||
+        path.startsWith('/') ||
+        path.startsWith('file://') ||
+        path.contains('/var/mobile/') ||
+        path.contains('/Documents/') ||
+        !path.startsWith('http');
+  }
+
+  String _getActualFilePath(String path) {
+    if (path.startsWith('local:///')) {
+      return path.substring(9);
+    }
+    return path;
   }
 
   @override
@@ -43,18 +95,24 @@ class _FeedVideoState extends State<FeedVideo> {
   }
 
   Widget _buildVideoContent() {
+    if (_hasError) {
+      return const Center(
+        child: Icon(Icons.error, color: Colors.red, size: 50),
+      );
+    }
+
     if (!_isInitialized) {
       return const Center(child: CircularProgressIndicator());
     }
+
     return Transform(
       alignment: Alignment.center,
-       transform:  
-             widget.isFront ? (Matrix4.identity()
-                ..scale(-1.0, 1.65)
-                ..scale(1.0, 1.3))
-              : (Matrix4.identity()..scale(1.0, 1.65)),
+      transform: widget.isFront
+          ? (Matrix4.identity()
+            ..scale(-1.0, 1.65)
+            ..scale(1.2, 1.5))
+          : (Matrix4.identity()..scale(1.0, 1.65)),
       child: VideoPlayer(_controller),
     );
-
   }
 }

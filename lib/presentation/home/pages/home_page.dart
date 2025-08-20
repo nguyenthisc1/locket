@@ -129,7 +129,7 @@ class _CameraSection extends StatelessWidget {
         ),
         Provider<CameraController>.value(
           value: getIt<CameraController>(),
-        ),
+        )
       ],
       child: Stack(
         children: [

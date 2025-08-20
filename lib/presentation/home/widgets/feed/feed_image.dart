@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class FeedImage extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {  
     return SizedBox(
       width: double.infinity,
       height: MediaQuery.of(context).size.height * 0.45,
@@ -31,9 +32,9 @@ class FeedImage extends StatelessWidget {
   Widget _buildMediaWidget() {
     Widget child;
     if (format == 'jpg') {
-      child = Image.network(imageUrl, fit: BoxFit.cover);
+      child = _buildImageWidget();
     } else if (format == 'mp4') {
-      child =   FeedVideo(videoUrl: imageUrl, isFront: isFront);
+      child = FeedVideo(videoUrl: imageUrl, isFront: isFront);
     } else {
       child = const Center(child: Text('Unsupported format'));
     }
@@ -43,5 +44,51 @@ class FeedImage extends StatelessWidget {
       transform: isFront ? Matrix4.rotationY(math.pi) : Matrix4.identity(),
       child: child,
     );
+  }
+
+  Widget _buildImageWidget() {
+    // Check if it's a local file path or network URL
+    if (_isLocalFilePath(imageUrl)) {
+      final filePath = _getActualFilePath(imageUrl);
+      print('Loading local image: $filePath');
+      return Image.file(
+        File(filePath),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          print('Error loading local image: $error');
+          return const Center(
+            child: Icon(Icons.error, color: Colors.red, size: 50),
+          );
+        },
+      );
+    } else {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          print('Error loading network image: $error');
+          return const Center(
+            child: Icon(Icons.error, color: Colors.red, size: 50),
+          );
+        },
+      );
+    }
+  }
+
+  bool _isLocalFilePath(String path) {
+    // Check if it's a local file path or has our local prefix
+    return path.startsWith('local:///') ||
+        path.startsWith('/') ||
+        path.startsWith('file://') ||
+        path.contains('/var/mobile/') ||
+        path.contains('/Documents/') ||
+        !path.startsWith('http');
+  }
+
+  String _getActualFilePath(String path) {
+    if (path.startsWith('local:///')) {
+      return path.substring(9); // Remove 'local:///' prefix
+    }
+    return path;
   }
 }

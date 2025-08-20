@@ -78,16 +78,16 @@ class CameraBottomControls extends StatelessWidget {
               ? const CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                 )
-              : cameraState.uploadSuccess != null
+              : cameraState.isUploadSuccess 
                   ? const Icon(
                       Icons.check_circle,
                       color: Colors.green,
-                      size: AppDimensions.xxl,
+                      size: 80,
                     )
                   : Transform.rotate(
                       angle: -0.785398,
                       child: BuildIconButton(
-                        onPressed: cameraState.isUploading ? () {} : cameraController.quickUpload,
+                        onPressed: cameraState.isUploading ? () {} : cameraController.uploadMedia,
                         icon: Icons.send,
                         color: cameraState.isUploading ? Colors.grey : AppColors.primary,
                       ),

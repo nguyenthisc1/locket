@@ -2,9 +2,14 @@ import 'package:camera/camera.dart' as cam;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:locket/common/animations/fade_animation_controller.dart';
+import 'package:locket/di.dart';
+import 'package:locket/domain/feed/entities/feed_entity.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 
 /// Pure state class for camera - only holds data, no business logic
 class CameraControllerState extends ChangeNotifier implements TickerProvider {
+  final cameraState = getIt<FeedControllerState>();
+
   // Private fields
   List<cam.CameraDescription> _cameras = [];
   cam.CameraController? _controller;
@@ -22,7 +27,9 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   String? _errorMessage;
   bool _isLoading = false;
   bool _isUploading = false;
-  String? _uploadSuccess;
+  bool _isUploadSuccess = false;
+  FeedEntity? _newFeed;
+  String? _captionFeed = '';
 
   FadeAnimationController? _fadeController;
 
@@ -43,7 +50,9 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
   bool get isUploading => _isUploading;
-  String? get uploadSuccess => _uploadSuccess;
+  bool get isUploadSuccess => _isUploadSuccess;
+  FeedEntity? get newFeed => _newFeed;
+  String? get captionFeed => _captionFeed;
 
   // Animation getter
   FadeAnimationController? get fadeController => _fadeController;
@@ -53,8 +62,10 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   bool get hasMultipleCameras => _cameras.length > 1;
   bool get isFrontCamera => _selectedCameraIndex == 1 && _cameras.length > 1;
   bool get isBackCamera => _selectedCameraIndex == 0;
-  bool get hasFlashSupport => _cameras.isNotEmpty && 
-      _cameras[_selectedCameraIndex].lensDirection == cam.CameraLensDirection.back;
+  bool get hasFlashSupport =>
+      _cameras.isNotEmpty &&
+      _cameras[_selectedCameraIndex].lensDirection ==
+          cam.CameraLensDirection.back;
 
   @override
   Ticker createTicker(TickerCallback onTick) {
@@ -138,8 +149,18 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     notifyListeners();
   }
 
-  void setUploadSuccess(String? message) {
-    _uploadSuccess = message;
+  void setUploadSuccess(bool success) {
+    _isUploadSuccess = success;
+    notifyListeners();
+  }
+
+  void setCaption(String value) {
+    _captionFeed = value;
+    notifyListeners();
+  }
+
+  void setNewFeed(FeedEntity? feed) {
+    _newFeed = feed;
     notifyListeners();
   }
 
@@ -149,21 +170,38 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   }
 
   void resetPictureTakenState() {
-    print('Resetting picture taken state...');
+    // Remove draft feed from list if it exists
+    if (_newFeed != null) {
+      cameraState.removeFeedById(_newFeed!.id);
+      print('Removed draft feed from list: ${_newFeed!.id}');
+    }
+
     _imageFile = null;
     _videoFile = null;
     _isPictureTaken = false;
     _pictureTakenAt = null;
-    print('State reset: isPictureTaken=$_isPictureTaken, imageFile=$_imageFile, videoFile=$_videoFile');
+    _newFeed = null;
+    _captionFeed = '';
+    print(
+      'State reset: isPictureTaken=$_isPictureTaken, imageFile=$_imageFile, videoFile=$_videoFile',
+    );
     notifyListeners();
   }
 
   void resetRecordingState() {
-    print('Resetting recording state...');
+
+    // Remove draft feed from list if it exists
+    if (_newFeed != null) {
+      cameraState.removeFeedById(_newFeed!.id);
+      print('Removed draft feed from list: ${_newFeed!.id}');
+    }
+
     _isRecording = false;
     _recordingStartedAt = null;
     _recordingDuration = null;
-    _videoFile = null;
+    _videoFile = null; 
+    _captionFeed = '';
+    _newFeed = null;
     print('Recording state reset');
     notifyListeners();
   }
@@ -178,7 +216,7 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   String getFormattedRecordingDuration() {
     final duration = getCurrentRecordingDuration();
     if (duration == null) return '00:00';
-    
+
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
@@ -190,9 +228,19 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   }
 
   void clearUploadStatus() {
-    _uploadSuccess = null;
+    _isUploadSuccess = false;
     _isUploading = false;
     notifyListeners();
+  }
+
+  void addNewFeedToList() {
+    if (_newFeed != null) {
+      print('Adding new feed to list: ${_newFeed!.id}');
+      cameraState.addFeed(_newFeed!);
+      print('Feed added to list. Total feeds: ${cameraState.listFeed.length}');
+    } else {
+      print('Warning: No new feed to add to list');
+    }
   }
 
   @override
@@ -205,7 +253,7 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
         print('Warning: Error disposing camera controller in state: $e');
       }
     }
-    
+
     // Safely dispose fade controller
     _fadeController?.dispose();
     super.dispose();
