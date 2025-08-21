@@ -13,6 +13,12 @@ class FeedControllerState extends ChangeNotifier {
   bool _hasInitialized = false;
   String? _errorMessage;
   bool _isRefreshing = false;
+  
+  // Upload and media state
+  bool _isUploading = false;
+  bool _isUploadSuccess = false;
+  FeedEntity? _newFeed;
+  String? _captionFeed = '';
 
   // Getters
   bool get isVisibleGallery => _isVisibleGallery;
@@ -24,6 +30,10 @@ class FeedControllerState extends ChangeNotifier {
   bool get hasInitialized => _hasInitialized;
   String? get errorMessage => _errorMessage;
   bool get isRefreshing => _isRefreshing;
+  bool get isUploading => _isUploading;
+  bool get isUploadSuccess => _isUploadSuccess;
+  FeedEntity? get newFeed => _newFeed;
+  String? get captionFeed => _captionFeed;
 
   // State update methods (no business logic)
   void setLoading(bool value) {
@@ -116,6 +126,50 @@ class FeedControllerState extends ChangeNotifier {
     }
   }
 
+  // Upload and media state methods
+  void setUploading(bool value) {
+    if (_isUploading != value) {
+      _isUploading = value;
+      notifyListeners();
+    }
+  }
+
+  void setUploadSuccess(bool value) {
+    if (_isUploadSuccess != value) {
+      _isUploadSuccess = value;
+      notifyListeners();
+    }
+  }
+
+  void setNewFeed(FeedEntity? feed) {
+    if (_newFeed != feed) {
+      _newFeed = feed;
+      notifyListeners();
+    }
+  }
+
+  void setCaption(String value) {
+    if (_captionFeed != value) {
+      _captionFeed = value;
+      notifyListeners();
+    }
+  }
+
+  void clearUploadStatus() {
+    bool hasChanges = false;
+    if (_isUploadSuccess != false) {
+      _isUploadSuccess = false;
+      hasChanges = true;
+    }
+    if (_isUploading != false) {
+      _isUploading = false;
+      hasChanges = true;
+    }
+    if (hasChanges) {
+      notifyListeners();
+    }
+  }
+
   void reset() {
     _isVisibleGallery = true;
     _isKeyboardOpen = false;
@@ -126,6 +180,10 @@ class FeedControllerState extends ChangeNotifier {
     _hasInitialized = false;
     _errorMessage = null;
     _isRefreshing = false;
+    _isUploading = false;
+    _isUploadSuccess = false;
+    _newFeed = null;
+    _captionFeed = '';
     notifyListeners();
   }
 }

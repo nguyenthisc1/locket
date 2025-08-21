@@ -7,7 +7,6 @@ import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
-import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller_state.dart';
 import 'package:locket/presentation/home/pages/feed_page.dart';
@@ -170,13 +169,10 @@ class _FeedSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<FeedControllerState>.value(
-      value: getIt<FeedControllerState>(),
-      child: FeedPage(
-        innerController: innerController,
-        outerController: outerController,
-        handleScrollFeedToTop: onScrollFeedToTop,
-      ),
+    return FeedPage(
+      innerController: innerController,
+      outerController: outerController,
+      handleScrollFeedToTop: onScrollFeedToTop,
     );
   }
 }

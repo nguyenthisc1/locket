@@ -9,6 +9,7 @@ import 'package:locket/presentation/auth/pages/phone_login_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_detail_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_page.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/presentation/home/pages/gallery_page.dart';
 import 'package:locket/presentation/home/pages/home_page.dart';
 import 'package:locket/presentation/splash/pages/onboarding_page.dart';
@@ -61,20 +62,45 @@ class AppRouter {
         path: '/phone-login',
         builder: (context, state) => const PhoneLoginPage(),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomePage(),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const HomePage()),
       GoRoute(
         path: '/converstion',
         builder: (context, state) => ConversationPage(),
       ),
+      // GoRoute(
+      //   path: '/gallery',
+      //   pageBuilder: (context, state) {
+      //     final extra = state.extra as Map;
+      //     final controller = extra['controller'] as FeedController;
+
+      //     return CustomTransitionPage(
+      //       key: state.pageKey,
+      //       transitionsBuilder: (
+      //         context,
+      //         animation,
+      //         secondaryAnimation,
+      //         child,
+      //       ) {
+      //         return FadeTransition(
+      //           opacity: CurvedAnimation(
+      //             parent: animation,
+      //             curve: Curves.easeInOut,
+      //             reverseCurve: Curves.easeInOut,
+      //           ),
+      //           child: child,
+      //         );
+      //       },
+      //       // Provide the FeedController, not the state
+      //       child: Provider<FeedController>.value(
+      //         value: controller,
+      //         child: GalleryPage(),
+      //       ),
+      //     );
+      //   },
+      // ),
       GoRoute(
         path: '/gallery',
         pageBuilder: (context, state) {
-          final extra = state.extra as Map;
-          final controller = extra['controller'] as FeedController;
-
           return CustomTransitionPage(
             key: state.pageKey,
             transitionsBuilder: (
@@ -92,11 +118,7 @@ class AppRouter {
                 child: child,
               );
             },
-            // Provide the FeedController, not the state
-            child: Provider<FeedController>.value(
-              value: controller,
-              child: GalleryPage(),
-            ),
+            child: GalleryPage()
           );
         },
       ),

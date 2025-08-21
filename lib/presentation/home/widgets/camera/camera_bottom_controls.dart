@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/presentation/home/widgets/build_icon_button.dart';
 import 'package:provider/provider.dart';
 
@@ -56,8 +57,8 @@ class CameraBottomControls extends StatelessWidget {
   }
 
   Widget _buildAfterControlsTakePictureWidgets(BuildContext context) {
-    // Access both state and controller via provider - no props needed!
-    final cameraState = context.watch<CameraControllerState>();
+    // Access feed state and camera controller via provider
+    final feedState = context.watch<FeedControllerState>();
     final cameraController = context.read<CameraController>();
     
     return Row(
@@ -66,7 +67,7 @@ class CameraBottomControls extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         BuildIconButton(
-          onPressed: cameraController.resetState,
+          onPressed: cameraController.cancelDraft,
           icon: Icons.close,
         ),
 
@@ -74,11 +75,11 @@ class CameraBottomControls extends StatelessWidget {
         SizedBox(
           width: AppDimensions.xxl * 2,
           height: AppDimensions.xxl * 2,
-          child: cameraState.isUploading
+          child: feedState.isUploading
               ? const CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                 )
-              : cameraState.isUploadSuccess 
+              : feedState.isUploadSuccess 
                   ? const Icon(
                       Icons.check_circle,
                       color: Colors.green,
@@ -87,9 +88,9 @@ class CameraBottomControls extends StatelessWidget {
                   : Transform.rotate(
                       angle: -0.785398,
                       child: BuildIconButton(
-                        onPressed: cameraState.isUploading ? () {} : cameraController.uploadMedia,
+                        onPressed: feedState.isUploading ? () {} : cameraController.uploadMedia,
                         icon: Icons.send,
-                        color: cameraState.isUploading ? Colors.grey : AppColors.primary,
+                        color: feedState.isUploading ? Colors.grey : AppColors.primary,
                       ),
                     ),
         ),

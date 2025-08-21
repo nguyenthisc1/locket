@@ -4,14 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:locket/core/services/feed_cache_service.dart';
 import 'package:locket/domain/feed/entities/feed_entity.dart';
 import 'package:locket/domain/feed/usecases/get_feed_usecase.dart';
+import 'package:locket/domain/feed/usecases/upload_feed_usecase.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
+import 'package:locket/core/services/user_service.dart';
+import 'package:locket/di.dart';
 import 'package:logger/logger.dart';
+import 'dart:io';
 
 /// Business logic controller - handles all operations and business rules
 class FeedController {
   final FeedControllerState _state;
   final FeedCacheService _cacheService;
   final GetFeedUsecase _getFeedUsecase;
+  final UploadFeedUsecase _uploadFeedUsecase;
   final Logger _logger;
   final FocusNode _messageFieldFocusNode;
 
@@ -19,10 +24,12 @@ class FeedController {
     required FeedControllerState state,
     required FeedCacheService cacheService,
     required GetFeedUsecase getFeedUsecase,
+    required UploadFeedUsecase uploadFeedUsecase,
     Logger? logger,
   })  : _state = state,
         _cacheService = cacheService,
         _getFeedUsecase = getFeedUsecase,
+        _uploadFeedUsecase = uploadFeedUsecase,
         _logger = logger ?? Logger(printer: PrettyPrinter(colors: true, printEmojis: true)),
         _messageFieldFocusNode = FocusNode() {
     _messageFieldFocusNode.addListener(_handleKeyboardFocus);
@@ -175,6 +182,154 @@ class FeedController {
   void _handleKeyboardFocus() {
     final isOpen = _messageFieldFocusNode.hasFocus;
     _state.setKeyboardOpen(isOpen);
+  }
+
+  /// Create a draft feed entity for preview/caching before upload
+  void createDraftFeed(String filePath, MediaType mediaType, String fileName, bool isFrontCamera) {
+    try {
+      final userService = getIt<UserService>();
+      final currentUser = userService.currentUser;
+
+      if (currentUser == null) {
+        _logger.w('Cannot create draft feed - no current user');
+        return;
+      }
+
+      // Create a temporary feed entity with a special draft indicator
+      _logger.d('Creating draft feed with caption: ${_state.captionFeed}');
+      
+      final draftFeed = FeedEntity(
+        id: 'draft_${DateTime.now().millisecondsSinceEpoch}', // Temporary ID
+        user: FeedUser(
+          id: currentUser.id,
+          username: currentUser.username,
+          avatarUrl: currentUser.avatarUrl ?? '',
+        ),
+        imageUrl: 'local:///$filePath',
+        caption: _state.captionFeed,
+        isFrontCamera: isFrontCamera,
+        mediaType: mediaType,
+        format: mediaType == MediaType.video ? 'mp4' : 'jpg',
+        createdAt: DateTime.now(),
+        width: 0,
+        height: 0,
+        fileSize: 0,
+      );
+      
+      _state.setNewFeed(draftFeed);
+      _logger.d('Draft feed created: ${draftFeed.id}');
+    } catch (e) {
+      _logger.e('Error creating draft feed: $e');
+    }
+  }
+
+  /// Upload captured media (photo or video)
+  Future<void> uploadMedia(String filePath, String fileName, String mediaType, bool isFrontCamera) async {
+    if (_state.newFeed == null) {
+      _logger.e('No media to upload - no draft feed found');
+      _state.setError('No media captured to upload');
+      return;
+    }
+
+    _state.clearError();
+    _state.clearUploadStatus();
+    _state.setUploading(true);
+
+    try {
+      // Create multipart file
+      final file = File(filePath);
+
+      // Prepare payload with conditional key based on mediaType
+      final payload = <String, dynamic>{
+        'filePath': file.path,
+        'fileName': fileName,
+        'mediaType': mediaType,
+        'isFrontCamera': isFrontCamera,
+        'caption': _state.captionFeed,
+      };
+
+      _logger.d('Uploading $mediaType: $fileName');
+      _logger.d('Caption: ${_state.captionFeed ?? 'No caption'}');
+
+      // Upload via use case
+      final result = await _uploadFeedUsecase.call(payload);
+
+      result.fold(
+        (failure) {
+          _logger.e('Upload failed: ${failure.message}');
+          _state.setError('Upload failed: ${failure.message}');
+          _state.setUploading(false);
+        },
+        (success) {
+          _logger.d('Upload successful! Response: ${success.message}');
+          _state.setUploadSuccess(true);
+
+          // Add the draft feed to the feed list
+          addNewFeedToList();
+
+          // Reset after delay (but keep the feed in the list)
+          Future.delayed(const Duration(seconds: 2), () {
+            resetUploadStateAfterSuccess();
+          });
+        },
+      );
+    } catch (e) {
+      _logger.e('Upload exception: $e');
+      _state.setError('Upload exception: $e');
+      _state.setUploading(false);
+    } finally {
+      _state.setUploading(false);
+    }
+  }
+
+  /// Add the new feed to the list (used after successful upload)
+  void addNewFeedToList() {
+    if (_state.newFeed != null) {
+      _logger.d('Adding new feed to list: ${_state.newFeed!.id}');
+      _state.addFeed(_state.newFeed!);
+      _logger.d('Feed added to list. Total feeds: ${_state.listFeed.length}');
+    } else {
+      _logger.w('No new feed to add to list');
+    }
+  }
+
+  /// Reset upload state after successful upload (keeps the feed in the list)
+  void resetUploadStateAfterSuccess() {
+    _logger.d('Resetting upload state after successful upload...');
+    
+    // Don't remove the feed from the list, just clear upload state
+    _state.setUploadSuccess(false);
+    _state.setUploading(false);
+    _state.setNewFeed(null);
+    _state.setCaption('');
+    _state.clearError();
+    
+    _logger.d('Upload state reset completed (feed kept in list)');
+  }
+
+  /// Reset upload state (clears draft feed and related state) - used for cancellation
+  void resetUploadState() {
+    _logger.d('Resetting upload state...');
+    
+    // Remove draft feed from list if it exists
+    if (_state.newFeed != null) {
+      _state.removeFeedById(_state.newFeed!.id);
+      _logger.d('Removed draft feed from list: ${_state.newFeed!.id}');
+    }
+
+    _state.setUploadSuccess(false);
+    _state.setUploading(false);
+    _state.setNewFeed(null);
+    _state.setCaption('');
+    _state.clearError();
+    
+    _logger.d('Upload state reset completed');
+  }
+
+  /// Set caption for the current feed
+  void setCaption(String caption) {
+    _state.setCaption(caption);
+    _logger.d('Caption updated: $caption');
   }
 
   /// Dispose resources

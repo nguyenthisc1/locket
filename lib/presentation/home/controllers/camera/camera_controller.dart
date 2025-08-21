@@ -2,18 +2,13 @@
 import 'package:camera/camera.dart' as cam;
 import 'package:locket/common/animations/fade_animation_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
-import 'package:locket/domain/feed/usecases/upload_feed_usecase.dart';
 import 'package:locket/domain/feed/entities/feed_entity.dart';
-import 'package:locket/core/services/user_service.dart';
-import 'package:locket/di.dart';
-import 'dart:io';
 
 /// Business logic class for camera operations - uses CameraControllerState
 class CameraController {
   final CameraControllerState _state;
-  final UploadFeedUsecase _uploadFeedUsecase;
 
-  CameraController(this._state, this._uploadFeedUsecase);
+  CameraController(this._state);
 
   // Getter for state
   CameraControllerState get state => _state;
@@ -148,8 +143,6 @@ class CameraController {
   Future<void> takePicture() async {
     if (!_state.hasCamera || _state.isRecording) return;
 
-    _state.clearUploadStatus();
-
     try {
       // First trigger fade out animation (if not disposed)
       if (_state.fadeController != null && !_state.fadeController!.isDisposed) {
@@ -163,8 +156,9 @@ class CameraController {
       _state.setImageFile(image);
       _state.setPictureTaken(true, DateTime.now());
 
-      // Create draft feed entity for preview/caching
-      _createDraftFeed(image.path, MediaType.image, image.name);
+      // Create draft feed via feed controller
+      final isFrontCamera = _state.controller?.description.lensDirection == cam.CameraLensDirection.front;
+      _state.feedController.createDraftFeed(image.path, MediaType.image, image.name, isFrontCamera);
 
       print('Picture taken successfully: ${image.path}');
     } on cam.CameraException catch (e) {
@@ -177,8 +171,6 @@ class CameraController {
   /// Start video recording
   Future<void> startVideoRecording() async {
     if (!_state.hasCamera || _state.isRecording) return;
-
-    _state.clearUploadStatus();
 
     try {
       // Start camera recording
@@ -215,14 +207,14 @@ class CameraController {
       final video = await _state.controller!.stopVideoRecording();
 
       // Update state with video file and duration
-      // Update state with video file and duration
       _state.setVideoFile(video);
       _state.setRecording(false);
       _state.setRecordingDuration(recordingDuration);
       _state.setPictureTaken(true, endTime); // Mark as media captured
 
-      // Create draft feed entity for preview/caching
-      _createDraftFeed(video.path, MediaType.video, video.name);
+      // Create draft feed via feed controller
+      final isFrontCamera = _state.controller?.description.lensDirection == cam.CameraLensDirection.front;
+      _state.feedController.createDraftFeed(video.path, MediaType.video, video.name, isFrontCamera);
 
       print('Video recording stopped at: $endTime');
       print('Recording duration: ${_state.getFormattedRecordingDuration()}');
@@ -252,7 +244,6 @@ class CameraController {
     _state.resetPictureTakenState();
     _state.resetRecordingState();
     _state.clearError();
-    _state.setUploadSuccess(false);
 
     // Reset fade animation to show camera preview again (if not disposed)
     if (_state.fadeController != null && !_state.fadeController!.isDisposed) {
@@ -261,6 +252,19 @@ class CameraController {
     print(
       'Camera state reset completed. isPictureTaken: ${_state.isPictureTaken}',
     );
+  }
+
+  /// Cancel current draft (removes draft feed from list)
+  void cancelDraft() {
+    print('Canceling current draft...');
+    
+    // Remove draft feed from list if it exists
+    _state.feedController.resetUploadState();
+    
+    // Reset camera state
+    resetState();
+    
+    print('Draft canceled successfully');
   }
 
   /// Upload captured media (photo or video)
@@ -276,58 +280,24 @@ class CameraController {
       return;
     }
 
-    _state.clearError();
-    _state.clearUploadStatus();
-    _state.setUploading(true);
-
     try {
       // Determine media type
       final isVideo = _state.videoFile != null;
       final mediaType = isVideo ? 'video' : 'image';
-
-      // Create multipart file
-      final file = File(mediaFile.path);
       final fileName = mediaFile.name;
-
-      // Prepare payload with conditional key based on mediaType
-      final payload = <String, dynamic>{
-        'filePath': file.path,
-        'fileName': fileName,
-        'mediaType': mediaType,
-        'isFrontCamera':
-            _state.controller?.description.lensDirection ==
-            cam.CameraLensDirection.front,
-        'caption': _state.captionFeed,
-      };
+      final isFrontCamera = _state.controller?.description.lensDirection == cam.CameraLensDirection.front;
 
       print('Uploading $mediaType: $fileName');
-      print('Caption: ${_state.captionFeed ?? 'No caption'}');
 
-      // Upload via use case
-      final result = await _uploadFeedUsecase.call(payload);
+      // Upload via feed controller
+      await _state.feedController.uploadMedia(mediaFile.path, fileName, mediaType, isFrontCamera);
 
-      result.fold(
-        (failure) {
-          _logError('Upload failed', failure.message);
-          _state.setUploading(false);
-        },
-        (success) {
-          print('Upload successful! Response: ${success.message}');
-          _state.setUploadSuccess(true);
-
-          // Add the draft feed to the feed list
-          _state.addNewFeedToList();
-
-          Future.delayed(const Duration(seconds: 2), () {
-            resetState();
-          });
-        },
-      );
+      // Reset state after successful upload (the feed controller handles the delay)
+      Future.delayed(const Duration(seconds: 2), () {
+        resetState();
+      });
     } catch (e) {
       _logError('Upload exception', e.toString());
-      _state.setUploading(false);
-    } finally {
-      _state.setUploading(false);
     }
   }
   
@@ -368,45 +338,7 @@ class CameraController {
     }
   }
 
-  /// Create a draft feed entity for preview/caching before upload
-  void _createDraftFeed(String filePath, MediaType mediaType, String fileName) {
-    try {
-      final userService = getIt<UserService>();
-      final currentUser = userService.currentUser;
 
-      if (currentUser == null) {
-        print('Warning: Cannot create draft feed - no current user');
-        return;
-      }
-
-      // Create a temporary feed entity with a special draft indicator
-      print('caption draft ${_state.captionFeed}');
-      
-      final draftFeed = FeedEntity(
-        id: 'draft_${DateTime.now().millisecondsSinceEpoch}', // Temporary ID
-        user: FeedUser(
-          id: currentUser.id,
-          username: currentUser.username,
-          avatarUrl: currentUser.avatarUrl ?? '',
-        ),
-        imageUrl: 'local:///$filePath',
-        caption: _state.captionFeed,
-        isFrontCamera:
-            _state.controller?.description.lensDirection ==
-            cam.CameraLensDirection.front,
-        mediaType: mediaType,
-        format: mediaType == MediaType.video ? 'mp4' : 'jpg',
-        createdAt: DateTime.now(),
-        width: 0,
-        height: 0,
-        fileSize: 0,
-      );
-      _state.setNewFeed(draftFeed);
-      print('Draft feed created: $draftFeed ${draftFeed.id}');
-    } catch (e) {
-      print('Error creating draft feed: $e');
-    }
-  }
 
   /// Dispose resources
   void dispose() {

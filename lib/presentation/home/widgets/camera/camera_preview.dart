@@ -7,6 +7,7 @@ import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 import 'package:locket/presentation/home/widgets/camera/video_preview.dart';
 import 'package:provider/provider.dart';
 
@@ -167,8 +168,9 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
   }
 
   Widget _buildMessageField() {
-    // Access state via provider - no props needed!
+    // Access both camera state and feed controller via provider
     final cameraState = context.watch<CameraControllerState>();
+    final feedController = context.read<FeedController>();
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: AppDimensions.durationFast),
@@ -194,7 +196,7 @@ class _CameraPreviewWrapperState extends State<CameraPreviewWrapper> {
                 key: const ValueKey('text_field'),
                 child: MessageField(
                   isVisibleBackdrop: true,
-                  onChanged: cameraState.setCaption,
+                  onChanged: feedController.setCaption,
                   padding: const EdgeInsets.only(
                     left: AppDimensions.lg,
                     right: AppDimensions.lg,

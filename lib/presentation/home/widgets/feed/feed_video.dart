@@ -109,8 +109,8 @@ class _FeedVideoState extends State<FeedVideo> {
       alignment: Alignment.center,
       transform: widget.isFront
           ? (Matrix4.identity()
-            ..scale(-1.0, 1.65)
-            ..scale(1.2, 1.5))
+            ..scale(-1.0, 1.5)
+            ..scale(1.0, 1.1))
           : (Matrix4.identity()..scale(1.0, 1.65)),
       child: VideoPlayer(_controller),
     );

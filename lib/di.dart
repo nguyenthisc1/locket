@@ -34,19 +34,18 @@ import 'package:locket/presentation/user/controllers/user/user_controller_state.
 final getIt = GetIt.instance;
 
 void setupDependencies() {
-  
   // Core services
   getIt.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
   );
-  
+
   // Token storage - Only register the interface
   getIt.registerLazySingleton<TokenStorage<AuthTokenPair>>(
     () => TokenStorageImpl(getIt<FlutterSecureStorage>()),
   );
-  
+
   getIt.registerLazySingleton<DioClient>(() => DioClient());
-  
+
   // Auth
   getIt.registerLazySingleton<AuthApiService>(
     () => AuthApiServiceImpl(getIt<DioClient>()),
@@ -54,15 +53,15 @@ void setupDependencies() {
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(getIt<AuthApiService>()),
   );
-  
-  // User 
+
+  // User
   getIt.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(getIt<UserApiService>()),
   );
   getIt.registerLazySingleton<UserApiService>(
     () => UserApiServiceImpl(getIt<DioClient>()),
   );
-  
+
   // Feed
   getIt.registerLazySingleton<FeedRepository>(
     () => FeedRepositoryImpl(getIt<FeedApiService>()),
@@ -70,7 +69,7 @@ void setupDependencies() {
   getIt.registerLazySingleton<FeedApiService>(
     () => FeedApiServiceImpl(getIt<DioClient>()),
   );
-  
+
   // Services
   getIt.registerLazySingleton<UserService>(() => UserService());
   getIt.registerLazySingleton<FeedCacheService>(() => FeedCacheService());
@@ -88,7 +87,7 @@ void setupDependencies() {
 
   // Home controller dependencies
   getIt.registerLazySingleton<HomeControllerState>(() => HomeControllerState());
-  
+
   getIt.registerLazySingleton<HomeController>(
     () => HomeController(
       state: getIt<HomeControllerState>(),
@@ -99,7 +98,7 @@ void setupDependencies() {
 
   // Auth controller dependencies
   getIt.registerLazySingleton<AuthControllerState>(() => AuthControllerState());
-  
+
   getIt.registerLazySingleton<AuthController>(
     () => AuthController(
       state: getIt<AuthControllerState>(),
@@ -110,7 +109,7 @@ void setupDependencies() {
 
   // User controller dependencies
   getIt.registerLazySingleton<UserControllerState>(() => UserControllerState());
-  
+
   getIt.registerLazySingleton<UserController>(
     () => UserController(
       state: getIt<UserControllerState>(),
@@ -120,31 +119,31 @@ void setupDependencies() {
   );
 
   // Camera controller dependencies
-  getIt.registerLazySingleton<CameraControllerState>(() => CameraControllerState());
-  
+  getIt.registerLazySingleton<CameraControllerState>(
+    () => CameraControllerState(),
+  );
+
   getIt.registerLazySingleton<CameraController>(
-    () => CameraController(
-      getIt<CameraControllerState>(),
-      getIt<UploadFeedUsecase>(),
-    ),
+    () => CameraController(getIt<CameraControllerState>()),
   );
 
   // Feed controller dependencies
   getIt.registerLazySingleton<FeedControllerState>(() => FeedControllerState());
-  
+
   getIt.registerFactory<GetFeedUsecase>(
     () => GetFeedUsecase(getIt<FeedRepository>()),
   );
 
-    getIt.registerFactory<UploadFeedUsecase>(
+  getIt.registerFactory<UploadFeedUsecase>(
     () => UploadFeedUsecase(getIt<FeedRepository>()),
   );
-  
+
   getIt.registerLazySingleton<FeedController>(
     () => FeedController(
       state: getIt<FeedControllerState>(),
       cacheService: getIt<FeedCacheService>(),
       getFeedUsecase: getIt<GetFeedUsecase>(),
+      uploadFeedUsecase: getIt<UploadFeedUsecase>(),
     ),
   );
 }

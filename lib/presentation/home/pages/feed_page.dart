@@ -75,10 +75,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
   }
 
   Future<void> _navigateToGallery() async {
-    final result = await context.push(
-      '/gallery',
-      extra: {'controller': _feedController},
-    );
+    final result = await context.push('/gallery');
 
     if (result != null && result is int) {
       widget.innerController.animateToPage(
@@ -91,198 +88,203 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    // Use Provider to watch state changes
-    final feedState = context.watch<FeedControllerState>();
-
-    return Scaffold(
-      extendBodyBehindAppBar: false,
-      resizeToAvoidBottomInset: false,
-      extendBody: true,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(color: Colors.transparent),
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: AppDimensions.md,
-            right: AppDimensions.md,
-            bottom: AppDimensions.xxl,
+    // Use Consumer to watch state changes for FeedControllerState
+    return Consumer<FeedControllerState>(
+      builder: (context, feedState, _) {
+        return Scaffold(
+          extendBodyBehindAppBar: false,
+          resizeToAvoidBottomInset: false,
+          extendBody: true,
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(color: Colors.transparent),
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: AppDimensions.md,
+                right: AppDimensions.md,
+                bottom: AppDimensions.xxl,
+              ),
+              child: FeedToolbar(
+                onScrollToTop: widget.handleScrollFeedToTop,
+                onGalleryToggle: _feedController.toggleGalleryVisibility,
+                images: feedState.listFeed,
+                onGalleryTap: _navigateToGallery,
+              ),
+            ),
           ),
-          child: FeedToolbar(
-            onScrollToTop: widget.handleScrollFeedToTop,
-            onGalleryToggle: _feedController.toggleGalleryVisibility,
-            images: feedState.listFeed,
-            onGalleryTap: _navigateToGallery,
-          ),
-        ),
-      ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          // Don't trigger outer scroll if we just navigated from gallery
-          if (!_isNavigatingFromGallery &&
-              widget.innerController.page == 0 &&
-              notification is ScrollUpdateNotification &&
-              notification.metrics.pixels <= 0 &&
-              notification.scrollDelta! < -10) {
-            widget.outerController.previousPage(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-            return true;
-          }
-          return false;
-        },
-        child: AnimatedBuilder(
-          animation: feedState,
-          builder: (context, _) {
-            // Show loading state
-            if (feedState.isLoading && !feedState.hasInitialized) {
-              return const Center(child: CircularProgressIndicator());
-            }
+          body: NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              // Don't trigger outer scroll if we just navigated from gallery
+              if (!_isNavigatingFromGallery &&
+                  widget.innerController.page == 0 &&
+                  notification is ScrollUpdateNotification &&
+                  notification.metrics.pixels <= 0 &&
+                  notification.scrollDelta! < -10) {
+                widget.outerController.previousPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+                return true;
+              }
+              return false;
+            },
+            child: AnimatedBuilder(
+              animation: feedState,
+              builder: (context, _) {
+                // Show loading state
+                if (feedState.isLoading && !feedState.hasInitialized) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-            // Show error state
-            if (feedState.errorMessage != null && feedState.listFeed.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                // Show error state
+                if (feedState.errorMessage != null && feedState.listFeed.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          feedState.errorMessage!,
+                          style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => _feedController.refreshFeed(),
+                          child: const Text('Thử lại'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // Show empty state
+                if (!feedState.isLoading && feedState.listFeed.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.photo_library_outlined,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Chưa có ảnh nào được đăng',
+                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return Stack(
+                  alignment: AlignmentDirectional.bottomEnd,
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      feedState.errorMessage!,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => _feedController.refreshFeed(),
-                      child: const Text('Thử lại'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            // Show empty state
-            if (!feedState.isLoading && feedState.listFeed.isEmpty) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.photo_library_outlined,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Chưa có ảnh nào được đăng',
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return Stack(
-              alignment: AlignmentDirectional.bottomEnd,
-              children: [
-                PageView.builder(
-                  controller: widget.innerController,
-                  scrollDirection: Axis.vertical,
-                  itemCount: feedState.listFeed.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        left: AppDimensions.md,
-                        right: AppDimensions.md,
-                        bottom: AppDimensions.xl,
-                        top: AppDimensions.appBarHeight + AppDimensions.xl,
-                      ),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return SingleChildScrollView(
-                            physics: const NeverScrollableScrollPhysics(),
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight: constraints.maxHeight,
-                              ),
-                              child: IntrinsicHeight(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  children: [
-                                    Stack(
+                    PageView.builder(
+                      controller: widget.innerController,
+                      scrollDirection: Axis.vertical,
+                      itemCount: feedState.listFeed.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                            left: AppDimensions.md,
+                            right: AppDimensions.md,
+                            bottom: AppDimensions.xl,
+                            top: AppDimensions.appBarHeight + AppDimensions.xl,
+                          ),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              return SingleChildScrollView(
+                                physics: const NeverScrollableScrollPhysics(),
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minHeight: constraints.maxHeight,
+                                  ),
+                                  child: IntrinsicHeight(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.max,
                                       children: [
-                                        FeedImage(
-                                          imageUrl:
-                                              feedState
-                                                  .listFeed[index]
-                                                  .imageUrl,
-                                          format:
-                                              feedState.listFeed[index].format,
-                                          isFront: feedState.listFeed[index].isFrontCamera
-                                        ),
-
-                                        if (feedState.listFeed[index].caption !=
-                                            '')
-                                          Positioned(
-                                            bottom: AppDimensions.md,
-                                            left: AppDimensions.md,
-                                            right: AppDimensions.md,
-                                            child: FeedCaption(
-                                              caption:
+                                        Stack(
+                                          children: [
+                                            FeedImage(
+                                              imageUrl:
                                                   feedState
                                                       .listFeed[index]
-                                                      .caption,
+                                                      .imageUrl,
+                                              format:
+                                                  feedState.listFeed[index].format,
+                                              isFront:
+                                                  feedState
+                                                      .listFeed[index]
+                                                      .isFrontCamera,
                                             ),
-                                          ),
+
+                                            if (feedState.listFeed[index].caption !=
+                                                '')
+                                              Positioned(
+                                                bottom: AppDimensions.md,
+                                                left: AppDimensions.md,
+                                                right: AppDimensions.md,
+                                                child: FeedCaption(
+                                                  caption:
+                                                      feedState
+                                                          .listFeed[index]
+                                                          .caption,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: AppDimensions.lg),
+                                        FeedUser(
+                                          avatarUrl:
+                                              feedState
+                                                  .listFeed[index]
+                                                  .user
+                                                  .avatarUrl,
+                                          username:
+                                              feedState
+                                                  .listFeed[index]
+                                                  .user
+                                                  .username,
+                                          createdAt:
+                                              feedState.listFeed[index].createdAt,
+                                        ),
                                       ],
                                     ),
-                                    const SizedBox(height: AppDimensions.lg),
-                                    FeedUser(
-                                      avatarUrl:
-                                          feedState
-                                              .listFeed[index]
-                                              .user
-                                              .avatarUrl,
-                                      username:
-                                          feedState
-                                              .listFeed[index]
-                                              .user
-                                              .username,
-                                      createdAt:
-                                          feedState.listFeed[index].createdAt,
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
-                          );
-                        },
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                    AnimatedPadding(
+                      duration: const Duration(milliseconds: 0),
+                      curve: Curves.linear,
+                      padding: EdgeInsets.only(
+                        bottom:
+                            feedState.isKeyboardOpen
+                                ? MediaQuery.of(context).viewInsets.bottom
+                                : MediaQuery.of(context).viewInsets.bottom + 96,
                       ),
-                    );
-                  },
-                ),
-                AnimatedPadding(
-                  duration: const Duration(milliseconds: 0),
-                  curve: Curves.linear,
-                  padding: EdgeInsets.only(
-                    bottom:
-                        feedState.isKeyboardOpen
-                            ? MediaQuery.of(context).viewInsets.bottom
-                            : MediaQuery.of(context).viewInsets.bottom + 96,
-                  ),
-                  child: MessageField(
-                    focusNode: _feedController.messageFieldFocusNode,
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
+                      child: MessageField(
+                        focusNode: _feedController.messageFieldFocusNode,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 

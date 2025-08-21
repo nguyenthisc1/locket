@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/routes/router.dart';
 import 'package:locket/di.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
+import 'package:provider/provider.dart';
 
 import 'core/configs/theme/index.dart';
 
@@ -13,7 +16,15 @@ void main() async {
   // final dynamicLinksService = DynamicLinksServiceR();
   // await dynamicLinksService.initDynamicLinks();
 
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: getIt<FeedControllerState>()),
+        Provider.value(value: getIt<FeedController>()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

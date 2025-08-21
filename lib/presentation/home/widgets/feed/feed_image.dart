@@ -41,7 +41,7 @@ class FeedImage extends StatelessWidget {
 
     return Transform(
       alignment: Alignment.center,
-      transform: isFront ? Matrix4.rotationY(math.pi) : Matrix4.identity(),
+      transform: isFront ? Matrix4.rotationY(math.pi) : Matrix4.identity() ..scale(1.2, 1.2),
       child: child,
     );
   }

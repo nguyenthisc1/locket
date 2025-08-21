@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:locket/common/animations/fade_animation_controller.dart';
 import 'package:locket/di.dart';
-import 'package:locket/domain/feed/entities/feed_entity.dart';
-import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 
 /// Pure state class for camera - only holds data, no business logic
 class CameraControllerState extends ChangeNotifier implements TickerProvider {
-  final cameraState = getIt<FeedControllerState>();
+  final feedController = getIt<FeedController>();
 
   // Private fields
   List<cam.CameraDescription> _cameras = [];
@@ -26,10 +25,6 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   DateTime? _pictureTakenAt;
   String? _errorMessage;
   bool _isLoading = false;
-  bool _isUploading = false;
-  bool _isUploadSuccess = false;
-  FeedEntity? _newFeed;
-  String? _captionFeed = '';
 
   FadeAnimationController? _fadeController;
 
@@ -49,10 +44,6 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   DateTime? get pictureTakenAt => _pictureTakenAt;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
-  bool get isUploading => _isUploading;
-  bool get isUploadSuccess => _isUploadSuccess;
-  FeedEntity? get newFeed => _newFeed;
-  String? get captionFeed => _captionFeed;
 
   // Animation getter
   FadeAnimationController? get fadeController => _fadeController;
@@ -144,25 +135,7 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     notifyListeners();
   }
 
-  void setUploading(bool uploading) {
-    _isUploading = uploading;
-    notifyListeners();
-  }
 
-  void setUploadSuccess(bool success) {
-    _isUploadSuccess = success;
-    notifyListeners();
-  }
-
-  void setCaption(String value) {
-    _captionFeed = value;
-    notifyListeners();
-  }
-
-  void setNewFeed(FeedEntity? feed) {
-    _newFeed = feed;
-    notifyListeners();
-  }
 
   void setFadeController(FadeAnimationController? controller) {
     _fadeController = controller;
@@ -170,18 +143,12 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   }
 
   void resetPictureTakenState() {
-    // Remove draft feed from list if it exists
-    if (_newFeed != null) {
-      cameraState.removeFeedById(_newFeed!.id);
-      print('Removed draft feed from list: ${_newFeed!.id}');
-    }
-
+    // Only reset camera state, don't touch feed state
+    // Feed state will be managed by the feed controller after successful upload
     _imageFile = null;
     _videoFile = null;
     _isPictureTaken = false;
     _pictureTakenAt = null;
-    _newFeed = null;
-    _captionFeed = '';
     print(
       'State reset: isPictureTaken=$_isPictureTaken, imageFile=$_imageFile, videoFile=$_videoFile',
     );
@@ -189,19 +156,12 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
   }
 
   void resetRecordingState() {
-
-    // Remove draft feed from list if it exists
-    if (_newFeed != null) {
-      cameraState.removeFeedById(_newFeed!.id);
-      print('Removed draft feed from list: ${_newFeed!.id}');
-    }
-
+    // Only reset camera state, don't touch feed state
+    // Feed state will be managed by the feed controller after successful upload
     _isRecording = false;
     _recordingStartedAt = null;
     _recordingDuration = null;
     _videoFile = null; 
-    _captionFeed = '';
-    _newFeed = null;
     print('Recording state reset');
     notifyListeners();
   }
@@ -227,21 +187,7 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     notifyListeners();
   }
 
-  void clearUploadStatus() {
-    _isUploadSuccess = false;
-    _isUploading = false;
-    notifyListeners();
-  }
 
-  void addNewFeedToList() {
-    if (_newFeed != null) {
-      print('Adding new feed to list: ${_newFeed!.id}');
-      cameraState.addFeed(_newFeed!);
-      print('Feed added to list. Total feeds: ${cameraState.listFeed.length}');
-    } else {
-      print('Warning: No new feed to add to list');
-    }
-  }
 
   @override
   void dispose() {

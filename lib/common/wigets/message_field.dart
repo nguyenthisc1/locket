@@ -145,7 +145,7 @@ class _MessageFieldState extends State<MessageField>
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  style: AppTypography.headlineLarge,
+                  style: AppTypography.headlineMedium,
                 ),
               ),
             ),

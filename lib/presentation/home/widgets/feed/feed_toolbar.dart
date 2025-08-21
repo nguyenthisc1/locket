@@ -5,20 +5,18 @@ import 'package:locket/domain/feed/entities/feed_entity.dart';
 import 'package:locket/presentation/home/widgets/build_icon_button.dart';
 
 class FeedToolbar extends StatelessWidget {
-  final void Function() handleScrollToTop;
-  final void Function() handleGalleryToggle;
-  final List<FeedEntity> getImages;
-  final void Function() onGalleryTap;
+  final VoidCallback onScrollToTop;
+  final VoidCallback onGalleryToggle;
+  final List<FeedEntity> images;
+  final VoidCallback onGalleryTap;
 
   const FeedToolbar({
     super.key,
-    required void Function() onScrollToTop,
-    required void Function() onGalleryToggle,
-    required List<FeedEntity> images,
+    required this.onScrollToTop,
+    required this.onGalleryToggle,
+    required this.images,
     required this.onGalleryTap,
-  }) : handleScrollToTop = onScrollToTop,
-       handleGalleryToggle = onGalleryToggle,
-       getImages = images;
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +29,7 @@ class FeedToolbar extends StatelessWidget {
           icon: Icons.menu,
         ),
         GestureDetector(
-          onTap: handleScrollToTop,
+          onTap: onScrollToTop,
           child: TakeButton(size: AppDimensions.xxl),
         ),
         BuildIconButton(onPressed: () {}, icon: Icons.ios_share),
