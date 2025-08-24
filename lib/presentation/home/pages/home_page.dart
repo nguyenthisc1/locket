@@ -7,6 +7,7 @@ import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller_state.dart';
 import 'package:locket/presentation/home/pages/feed_page.dart';
@@ -26,12 +27,23 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final HomeController _homeController;
+  late final FeedController _feedController;
 
   @override
   void initState() {
     super.initState();
     _homeController = getIt<HomeController>();
+    _feedController = getIt<FeedController>();
+    
+    // Initialize both controllers
     _homeController.init();
+    
+    // Fetch feeds when HomePage is mounted
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _feedController.fetchInitialFeeds();
+      }
+    });
   }
 
   @override

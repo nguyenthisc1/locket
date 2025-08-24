@@ -117,6 +117,10 @@ class FeedControllerState extends ChangeNotifier {
     if (value != null && value != _popImageIndex) {
       _popImageIndex = value;
       notifyListeners();
+    } else if (value == null) {
+      // Reset to default value when null is passed
+      _popImageIndex = 0;
+      notifyListeners();
     }
   }
 

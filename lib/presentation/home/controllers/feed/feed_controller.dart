@@ -44,7 +44,7 @@ class FeedController {
   FeedControllerState get state => _state;
   FocusNode get messageFieldFocusNode => _messageFieldFocusNode;
 
-  /// Initialize the controller with cached and fresh data
+  /// Initialize the controller with cached data only
   Future<void> init() async {
     // Only initialize once
     if (_state.hasInitialized) {
@@ -53,10 +53,12 @@ class FeedController {
 
     // Load cached data first (instant UI update)
     await _loadCachedFeeds();
-
-    // Then fetch fresh data
-    await fetchFeed(null, null, 2);
     _state.setInitialized(true);
+  }
+
+  /// Fetch initial feeds from server (called when HomePage is mounted)
+  Future<void> fetchInitialFeeds() async {
+    await fetchFeed(null, null, 10);
   }
 
   /// Load cached feeds (fast, offline-first)
@@ -106,13 +108,15 @@ class FeedController {
 
           final feeds = response.data['feeds'] as List<FeedEntity>;
           final paginationData = response.data['pagination'];
-          
+
           // Parse pagination data if available
           if (paginationData != null) {
             final paginationModel = PaginationModel.fromJson(paginationData);
             final pagination = PaginationMapper.toEntity(paginationModel);
-            _logger.d('Pagination info: hasNextPage=${pagination.hasNextPage}, nextCursor=${pagination.nextCursor}');
-            
+            _logger.d(
+              'Pagination info: hasNextPage=${pagination.hasNextPage}, nextCursor=${pagination.nextCursor}',
+            );
+
             // Update pagination state with server response
             _state.setHasMoreData(pagination.hasNextPage);
             if (pagination.nextCursor != null) {
@@ -127,7 +131,7 @@ class FeedController {
               _state.setHasMoreData(false);
             }
           }
-          
+
           // Use draft-preserving method instead of setFeeds
           _state.setFeedsPreservingDrafts(feeds);
 
@@ -164,8 +168,9 @@ class FeedController {
   /// Add new feed (for real-time updates)
   Future<void> addNewFeed(FeedEntity feed) async {
     // Check if it's a draft feed
-    final isDraft = feed.id.startsWith('draft_') || feed.imageUrl.startsWith('local://');
-    
+    final isDraft =
+        feed.id.startsWith('draft_') || feed.imageUrl.startsWith('local://');
+
     if (isDraft) {
       // For draft feeds, add normally (they go to the top)
       _state.addFeed(feed);
@@ -209,7 +214,7 @@ class FeedController {
       final result = await _getFeedUsecase.call(
         null, // query
         _state.lastCreatedAt, // pagination cursor
-        2, // limit - match the fetch limit
+        10, // limit - match the fetch limit
       );
 
       result.fold(
@@ -229,8 +234,10 @@ class FeedController {
           if (paginationData != null) {
             final paginationModel = PaginationModel.fromJson(paginationData);
             final pagination = PaginationMapper.toEntity(paginationModel);
-            _logger.d('Load more pagination: hasNextPage=${pagination.hasNextPage}, nextCursor=${pagination.nextCursor}');
-            
+            _logger.d(
+              'Load more pagination: hasNextPage=${pagination.hasNextPage}, nextCursor=${pagination.nextCursor}',
+            );
+
             // Update pagination state with server response
             _state.setHasMoreData(pagination.hasNextPage);
             if (pagination.nextCursor != null) {

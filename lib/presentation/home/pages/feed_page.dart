@@ -36,6 +36,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
     // Get controller from GetIt - it should have the same state instance as Provider
     _feedController = getIt<FeedController>();
 
+    // Only initialize the controller (loads cached data only)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _feedController.init();
@@ -48,7 +49,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
     final feedState = context.read<FeedControllerState>();
     final index = feedState.popImageIndex;
 
-    if (index != null) {
+    if (index > 0) {
       _isNavigatingFromGallery = true;
       _feedController.setPopImageIndex(null);
 
