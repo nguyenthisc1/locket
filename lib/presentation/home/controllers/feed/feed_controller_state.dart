@@ -6,24 +6,29 @@ class FeedControllerState extends ChangeNotifier {
   // Private fields
   bool _isVisibleGallery = true;
   bool _isKeyboardOpen = false;
-  bool _isNavigatingFromGallery = false; 
+  bool _isNavigatingFromGallery = false;
   int _popImageIndex = 0;
   List<FeedEntity> _listFeed = [];
   bool _isLoading = false;
   bool _hasInitialized = false;
   String? _errorMessage;
   bool _isRefreshing = false;
-  
+
   // Upload and media state
   bool _isUploading = false;
   bool _isUploadSuccess = false;
   FeedEntity? _newFeed;
   String? _captionFeed = '';
 
+  // Pagination state
+  bool _isLoadingMore = false;
+  bool _hasMoreData = true;
+  DateTime? _lastCreatedAt;
+
   // Getters
   bool get isVisibleGallery => _isVisibleGallery;
   bool get isKeyboardOpen => _isKeyboardOpen;
-  bool get isNavigatingFromGallery => _isNavigatingFromGallery; 
+  bool get isNavigatingFromGallery => _isNavigatingFromGallery;
   int get popImageIndex => _popImageIndex;
   List<FeedEntity> get listFeed => _listFeed;
   bool get isLoading => _isLoading;
@@ -34,6 +39,9 @@ class FeedControllerState extends ChangeNotifier {
   bool get isUploadSuccess => _isUploadSuccess;
   FeedEntity? get newFeed => _newFeed;
   String? get captionFeed => _captionFeed;
+  bool get isLoadingMore => _isLoadingMore;
+  bool get hasMoreData => _hasMoreData;
+  DateTime? get lastCreatedAt => _lastCreatedAt;
 
   // State update methods (no business logic)
   void setLoading(bool value) {
@@ -151,6 +159,68 @@ class FeedControllerState extends ChangeNotifier {
   void setCaption(String value) {
     if (_captionFeed != value) {
       _captionFeed = value;
+      notifyListeners();
+    }
+  }
+
+  void setLoadingMore(bool value) {
+    if (_isLoadingMore != value) {
+      _isLoadingMore = value;
+      notifyListeners();
+    }
+  }
+
+  void setHasMoreData(bool value) {
+    if (_hasMoreData != value) {
+      _hasMoreData = value;
+      notifyListeners();
+    }
+  }
+
+  void setLastCreatedAt(DateTime? value) {
+    if (_lastCreatedAt != value) {
+      _lastCreatedAt = value;
+      notifyListeners();
+    }
+  }
+
+  void appendFeeds(List<FeedEntity> newFeeds) {
+    _listFeed.addAll(newFeeds);
+    notifyListeners();
+  }
+
+  /// Check if a feed is a draft (local feed not yet uploaded)
+  bool _isDraftFeed(FeedEntity feed) {
+    return feed.id.startsWith('draft_') || feed.imageUrl.startsWith('local://');
+  }
+
+  /// Get only server feeds (non-draft feeds)
+  List<FeedEntity> get serverFeeds {
+    return _listFeed.where((feed) => !_isDraftFeed(feed)).toList();
+  }
+
+  /// Get only draft feeds
+  List<FeedEntity> get draftFeeds {
+    return _listFeed.where((feed) => _isDraftFeed(feed)).toList();
+  }
+
+  /// Replace server feeds while preserving draft feeds at the top
+  void setFeedsPreservingDrafts(List<FeedEntity> serverFeeds) {
+    final currentDrafts = draftFeeds;
+    _listFeed = [...currentDrafts, ...serverFeeds];
+    notifyListeners();
+  }
+
+  /// Append server feeds while preserving draft feeds and avoiding duplicates
+  void appendFeedsPreservingDrafts(List<FeedEntity> newServerFeeds) {
+    // Get existing server feed IDs to avoid duplicates
+    final existingServerIds = serverFeeds.map((f) => f.id).toSet();
+    final uniqueNewFeeds = newServerFeeds.where((feed) => 
+      !existingServerIds.contains(feed.id) && !_isDraftFeed(feed)
+    ).toList();
+    
+    if (uniqueNewFeeds.isNotEmpty) {
+      _listFeed.addAll(uniqueNewFeeds);
       notifyListeners();
     }
   }

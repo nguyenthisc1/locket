@@ -15,9 +15,11 @@ class FeedRepositoryImpl extends FeedRepository {
 
   @override
   Future<Either<Failure, BaseResponse>> getFeed(
-    Map<String, dynamic> query,
+    String? query,
+    DateTime? lastCreatedAt,
+    int limit,
   ) async {
-    final result = await _feedApiService.getFeed(query);
+    final result = await _feedApiService.getFeed(query, lastCreatedAt, limit);
 
     return result.fold(
       (failure) {

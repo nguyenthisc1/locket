@@ -9,7 +9,9 @@ import 'package:locket/data/feed/models/feed_model.dart';
 import 'package:logger/logger.dart';
 
 abstract class FeedApiService {
-  Future<Either<Failure, BaseResponse>> getFeed(Map<String, dynamic> query);
+  Future<Either<Failure, BaseResponse>> getFeed(   String? query,
+   DateTime? lastCreatedAt,
+   int limit);
   Future<Either<Failure, BaseResponse>> uploadFeed(Map<String, dynamic> payload);
 }
 
@@ -21,13 +23,25 @@ class FeedApiServiceImpl extends FeedApiService {
 
   FeedApiServiceImpl(this.dioClient);
   @override
+  @override
   Future<Either<Failure, BaseResponse>> getFeed(
-    Map<String, dynamic> query,
+    String? query,
+    DateTime? lastCreatedAt,
+    int limit,
   ) async {
     try {
+      final Map<String, dynamic> queryParameters = {};
+      if (query != null && query.isNotEmpty) {
+        queryParameters['query'] = query;
+      }
+      if (lastCreatedAt != null) {
+        queryParameters['lastCreatedAt'] = lastCreatedAt.toIso8601String();
+      }
+      queryParameters['limit'] = limit;
+
       final response = await dioClient.get(
         ApiUrl.getPhotos,
-        queryParameters: query,
+        queryParameters: queryParameters,
       );
     logger.d('response feed: ${response.data}');
       // Handle different status codes since validateStatus < 500 treats them as successful
