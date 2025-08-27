@@ -63,10 +63,7 @@ class AppRouter {
         builder: (context, state) => const PhoneLoginPage(),
       ),
       GoRoute(path: '/home', builder: (context, state) => const HomePage()),
-      GoRoute(
-        path: '/converstion',
-        builder: (context, state) => ConversationPage(),
-      ),
+      
       // GoRoute(
       //   path: '/gallery',
       //   pageBuilder: (context, state) {
@@ -118,9 +115,13 @@ class AppRouter {
                 child: child,
               );
             },
-            child: GalleryPage()
+            child: GalleryPage(),
           );
         },
+      ),
+      GoRoute(
+        path: '/conversation',
+        builder: (context, state) => ConversationPage(),
       ),
       GoRoute(
         path: '/converstion/:id',

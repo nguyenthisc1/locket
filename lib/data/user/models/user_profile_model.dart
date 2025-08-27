@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:locket/data/user/models/friend_model.dart';
 
 class UserProfileModel extends Equatable {
   final String id;
@@ -8,7 +9,7 @@ class UserProfileModel extends Equatable {
   final String? avatarUrl;
   final bool? isVerified;
   final DateTime? lastActiveAt;
-  final List<String>? friends;
+  final List<FriendProfileModel>? friends;
   final List<String>? chatRooms;
 
   const UserProfileModel({
@@ -26,23 +27,20 @@ class UserProfileModel extends Equatable {
   /// Creates a [UserProfileModel] from a JSON map.
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
     return UserProfileModel(
-      id: json['id'] as String? ?? '', // MongoDB uses '_id' for the document id
+      id: json['id'] as String? ?? '',
       username: json['username'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phoneNumber: json['phoneNumber'] as String? ?? '',
       avatarUrl: json['avatarUrl'] as String?,
       isVerified: json['isVerified'] as bool? ?? false,
-      lastActiveAt:
-          json['lastActiveAt'] != null
-              ? DateTime.tryParse(json['lastActiveAt'].toString())
-              : null,
-      friends:
-          (json['friends'] as List<dynamic>?)
-              ?.map((e) => e.toString())
+      lastActiveAt: json['lastActiveAt'] != null
+          ? DateTime.tryParse(json['lastActiveAt'].toString())
+          : null,
+      friends: (json['friends'] as List<dynamic>?)
+              ?.map((e) => FriendProfileModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      chatRooms:
-          (json['chatRooms'] as List<dynamic>?)
+      chatRooms: (json['chatRooms'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
@@ -59,21 +57,21 @@ class UserProfileModel extends Equatable {
       'avatarUrl': avatarUrl,
       'isVerified': isVerified,
       'lastActiveAt': lastActiveAt?.toIso8601String(),
-      'friends': friends,
+      'friends': friends?.map((f) => f.toJson()).toList(),
       'chatRooms': chatRooms,
     };
   }
 
   @override
   List<Object?> get props => [
-    id,
-    username,
-    email,
-    phoneNumber,
-    avatarUrl,
-    isVerified,
-    lastActiveAt,
-    friends,
-    chatRooms,
-  ];
+        id,
+        username,
+        email,
+        phoneNumber,
+        avatarUrl,
+        isVerified,
+        lastActiveAt,
+        friends,
+        chatRooms,
+      ];
 }

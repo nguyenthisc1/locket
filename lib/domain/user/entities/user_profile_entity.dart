@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:locket/data/user/models/friend_model.dart';
 
 class UserProfileEntity extends Equatable {
   final String id;
@@ -8,7 +9,7 @@ class UserProfileEntity extends Equatable {
   final String? avatarUrl;
   final bool isVerified;
   final DateTime? lastActiveAt;
-  final List<String>? friends;
+  final List<FriendProfileModel>? friends;
   final List<String>? chatRooms;
 
   const UserProfileEntity({
@@ -36,9 +37,8 @@ class UserProfileEntity extends Equatable {
           json['lastActiveAt'] != null
               ? DateTime.tryParse(json['lastActiveAt'].toString())
               : null,
-      friends:
-          (json['friends'] as List<dynamic>?)
-              ?.map((e) => e.toString())
+      friends: (json['friends'] as List<dynamic>?)
+              ?.map((e) => FriendProfileModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
       chatRooms:

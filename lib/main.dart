@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/routes/router.dart';
+import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
@@ -20,6 +21,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: getIt<FeedControllerState>()),
+        ChangeNotifierProvider.value(value: getIt<UserService>()),
         Provider.value(value: getIt<FeedController>()),
       ],
       child: MyApp(),
