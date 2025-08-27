@@ -11,20 +11,20 @@ class FriendSelect extends StatelessWidget {
     return Consumer<UserService>(
       builder: (context, userService, child) {
         final friends = userService.currentUser?.friends;
-        final List<Map<String, String>> dropdownItems = [];
-        dropdownItems.add({
-          'label': 'Mọi người',
-          // 'avatarUrl': icons.iconUsers,
-        });
-        dropdownItems.add({
-          'label': 'Bạn',
-          'avatarUrl': userService.currentUser?.avatarUrl ?? '',
-        });
+        final List<Map<String, String>> dropdownItems = [
+          {'label': 'Mọi người'},
+          {
+            'label': 'Bạn',
+            'avatarUrl': userService.currentUser?.avatarUrl ?? '',
+          },
+        ];
+
         if (friends != null && friends.isNotEmpty) {
           dropdownItems.addAll(
             friends.map(
               (friend) => {
-                'label': friend.username.isNotEmpty ? friend.username : friend.email,
+                'label':
+                    friend.username.isNotEmpty ? friend.username : friend.email,
                 'avatarUrl': friend.avatarUrl ?? '',
               },
             ),
