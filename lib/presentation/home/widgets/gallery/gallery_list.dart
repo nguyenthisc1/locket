@@ -14,7 +14,7 @@ class GalleryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final feedController = context.read<FeedController>();
-    final feedControllerState = context.watch<FeedControllerState>();
+    final feedState = context.watch<FeedControllerState>();
 
     return Consumer<FeedControllerState>(
       builder: (context, controller, child) {
@@ -31,9 +31,9 @@ class GalleryList extends StatelessWidget {
               crossAxisSpacing: 4,
               mainAxisSpacing: 4,
             ),
-            itemCount: feedControllerState.listFeed.length,
+            itemCount: feedState.listFeed.length,
             itemBuilder: (_, index) {
-              final feed = feedControllerState.listFeed[index];
+              final feed = feedState.listFeed[index];
               final imageUrl = feed.imageUrl;
               final mediaType = feed.mediaType;
 
