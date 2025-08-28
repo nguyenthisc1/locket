@@ -8,14 +8,13 @@ import 'package:locket/core/configs/theme/index.dart';
 
 class CustomDropdown extends StatefulWidget {
   final String initialLabel;
-  final List<Map<String, String>> items;
+  final List<Map<String, String>> items; // Each item: {label, value, avatarUrl}
   final void Function(String) onChanged;
   final Widget Function(
     int index,
     Map<String, String> item,
-    String selectedItem,
-  )
-  dropdownChildBuilder;
+    String selectedValue,
+  ) dropdownChildBuilder;
 
   const CustomDropdown({
     super.key,
@@ -32,7 +31,7 @@ class CustomDropdown extends StatefulWidget {
 class _CustomDropdownState extends State<CustomDropdown>
     with SingleTickerProviderStateMixin {
   final GlobalKey _buttonKey = GlobalKey();
-  late String _selectedLabel;
+  late String _selectedValue;
   OverlayEntry? _overlayEntry;
   bool _isOpen = false;
 
@@ -41,7 +40,12 @@ class _CustomDropdownState extends State<CustomDropdown>
   @override
   void initState() {
     super.initState();
-    _selectedLabel = widget.initialLabel;
+    // Find initial value from label, fallback to first item's value
+    final initialItem = widget.items.firstWhere(
+      (item) => item['label'] == widget.initialLabel,
+      orElse: () => widget.items.isNotEmpty ? widget.items.first : {'label': '', 'value': '', 'avatarUrl': ''},
+    );
+    _selectedValue = initialItem['value'] ?? initialItem['label'] ?? '';
     _arrowController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
@@ -104,9 +108,10 @@ class _CustomDropdownState extends State<CustomDropdown>
                 color: Colors.transparent,
                 child: _DropdownItemsMenu(
                   items: widget.items,
+                  selectedValue: _selectedValue,
                   onSelect: (value) {
                     widget.onChanged(value);
-                    setState(() => _selectedLabel = value);
+                    setState(() => _selectedValue = value);
                     _closeDropdown();
                   },
                   dropdownChildBuilder: widget.dropdownChildBuilder,
@@ -130,6 +135,16 @@ class _CustomDropdownState extends State<CustomDropdown>
 
   @override
   Widget build(BuildContext context) {
+    // Find the label for the selected value
+    String displayLabel = widget.initialLabel;
+    final selectedItem = widget.items.firstWhere(
+      (item) => item['value'] == _selectedValue,
+      orElse: () => {},
+    );
+    if (selectedItem.isNotEmpty && selectedItem['label'] != null) {
+      displayLabel = selectedItem['label']!;
+    }
+
     return PressedButton(
       key: _buttonKey,
       onPressed: _toggleDropdown,
@@ -138,11 +153,14 @@ class _CustomDropdownState extends State<CustomDropdown>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            _selectedLabel,
-            style: AppTypography.headlineMedium.copyWith(
-              fontWeight: FontWeight.w800,
-              color: Colors.white70,
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              displayLabel,
+              style: AppTypography.headlineMedium.copyWith(
+                fontWeight: FontWeight.w800,
+                color: Colors.white70,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -155,8 +173,9 @@ class _CustomDropdownState extends State<CustomDropdown>
                 ),
             child: const Icon(
               Icons.keyboard_arrow_down,
-              size: AppDimensions.iconLg,
+              size: AppDimensions.iconMd,
               color: Colors.white70,
+
             ),
           ),
         ],
@@ -167,18 +186,19 @@ class _CustomDropdownState extends State<CustomDropdown>
 
 class _DropdownItemsMenu extends StatefulWidget {
   final List<Map<String, String>> items;
+  final String selectedValue;
   final void Function(String) onSelect;
   final Widget Function(
     int index,
     Map<String, String> item,
-    String selectedItem,
-  )
-  dropdownChildBuilder;
+    String selectedValue,
+  ) dropdownChildBuilder;
   final VoidCallback onDismissed;
   final void Function(VoidCallback close) registerClose;
 
   const _DropdownItemsMenu({
     required this.items,
+    required this.selectedValue,
     required this.onSelect,
     required this.dropdownChildBuilder,
     required this.onDismissed,
@@ -224,8 +244,8 @@ class _DropdownItemsMenuState extends State<_DropdownItemsMenu>
     super.dispose();
   }
 
-  void _select(String label) {
-    widget.onSelect(label);
+  void _select(String value) {
+    widget.onSelect(value);
   }
 
   @override
@@ -244,20 +264,19 @@ class _DropdownItemsMenuState extends State<_DropdownItemsMenu>
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children:
-                  widget.items.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    final selectedItem = item.values.first;
-                    return InkWell(
-                      onTap: () => _select(selectedItem),
-                      child: widget.dropdownChildBuilder(
-                        index,
-                        item,
-                        selectedItem,
-                      ),
-                    );
-                  }).toList(),
+              children: widget.items.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                final value = item['value'] ?? item['label'] ?? '';
+                return InkWell(
+                  onTap: () => _select(value),
+                  child: widget.dropdownChildBuilder(
+                    index,
+                    item,
+                    widget.selectedValue,
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ),
