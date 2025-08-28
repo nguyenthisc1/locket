@@ -39,6 +39,7 @@ class FeedEntity extends Equatable {
   final int width;
   final int height;
   final int fileSize;
+  final double? duration;
 
   const FeedEntity({
     required this.id,
@@ -57,6 +58,7 @@ class FeedEntity extends Equatable {
     this.width = 0,
     this.height = 0,
     this.fileSize = 0,
+    this.duration, 
   });
 
   /// Helper getters for media type detection
@@ -87,5 +89,6 @@ class FeedEntity extends Equatable {
         width,
         height,
         fileSize,
+        duration
       ];
 }

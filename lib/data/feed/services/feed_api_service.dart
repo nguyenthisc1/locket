@@ -9,10 +9,14 @@ import 'package:locket/data/feed/models/feed_model.dart';
 import 'package:logger/logger.dart';
 
 abstract class FeedApiService {
-  Future<Either<Failure, BaseResponse>> getFeed(   String? query,
-   DateTime? lastCreatedAt,
-   int limit);
-  Future<Either<Failure, BaseResponse>> uploadFeed(Map<String, dynamic> payload);
+  Future<Either<Failure, BaseResponse>> getFeed({
+    String? query,
+    DateTime? lastCreatedAt,
+    int? limit,
+  });
+  Future<Either<Failure, BaseResponse>> uploadFeed(
+    Map<String, dynamic> payload,
+  );
 }
 
 class FeedApiServiceImpl extends FeedApiService {
@@ -22,13 +26,13 @@ class FeedApiServiceImpl extends FeedApiService {
   );
 
   FeedApiServiceImpl(this.dioClient);
+
   @override
-  @override
-  Future<Either<Failure, BaseResponse>> getFeed(
+  Future<Either<Failure, BaseResponse>> getFeed({
     String? query,
     DateTime? lastCreatedAt,
-    int limit,
-  ) async {
+    int? limit,
+  }) async {
     try {
       final Map<String, dynamic> queryParameters = {};
       if (query != null && query.isNotEmpty) {
@@ -37,22 +41,25 @@ class FeedApiServiceImpl extends FeedApiService {
       if (lastCreatedAt != null) {
         queryParameters['lastCreatedAt'] = lastCreatedAt.toIso8601String();
       }
-      queryParameters['limit'] = limit;
+      queryParameters['limit'] = limit ?? '10';
 
       final response = await dioClient.get(
         ApiUrl.getPhotos,
         queryParameters: queryParameters,
       );
-    logger.d('response feed: ${response.data}');
+      logger.d('response feed: ${response.data}');
+
       // Handle different status codes since validateStatus < 500 treats them as successful
       if (response.statusCode == 200 && response.data.isNotEmpty) {
-        final feedModels = (response.data['data']['feeds'] as List<dynamic>)
-            .map((json) => FeedModel.fromJson(json))
-            .toList();
+        final feedModels =
+            (response.data['data']['feeds'] as List<dynamic>)
+                .map((json) => FeedModel.fromJson(json))
+                .toList();
 
         final feeds = FeedMapper.toEntityList(feedModels);
 
         final data = {'feeds': feeds};
+        logger.d('feeds $data');
 
         final baseResponse = BaseResponse<Map<String, dynamic>>(
           success: response.data['success'],
@@ -68,34 +75,25 @@ class FeedApiServiceImpl extends FeedApiService {
       final statusCode = response.statusCode;
       final message = response.data['message'] ?? 'Unknown error';
       final errors = response.data['errors'];
-      
+
       logger.e('❌ Get Feed failed: $errors $message (Status: $statusCode)');
 
       if (statusCode == 401) {
-        return Left(UnauthorizedFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(
+          UnauthorizedFailure(message: message, statusCode: statusCode),
+        );
       } else if (statusCode == 403) {
-        return Left(AuthFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(AuthFailure(message: message, statusCode: statusCode));
       } else if (statusCode == 404) {
-        return Left(FeedFailure(
-          message: 'Feed not found',
-          statusCode: statusCode,
-        ));
+        return Left(
+          FeedFailure(message: 'Feed not found', statusCode: statusCode),
+        );
       } else if (statusCode == 422) {
-        return Left(ValidationFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(
+          ValidationFailure(message: message, statusCode: statusCode),
+        );
       } else {
-        return Left(FeedFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(FeedFailure(message: message, statusCode: statusCode));
       }
     } catch (e) {
       logger.e('❌ Get Feed failed: ${e.toString()}');
@@ -103,29 +101,24 @@ class FeedApiServiceImpl extends FeedApiService {
       if (e is DioException) {
         final statusCode = e.response?.statusCode;
         final message = e.response?.data['message'] ?? 'Lỗi kết nối server';
-        
+
         // DioException will only occur for network issues or server errors (5xx)
         if (statusCode != null && statusCode >= 500) {
-          return Left(ServerFailure(
-            message: message,
-            statusCode: statusCode,
-          ));
+          return Left(ServerFailure(message: message, statusCode: statusCode));
         } else {
-          return Left(NetworkFailure(
-            message: message,
-            statusCode: statusCode,
-          ));
+          return Left(NetworkFailure(message: message, statusCode: statusCode));
         }
       }
 
       return Left(FeedFailure(message: e.toString()));
     }
   }
-  
-  @override
 
-  Future<Either<Failure, BaseResponse<dynamic>>> uploadFeed(Map<String, dynamic> payload) async {
-      logger.d('FormData: $payload');
+  @override
+  Future<Either<Failure, BaseResponse<dynamic>>> uploadFeed(
+    Map<String, dynamic> payload,
+  ) async {
+    logger.d('FormData: $payload');
 
     try {
       final formData = FormData.fromMap({
@@ -133,7 +126,10 @@ class FeedApiServiceImpl extends FeedApiService {
         'shareWith': payload['shareWith'],
         'mediaType': payload['mediaType'],
         'isFrontCamera': payload['isFrontCamera'] ?? true,
-        'mediaData': await MultipartFile.fromFile(payload['filePath'], filename: payload['fileName']),
+        'mediaData': await MultipartFile.fromFile(
+          payload['filePath'],
+          filename: payload['fileName'],
+        ),
         // if (payload['mediaType'] == 'video')
         //   'mediaData': await MultipartFile.fromFile(payload['filePath'], filename: payload['fileName']),
       });
@@ -141,13 +137,12 @@ class FeedApiServiceImpl extends FeedApiService {
       final response = await dioClient.post(
         ApiUrl.uploadPhoto,
         data: formData,
-        options: Options(
-          contentType: 'multipart/form-data',
-        ),
+        options: Options(contentType: 'multipart/form-data'),
       );
 
       // Handle different status codes since validateStatus < 500 treats them as successful
-      if ((response.statusCode == 200 || response.statusCode == 201) && response.data.isNotEmpty) {
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data.isNotEmpty) {
         final baseResponse = BaseResponse<dynamic>(
           success: response.data['success'],
           message: response.data['message'],
@@ -164,20 +159,13 @@ class FeedApiServiceImpl extends FeedApiService {
       logger.e('❌ Upload Feed failed: $errors $message (Status: $statusCode)');
 
       if (statusCode == 403) {
-        return Left(AuthFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(AuthFailure(message: message, statusCode: statusCode));
       } else if (statusCode == 422) {
-        return Left(ValidationFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(
+          ValidationFailure(message: message, statusCode: statusCode),
+        );
       } else {
-        return Left(FeedFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(FeedFailure(message: message, statusCode: statusCode));
       }
     } catch (e) {
       logger.e('❌ Upload Feed failed: ${e.toString()}');
@@ -186,15 +174,9 @@ class FeedApiServiceImpl extends FeedApiService {
         final message = e.response?.data['message'] ?? 'Lỗi kết nối server';
         // DioException will only occur for network issues or server errors (5xx)
         if (statusCode != null && statusCode >= 500) {
-          return Left(ServerFailure(
-            message: message,
-            statusCode: statusCode,
-          ));
+          return Left(ServerFailure(message: message, statusCode: statusCode));
         } else {
-          return Left(NetworkFailure(
-            message: message,
-            statusCode: statusCode,
-          ));
+          return Left(NetworkFailure(message: message, statusCode: statusCode));
         }
       }
       return Left(FeedFailure(message: e.toString()));

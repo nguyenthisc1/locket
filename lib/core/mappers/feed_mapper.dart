@@ -19,6 +19,7 @@ class FeedMapper {
       width: model.width,
       height: model.height,
       fileSize: model.fileSize,
+      duration: model.duration, 
     );
   }
 
@@ -39,6 +40,7 @@ class FeedMapper {
       width: entity.width,
       height: entity.height,
       fileSize: entity.fileSize,
+      duration: entity.duration, 
     );
   }
 

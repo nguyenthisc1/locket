@@ -8,11 +8,15 @@ class GetFeedUsecase {
 
   GetFeedUsecase(this._feedRepository);
 
-  Future<Either<Failure, BaseResponse>> call(
+  Future<Either<Failure, BaseResponse>> call({
     String? query,
     DateTime? lastCreatedAt,
-    int limit,
-  ) async {
-    return await _feedRepository.getFeed(query, lastCreatedAt, limit );
+    int? limit,
+  }) async {
+    return await _feedRepository.getFeed(
+      query: query,
+      lastCreatedAt: lastCreatedAt,
+      limit: limit,
+    );
   }
 }

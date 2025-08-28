@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/custom_dropdown.dart';
+import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/core/services/user_service.dart';
+import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 import 'package:provider/provider.dart';
 
 class FriendSelect extends StatelessWidget {
@@ -8,13 +10,16 @@ class FriendSelect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final feedController = context.read<FeedController>();
+
     return Consumer<UserService>(
       builder: (context, userService, child) {
         final friends = userService.currentUser?.friends;
         final List<Map<String, String>> dropdownItems = [
-          {'label': 'Mọi người'},
+          {'label': 'Mọi người', 'value': ''},
           {
             'label': 'Bạn',
+            'value': userService.currentUser?.username ?? '',
             'avatarUrl': userService.currentUser?.avatarUrl ?? '',
           },
         ];
@@ -25,6 +30,8 @@ class FriendSelect extends StatelessWidget {
               (friend) => {
                 'label':
                     friend.username.isNotEmpty ? friend.username : friend.email,
+                'value':
+                    friend.username.isNotEmpty ? friend.username : friend.email,
                 'avatarUrl': friend.avatarUrl ?? '',
               },
             ),
@@ -32,10 +39,10 @@ class FriendSelect extends StatelessWidget {
         }
 
         return CustomDropdown(
-          initialLabel: 'Mọi người',
+          initialLabel: 'Mọi người',
           items: dropdownItems,
-          onChanged: (value) {
-            print('Chọn: $value');
+          onChanged: (value) async {
+            await feedController.fetchFeed(query: value.toString(), isRefresh: true);
           },
           dropdownChildBuilder: (index, item, selectedItem) {
             // Handle separator
@@ -74,7 +81,7 @@ class FriendSelect extends StatelessWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: Colors.white30),
+                  const Icon(Icons.chevron_right, color: Colors.white30, size: AppDimensions.iconMd,),
                 ],
               ),
             );

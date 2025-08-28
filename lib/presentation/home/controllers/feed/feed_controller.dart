@@ -58,7 +58,7 @@ class FeedController {
 
   /// Fetch initial feeds from server (called when HomePage is mounted)
   Future<void> fetchInitialFeeds() async {
-    await fetchFeed(null, null, 10);
+    await fetchFeed();
   }
 
   /// Load cached feeds (fast, offline-first)
@@ -75,10 +75,10 @@ class FeedController {
   }
 
   /// Fetch feeds from API with caching
-  Future<void> fetchFeed(
+  Future<void> fetchFeed({
     String? query,
     DateTime? lastCreatedAt,
-    int limit, {
+    int? limit,
     bool isRefresh = false,
   }) async {
     if (isRefresh) {
@@ -89,7 +89,11 @@ class FeedController {
     _state.clearError();
 
     try {
-      final result = await _getFeedUsecase.call(query, lastCreatedAt, limit);
+      final result = await _getFeedUsecase.call(
+        query: query,
+        lastCreatedAt: lastCreatedAt,
+        limit: limit,
+      );
 
       result.fold(
         (failure) {
@@ -153,14 +157,10 @@ class FeedController {
   }
 
   /// Refresh feed data (pull-to-refresh)
-  Future<void> refreshFeed([
-    Map<String, dynamic>? query,
-    DateTime? lastCreatedAt,
-  ]) async {
+  Future<void> refreshFeed([String? query, DateTime? lastCreatedAt]) async {
     await fetchFeed(
-      query != null ? query['query'] as String? : null,
-      lastCreatedAt,
-      2, // Use same limit as initial fetch
+      query: query,
+      lastCreatedAt: lastCreatedAt,
       isRefresh: true,
     );
   }
@@ -212,9 +212,7 @@ class FeedController {
 
     try {
       final result = await _getFeedUsecase.call(
-        null, // query
-        _state.lastCreatedAt, // pagination cursor
-        10, // limit - match the fetch limit
+        lastCreatedAt: _state.lastCreatedAt,
       );
 
       result.fold(

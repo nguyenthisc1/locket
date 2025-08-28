@@ -23,6 +23,7 @@ class FeedModel extends Equatable {
   final int width;
   final int height;
   final int fileSize;
+  final double? duration; // Add duration field for videos
 
   const FeedModel({
     required this.id,
@@ -41,6 +42,7 @@ class FeedModel extends Equatable {
     this.width = 0,
     this.height = 0,
     this.fileSize = 0,
+    this.duration, // Add duration parameter
   });
 
   factory FeedModel.fromJson(Map<String, dynamic> json) {
@@ -66,6 +68,7 @@ class FeedModel extends Equatable {
       } else if (userField is Map<String, dynamic>) {
         final id = userField['_id'] as String? ?? userField['id'] as String?;
         final username = userField['username'] as String? ?? '';
+        final email = userField['email'] as String? ?? ''; // Add email field
         final avatarUrl = userField['avatarUrl'] as String? ?? '';
         if (id != null) {
           return FeedUser(id: id, username: username, avatarUrl: avatarUrl);
@@ -118,6 +121,7 @@ class FeedModel extends Equatable {
       width: photoData['width'] as int? ?? 0,
       height: photoData['height'] as int? ?? 0,
       fileSize: photoData['fileSize'] as int? ?? 0,
+      duration: photoData['duration'] as double?, // Add duration parsing
     );
   }
 
@@ -141,6 +145,7 @@ class FeedModel extends Equatable {
             'width': width,
             'height': height,
             'fileSize': fileSize,
+            'duration': duration, // Add duration to JSON
             'createdAt': createdAt.toIso8601String(),
             'updatedAt': updatedAt?.toIso8601String(),
           },
@@ -167,5 +172,6 @@ class FeedModel extends Equatable {
         width,
         height,
         fileSize,
+        duration, 
       ];
 }

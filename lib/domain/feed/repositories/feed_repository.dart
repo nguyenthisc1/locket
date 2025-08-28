@@ -3,11 +3,11 @@ import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/models/base_response_model.dart';
 
 abstract class FeedRepository {
-  Future<Either<Failure, BaseResponse>> getFeed(
+  Future<Either<Failure, BaseResponse>> getFeed({ 
     String? query,
     DateTime? lastCreatedAt,
-    int limit,
-  );
+    int? limit
+  });
   Future<Either<Failure, BaseResponse>> uploadFeed(
     Map<String, dynamic> payload,
   );
