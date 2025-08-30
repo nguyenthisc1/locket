@@ -130,8 +130,8 @@ void setupDependencies() {
   // Feed controller dependencies
   getIt.registerLazySingleton<FeedControllerState>(() => FeedControllerState());
 
-  getIt.registerFactory<GetFeedUsecase>(
-    () => GetFeedUsecase(getIt<FeedRepository>()),
+  getIt.registerFactory<GetFeedsUsecase>(
+    () => GetFeedsUsecase(getIt<FeedRepository>()),
   );
 
   getIt.registerFactory<UploadFeedUsecase>(
@@ -142,7 +142,7 @@ void setupDependencies() {
     () => FeedController(
       state: getIt<FeedControllerState>(),
       cacheService: getIt<FeedCacheService>(),
-      getFeedUsecase: getIt<GetFeedUsecase>(),
+      getFeedsUsecase: getIt<GetFeedsUsecase>(),
       uploadFeedUsecase: getIt<UploadFeedUsecase>(),
     ),
   );

@@ -17,7 +17,7 @@ import 'dart:io';
 class FeedController {
   final FeedControllerState _state;
   final FeedCacheService _cacheService;
-  final GetFeedUsecase _getFeedUsecase;
+  final GetFeedsUsecase _getFeedsUsecase;
   final UploadFeedUsecase _uploadFeedUsecase;
   final Logger _logger;
   final FocusNode _messageFieldFocusNode;
@@ -26,12 +26,12 @@ class FeedController {
   FeedController({
     required FeedControllerState state,
     required FeedCacheService cacheService,
-    required GetFeedUsecase getFeedUsecase,
+    required GetFeedsUsecase getFeedsUsecase,
     required UploadFeedUsecase uploadFeedUsecase,
     Logger? logger,
   }) : _state = state,
        _cacheService = cacheService,
-       _getFeedUsecase = getFeedUsecase,
+       _getFeedsUsecase = getFeedsUsecase,
        _uploadFeedUsecase = uploadFeedUsecase,
        _logger =
            logger ??
@@ -89,7 +89,7 @@ class FeedController {
     _state.clearError();
 
     try {
-      final result = await _getFeedUsecase.call(
+      final result = await _getFeedsUsecase.call(
         query: query,
         lastCreatedAt: lastCreatedAt,
         limit: limit,
@@ -211,7 +211,7 @@ class FeedController {
     _state.clearError();
 
     try {
-      final result = await _getFeedUsecase.call(
+      final result = await _getFeedsUsecase.call(
         lastCreatedAt: _state.lastCreatedAt,
       );
 

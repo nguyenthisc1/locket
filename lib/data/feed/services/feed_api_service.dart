@@ -9,7 +9,7 @@ import 'package:locket/data/feed/models/feed_model.dart';
 import 'package:logger/logger.dart';
 
 abstract class FeedApiService {
-  Future<Either<Failure, BaseResponse>> getFeed({
+  Future<Either<Failure, BaseResponse>> getFeeds({
     String? query,
     DateTime? lastCreatedAt,
     int? limit,
@@ -28,7 +28,7 @@ class FeedApiServiceImpl extends FeedApiService {
   FeedApiServiceImpl(this.dioClient);
 
   @override
-  Future<Either<Failure, BaseResponse>> getFeed({
+  Future<Either<Failure, BaseResponse>> getFeeds({
     String? query,
     DateTime? lastCreatedAt,
     int? limit,
