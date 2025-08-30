@@ -116,7 +116,7 @@ class _FeedPageState extends State<FeedPage> with RouteAware {
                   widget.innerController.page == 0 &&
                   notification is ScrollUpdateNotification &&
                   notification.metrics.pixels <= 0 &&
-                  notification.scrollDelta! < -10) {
+                  notification.scrollDelta! < -50) {
                 widget.outerController.previousPage(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
