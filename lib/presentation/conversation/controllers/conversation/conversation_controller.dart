@@ -18,6 +18,18 @@ class ConversationController {
            logger ??
            Logger(printer: PrettyPrinter(colors: true, printEmojis: true));
 
+  Future<void> init() async {
+    // Only initialize once
+    if (_state.hasInitialized) {
+      return;
+    }
+
+    // Load cached data first (instant UI update)
+    // await _loadCachedFeeds();
+    await fetchConversations();
+    _state.setInitialized(true);
+  }
+
   Future<void> fetchConversations({int? limit, bool isRefresh = false}) async {
     if (isRefresh) {
       _state.setRefreshingConversations(true);
@@ -42,10 +54,10 @@ class ConversationController {
           _logger.d('Feed Conversations successfully');
           _state.clearError();
 
-          final conversations = response.data['conversations'] as List<ConversationEntity>;
-          
+          final conversations =
+              response.data['conversations'] as List<ConversationEntity>;
+
           _state.setConversations(conversations);
-          
         },
       );
     } catch (e) {
@@ -60,4 +72,14 @@ class ConversationController {
       _state.setRefreshingConversations(false);
     }
   }
+
+  /// Refresh feed data (pull-to-refresh)
+  Future<void> refreshConversations([String? query, DateTime? lastCreatedAt]) async {
+    await fetchConversations(
+      isRefresh: true,
+    );
+  }
+
+  /// Dispose resources
+  void dispose() {}
 }

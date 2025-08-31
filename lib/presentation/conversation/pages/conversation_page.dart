@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/di.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
-import 'package:locket/presentation/conversation/widgets/converstation_item.dart';
+import 'package:locket/presentation/conversation/widgets/conversation_list.dart';
 import 'package:provider/provider.dart';
 
 class ConversationPage extends StatelessWidget {
@@ -34,21 +33,7 @@ class ConversationPage extends StatelessWidget {
                 right: AppDimensions.md,
                 top: AppDimensions.lg,
               ),
-              child: ListView.separated(
-                physics: const ScrollPhysics(),
-                itemCount: conversationState.listConversation.length,
-                separatorBuilder:
-                    (context, index) =>
-                        const SizedBox(height: AppDimensions.xxl),
-                itemBuilder: (context, index) {
-                  final conversation = conversationState.listConversation[index];
-                  return GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () => AppNavigator.push(context, '/converstion/:id'),
-                    child: ConverstationItem(data: conversation),
-                  );
-                },
-              ),
+              child: ConversationList()
             ),
           );
         },

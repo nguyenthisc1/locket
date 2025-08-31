@@ -2,25 +2,70 @@ import 'package:equatable/equatable.dart';
 import 'package:locket/domain/conversation/entities/conversation_detail_entity.dart';
 import 'converstation_model.dart';
 
+class SenderModel extends Equatable {
+  final String id;
+  final String username;
+  final String? avatarUrl;
+
+  const SenderModel({
+    required this.id,
+    required this.username,
+    this.avatarUrl,
+  });
+
+  factory SenderModel.fromJson(Map<String, dynamic> json) {
+    return SenderModel(
+      id: json['id'] as String,
+      username: json['username'] as String,
+      avatarUrl: json['avatarUrl'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'avatarUrl': avatarUrl,
+    };
+  }
+
+  /// Creates a SenderModel from a SenderEntity
+  factory SenderModel.fromEntity(SenderEntity entity) {
+    return SenderModel(
+      id: entity.id,
+      username: entity.username,
+      avatarUrl: entity.avatarUrl,
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, username, avatarUrl];
+}
+
 class LastMessageModel extends Equatable {
   final String messageId;
   final String text;
-  final String senderId;
+  final SenderModel sender;
   final DateTime timestamp;
+  final bool isRead;
 
   const LastMessageModel({
     required this.messageId,
     required this.text,
-    required this.senderId,
+    required this.sender,
     required this.timestamp,
+    required this.isRead,
   });
 
   factory LastMessageModel.fromJson(Map<String, dynamic> json) {
     return LastMessageModel(
       messageId: json['messageId'] as String,
       text: json['text'] as String,
-      senderId: json['senderId'] as String,
+      sender: json['sender'] is Map<String, dynamic>
+          ? SenderModel.fromJson(json['sender'] as Map<String, dynamic>)
+          : throw ArgumentError('Invalid sender format in LastMessageModel.fromJson'),
       timestamp: DateTime.parse(json['timestamp'] as String),
+      isRead: json['isRead'] as bool,
     );
   }
 
@@ -28,8 +73,9 @@ class LastMessageModel extends Equatable {
     return {
       'messageId': messageId,
       'text': text,
-      'senderId': senderId,
+      'sender': sender.toJson(),
       'timestamp': timestamp.toIso8601String(),
+      'isRead': isRead,
     };
   }
 
@@ -38,8 +84,9 @@ class LastMessageModel extends Equatable {
     return LastMessageModel(
       messageId: entity.messageId,
       text: entity.text,
-      senderId: entity.senderId,
+      sender: SenderModel.fromEntity(entity.sender),
       timestamp: entity.timestamp,
+      isRead: entity.isRead,
     );
   }
 
@@ -48,13 +95,14 @@ class LastMessageModel extends Equatable {
     return LastMessageModel(
       messageId: model.messageId,
       text: model.text,
-      senderId: model.senderId,
+      sender: model.sender,
       timestamp: model.timestamp,
+      isRead: model.isRead,
     );
   }
 
   @override
-  List<Object?> get props => [messageId, text, senderId, timestamp];
+  List<Object?> get props => [messageId, text, sender, timestamp, isRead];
 }
 
 class ThreadInfoModel extends Equatable {

@@ -1,25 +1,59 @@
 import 'package:equatable/equatable.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 
+class SenderEntity extends Equatable {
+  final String id;
+  final String username;
+  final String? avatarUrl;
+
+  const SenderEntity({
+    required this.id,
+   required this.username,
+    this.avatarUrl,
+  });
+
+  factory SenderEntity.fromJson(Map<String, dynamic> json) {
+    return SenderEntity(
+      id: json['id'] as String,
+      username: json['username'] as String,
+      avatarUrl: json['avatarUrl'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'username': username,
+        'avatarUrl': avatarUrl,
+      };
+
+  @override
+  List<Object?> get props => [id, username, avatarUrl];
+}
+
 class LastMessageEntity extends Equatable {
   final String messageId;
   final String text;
-  final String senderId;
+  final SenderEntity sender;
   final DateTime timestamp;
+  final bool isRead;
 
   const LastMessageEntity({
     required this.messageId,
     required this.text,
-    required this.senderId,
+    required this.sender,
     required this.timestamp,
+    required this.isRead,
   });
 
   factory LastMessageEntity.fromJson(Map<String, dynamic> json) {
     return LastMessageEntity(
       messageId: json['messageId'] as String,
       text: json['text'] as String,
-      senderId: json['senderId'] as String,
+      sender: json['sender'] is Map<String, dynamic>
+          ? SenderEntity.fromJson(json['sender'] as Map<String, dynamic>)
+          : throw ArgumentError('Invalid sender format in LastMessageEntity.fromJson'),
       timestamp: DateTime.parse(json['timestamp'] as String),
+      isRead: json['isRead'] as bool,
     );
   }
 
@@ -29,20 +63,22 @@ class LastMessageEntity extends Equatable {
     return LastMessageEntity(
       messageId: model.messageId,
       text: model.text,
-      senderId: model.senderId,
+      sender: model.sender,
       timestamp: model.timestamp,
+      isRead: model.isRead,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'messageId': messageId,
         'text': text,
-        'senderId': senderId,
+        'sender': sender,
         'timestamp': timestamp.toIso8601String(),
+        'isRead': isRead,
       };
 
   @override
-  List<Object?> get props => [messageId, text, senderId, timestamp];
+  List<Object?> get props => [messageId, text, sender, timestamp, isRead];
 }
 
 class ThreadInfoEntity extends Equatable {

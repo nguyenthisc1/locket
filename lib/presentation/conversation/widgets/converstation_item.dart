@@ -13,6 +13,7 @@ class ConverstationItem extends StatelessWidget {
     // Defensive: fallback for missing lastMessage
     final String lastMessageText = data.lastMessage?.text ?? '';
     final String timestampText = data.lastMessage?.timestamp.toString() ?? '';
+    final bool isRead = data.lastMessage?.isRead ?? false;
     final String nameText = data.name!;
     final String imageUrl = data.participants[0].avatarUrl!;
 
@@ -23,21 +24,22 @@ class ConverstationItem extends StatelessWidget {
         Stack(
           clipBehavior: Clip.none,
           children: [
-            Positioned(
-              top: -8,
-              left: -8,
-              right: -8,
-              bottom: -8,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.primary,
-                    width: AppDimensions.xs,
+            if (!isRead)
+              Positioned(
+                top: -8,
+                left: -8,
+                right: -8,
+                bottom: -8,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primary,
+                      width: AppDimensions.xs,
+                    ),
                   ),
                 ),
               ),
-            ),
             UserImage(imageUrl: imageUrl, size: AppDimensions.avatarXl),
           ],
         ),

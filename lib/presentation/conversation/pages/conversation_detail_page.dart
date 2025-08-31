@@ -3,7 +3,7 @@ import 'package:locket/common/helper/utils.dart' as utils;
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/common/wigets/user_image.dart';
-import 'package:locket/presentation/conversation/controllers/conversation_detail_controller.dart';
+import 'package:locket/presentation/conversation/controllers/conversation_detail/conversation_detail_controller.dart';
 import 'package:locket/presentation/conversation/widgets/message.dart';
 
 import '../../../core/configs/theme/index.dart';
