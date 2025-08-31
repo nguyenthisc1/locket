@@ -1,7 +1,5 @@
 import 'package:locket/domain/conversation/entities/message_entity.dart';
 
-/// MessageModel is a data model for messages, extending [MessageEntity].
-/// It provides serialization and deserialization for persistence and network transfer.
 class MessageModel extends MessageEntity {
   const MessageModel({
     required super.id,

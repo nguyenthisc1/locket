@@ -1,133 +1,199 @@
-import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 
-class ConversationModel extends ConversationEntity {
-  const ConversationModel({
-    required super.id,
-    required super.name,
-    required super.isGroup,
-    required super.participants,
-    super.admin,
-    super.lastMessage,
-    required super.timestamp,
-    required super.imageUrl,
-    required super.isActive,
-    required super.pinnedMessages,
-    required super.settings,
-    required super.startedAt,
-    required super.readReceipts,
+import 'package:equatable/equatable.dart';
+import 'package:locket/data/conversation/models/conversation_detail_model.dart';
+
+class ConversationParticipantModel extends Equatable {
+  final String id;
+  final String? username;
+  final String? email;
+  final String? avatarUrl;
+
+  const ConversationParticipantModel({
+    required this.id,
+    this.username,
+    this.email,
+    this.avatarUrl,
   });
 
-  factory ConversationModel.fromMap(Map<String, dynamic> map) {
-    return ConversationModel(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      isGroup: map['isGroup'] as bool,
-      participants: List<String>.from(map['participants'] ?? []),
-      admin: map['admin'] as String?,
-      lastMessage:
-          map['lastMessage'] != null
-              ? LastMessageModel.fromMap(map['lastMessage'])
-              : null,
-      timestamp: map['timestamp'] as String,
-      imageUrl: map['imageUrl'] as String,
-      isActive: map['isActive'] as bool,
-      pinnedMessages: List<dynamic>.from(map['pinnedMessages'] ?? []),
-      settings: ConversationSettingsModel.fromMap(map['settings'] ?? {}),
-      startedAt:
-          map['startedAt'] is DateTime
-              ? map['startedAt']
-              : DateTime.tryParse(map['startedAt'].toString()) ??
-                  DateTime.now(),
-      readReceipts: List<dynamic>.from(map['readReceipts'] ?? []),
+  factory ConversationParticipantModel.fromJson(Map<String, dynamic> json) {
+    return ConversationParticipantModel(
+      id: json['_id'] as String,
+      username: json['username'] as String?,
+      email: json['email'] as String?,
+      avatarUrl: json['avatarUrl'] as String?,
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'username': username,
+      'email': email,
+      'avatarUrl': avatarUrl,
+    };
+  }
+
+  @override
+  List<Object?> get props => [id, username, email, avatarUrl];
+}
+
+class GroupSettingsModel extends Equatable {
+  final bool allowMemberInvite;
+  final bool allowMemberEdit;
+  final bool allowMemberDelete;
+  final bool allowMemberPin;
+
+  const GroupSettingsModel({
+    required this.allowMemberInvite,
+    required this.allowMemberEdit,
+    required this.allowMemberDelete,
+    required this.allowMemberPin,
+  });
+
+  factory GroupSettingsModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return const GroupSettingsModel(
+        allowMemberInvite: false,
+        allowMemberEdit: false,
+        allowMemberDelete: false,
+        allowMemberPin: false,
+      );
+    }
+    return GroupSettingsModel(
+      allowMemberInvite: json['allowMemberInvite'] as bool? ?? false,
+      allowMemberEdit: json['allowMemberEdit'] as bool? ?? false,
+      allowMemberDelete: json['allowMemberDelete'] as bool? ?? false,
+      allowMemberPin: json['allowMemberPin'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'allowMemberInvite': allowMemberInvite,
+      'allowMemberEdit': allowMemberEdit,
+      'allowMemberDelete': allowMemberDelete,
+      'allowMemberPin': allowMemberPin,
+    };
+  }
+
+  @override
+  List<Object?> get props => [
+        allowMemberInvite,
+        allowMemberEdit,
+        allowMemberDelete,
+        allowMemberPin,
+      ];
+}
+
+class ConversationModel extends Equatable {
+  final String id;
+  final String? name;
+  final List<ConversationParticipantModel> participants;
+  final bool isGroup;
+  final GroupSettingsModel? groupSettings;
+  final bool isActive;
+  final List<dynamic> pinnedMessages;
+  final ConversationSettingsModel settings;
+  final List<dynamic> readReceipts;
+  final LastMessageModel? lastMessage;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+
+  const ConversationModel({
+    required this.id,
+    this.name,
+    required this.participants,
+    required this.isGroup,
+    required this.isActive,
+    required this.pinnedMessages,
+    this.groupSettings,
+    required this.settings,
+    required this.readReceipts,
+    this.lastMessage,
+    required this.createdAt,
+    this.updatedAt,
+  });
+
+  factory ConversationModel.fromJson(Map<String, dynamic> json) {
+    return ConversationModel(
+      id: json['id'] as String,
+      name: json['name'] as String?,
+      participants: (json['participants'] as List<dynamic>? ?? [])
+          .map((e) => ConversationParticipantModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      isGroup: json['isGroup'] as bool? ?? false,
+      groupSettings: json['groupSettings'] != null
+          ? GroupSettingsModel.fromJson(json['groupSettings'] as Map<String, dynamic>)
+          : null,
+      isActive: json['isActive'] as bool? ?? false,
+      pinnedMessages: List<dynamic>.from(json['pinnedMessages'] ?? []),
+      settings: ConversationSettingsModel.fromJson(json['settings'] ?? {}),
+      readReceipts: List<dynamic>.from(json['readReceipts'] ?? []),
+      lastMessage: json['lastMessage'] ?? null, 
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'].toString())
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
+      'participants': participants.map((e) => e.toJson()).toList(),
       'isGroup': isGroup,
-      'participants': participants,
-      'admin': admin,
-      'lastMessage':
-          lastMessage is LastMessageModel
-              ? (lastMessage as LastMessageModel).toMap()
-              : (lastMessage != null
-                  ? {
-                    'messageId': lastMessage!.messageId,
-                    'text': lastMessage!.text,
-                    'senderId': lastMessage!.senderId,
-                    'timestamp': lastMessage!.timestamp.toIso8601String(),
-                  }
-                  : null),
-      'timestamp': timestamp,
-      'imageUrl': imageUrl,
+      'groupSettings': groupSettings?.toJson(),
       'isActive': isActive,
       'pinnedMessages': pinnedMessages,
-      'settings':
-          settings is ConversationSettingsModel
-              ? (settings as ConversationSettingsModel).toMap()
-              : {
-                'muteNotifications': settings.muteNotifications,
-                'customEmoji': settings.customEmoji,
-                'theme': settings.theme,
-                'wallpaper': settings.wallpaper,
-              },
-      'startedAt': startedAt.toIso8601String(),
+      'settings': settings.toJson(),
       'readReceipts': readReceipts,
+      'lastMessage': lastMessage,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
     };
   }
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        participants,
+        isGroup,
+        groupSettings,
+        isActive,
+        pinnedMessages,
+        settings,
+        readReceipts,
+        lastMessage,
+        createdAt,
+        updatedAt,
+      ];
 }
 
-class LastMessageModel extends LastMessageEntity {
-  const LastMessageModel({
-    required super.messageId,
-    required super.text,
-    required super.senderId,
-    required super.timestamp,
-  });
+class ConversationSettingsModel extends Equatable {
+  final bool muteNotifications;
+  final String? customEmoji;
+  final String theme;
+  final String? wallpaper;
 
-  factory LastMessageModel.fromMap(Map<String, dynamic> map) {
-    return LastMessageModel(
-      messageId: map['messageId'] as String,
-      text: map['text'] as String,
-      senderId: map['senderId'] as String,
-      timestamp:
-          map['timestamp'] is DateTime
-              ? map['timestamp']
-              : DateTime.tryParse(map['timestamp'].toString()) ??
-                  DateTime.now(),
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'messageId': messageId,
-      'text': text,
-      'senderId': senderId,
-      'timestamp': timestamp.toIso8601String(),
-    };
-  }
-}
-
-class ConversationSettingsModel extends ConversationSettingsEntity {
   const ConversationSettingsModel({
-    required super.muteNotifications,
-    super.customEmoji,
-    required super.theme,
-    super.wallpaper,
+    required this.muteNotifications,
+    this.customEmoji,
+    required this.theme,
+    this.wallpaper,
   });
 
-  factory ConversationSettingsModel.fromMap(Map<String, dynamic> map) {
+  factory ConversationSettingsModel.fromJson(Map<String, dynamic> json) {
     return ConversationSettingsModel(
-      muteNotifications: map['muteNotifications'] as bool? ?? false,
-      customEmoji: map['customEmoji'] as String?,
-      theme: map['theme'] as String? ?? 'default',
-      wallpaper: map['wallpaper'] as String?,
+      muteNotifications: json['muteNotifications'] as bool? ?? false,
+      customEmoji: json['customEmoji'] as String?,
+      theme: json['theme'] as String? ?? 'default',
+      wallpaper: json['wallpaper'] as String?,
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'muteNotifications': muteNotifications,
       'customEmoji': customEmoji,
@@ -135,4 +201,12 @@ class ConversationSettingsModel extends ConversationSettingsEntity {
       'wallpaper': wallpaper,
     };
   }
+
+  @override
+  List<Object?> get props => [
+        muteNotifications,
+        customEmoji,
+        theme,
+        wallpaper,
+      ];
 }

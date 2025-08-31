@@ -1,65 +1,62 @@
 import 'package:equatable/equatable.dart';
+import 'package:locket/domain/conversation/entities/conversation_detail_entity.dart';
 
 class ConversationEntity extends Equatable {
   final String id;
-  final String name;
+  final String? name;
+  final List<ConversationParticipantEntity> participants;
   final bool isGroup;
-  final List<String> participants;
-  final String? admin;
-  final LastMessageEntity? lastMessage;
-  final String timestamp;
-  final String imageUrl;
+  final GroupSettingsEntity? groupSettings;
   final bool isActive;
   final List<dynamic> pinnedMessages;
   final ConversationSettingsEntity settings;
-  final DateTime startedAt;
   final List<dynamic> readReceipts;
+  final LastMessageEntity? lastMessage;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
 
   const ConversationEntity({
     required this.id,
-    required this.name,
-    required this.isGroup,
     required this.participants,
-    this.admin,
-    this.lastMessage,
-    required this.timestamp,
-    required this.imageUrl,
+    required this.isGroup,
     required this.isActive,
     required this.pinnedMessages,
     required this.settings,
-    required this.startedAt,
     required this.readReceipts,
+    required this.createdAt,
+    this.name,
+    this.groupSettings,
+    this.lastMessage,
+    this.updatedAt,
   });
 
   ConversationEntity copyWith({
     String? id,
     String? name,
+    List<ConversationParticipantEntity>? participants,
     bool? isGroup,
-    List<String>? participants,
-    String? admin,
-    LastMessageEntity? lastMessage,
-    String? timestamp,
-    String? imageUrl,
+    GroupSettingsEntity? groupSettings,
     bool? isActive,
     List<dynamic>? pinnedMessages,
     ConversationSettingsEntity? settings,
-    DateTime? startedAt,
     List<dynamic>? readReceipts,
+    LastMessageEntity? lastMessage,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return ConversationEntity(
       id: id ?? this.id,
       name: name ?? this.name,
+      participants: participants ?? List<ConversationParticipantEntity>.from(this.participants),
       isGroup: isGroup ?? this.isGroup,
-      participants: participants ?? List<String>.from(this.participants),
-      admin: admin ?? this.admin,
-      lastMessage: lastMessage ?? this.lastMessage,
-      timestamp: timestamp ?? this.timestamp,
-      imageUrl: imageUrl ?? this.imageUrl,
+      groupSettings: groupSettings ?? this.groupSettings,
       isActive: isActive ?? this.isActive,
       pinnedMessages: pinnedMessages ?? List<dynamic>.from(this.pinnedMessages),
       settings: settings ?? this.settings,
-      startedAt: startedAt ?? this.startedAt,
       readReceipts: readReceipts ?? List<dynamic>.from(this.readReceipts),
+      lastMessage: lastMessage ?? this.lastMessage,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -67,49 +64,84 @@ class ConversationEntity extends Equatable {
   List<Object?> get props => [
     id,
     name,
-    isGroup,
     participants,
-    admin,
-    lastMessage,
-    timestamp,
-    imageUrl,
+    isGroup,
+    groupSettings,
     isActive,
     pinnedMessages,
     settings,
-    startedAt,
     readReceipts,
+    lastMessage,
+    createdAt,
+    updatedAt,
   ];
 }
 
-class LastMessageEntity extends Equatable {
-  final String messageId;
-  final String text;
-  final String senderId;
-  final DateTime timestamp;
+class ConversationParticipantEntity extends Equatable {
+  final String id;
+  final String? username;
+  final String? email;
+  final String? avatarUrl;
 
-  const LastMessageEntity({
-    required this.messageId,
-    required this.text,
-    required this.senderId,
-    required this.timestamp,
+  const ConversationParticipantEntity({
+    required this.id,
+    this.username,
+    this.email,
+    this.avatarUrl,
   });
 
-  LastMessageEntity copyWith({
-    String? messageId,
-    String? text,
-    String? senderId,
-    DateTime? timestamp,
+  ConversationParticipantEntity copyWith({
+    String? id,
+    String? username,
+    String? email,
+    String? avatarUrl,
   }) {
-    return LastMessageEntity(
-      messageId: messageId ?? this.messageId,
-      text: text ?? this.text,
-      senderId: senderId ?? this.senderId,
-      timestamp: timestamp ?? this.timestamp,
+    return ConversationParticipantEntity(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
     );
   }
 
   @override
-  List<Object?> get props => [messageId, text, senderId, timestamp];
+  List<Object?> get props => [id, username, email, avatarUrl];
+}
+
+class GroupSettingsEntity extends Equatable {
+  final bool allowMemberInvite;
+  final bool allowMemberEdit;
+  final bool allowMemberDelete;
+  final bool allowMemberPin;
+
+  const GroupSettingsEntity({
+    required this.allowMemberInvite,
+    required this.allowMemberEdit,
+    required this.allowMemberDelete,
+    required this.allowMemberPin,
+  });
+
+  GroupSettingsEntity copyWith({
+    bool? allowMemberInvite,
+    bool? allowMemberEdit,
+    bool? allowMemberDelete,
+    bool? allowMemberPin,
+  }) {
+    return GroupSettingsEntity(
+      allowMemberInvite: allowMemberInvite ?? this.allowMemberInvite,
+      allowMemberEdit: allowMemberEdit ?? this.allowMemberEdit,
+      allowMemberDelete: allowMemberDelete ?? this.allowMemberDelete,
+      allowMemberPin: allowMemberPin ?? this.allowMemberPin,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    allowMemberInvite,
+    allowMemberEdit,
+    allowMemberDelete,
+    allowMemberPin,
+  ];
 }
 
 class ConversationSettingsEntity extends Equatable {
@@ -124,6 +156,24 @@ class ConversationSettingsEntity extends Equatable {
     required this.theme,
     this.wallpaper,
   });
+
+  factory ConversationSettingsEntity.fromJson(Map<String, dynamic> json) {
+    return ConversationSettingsEntity(
+      muteNotifications: json['muteNotifications'] as bool? ?? false,
+      customEmoji: json['customEmoji'] as String?,
+      theme: json['theme'] as String? ?? '',
+      wallpaper: json['wallpaper'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'muteNotifications': muteNotifications,
+      'customEmoji': customEmoji,
+      'theme': theme,
+      'wallpaper': wallpaper,
+    };
+  }
 
   ConversationSettingsEntity copyWith({
     bool? muteNotifications,

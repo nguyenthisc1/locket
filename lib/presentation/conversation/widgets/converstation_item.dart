@@ -12,9 +12,9 @@ class ConverstationItem extends StatelessWidget {
   Widget build(BuildContext context) {
     // Defensive: fallback for missing lastMessage
     final String lastMessageText = data.lastMessage?.text ?? '';
-    final String timestampText = data.timestamp;
-    final String nameText = data.name;
-    final String imageUrl = data.imageUrl;
+    final String timestampText = data.lastMessage?.timestamp.toString() ?? '';
+    final String nameText = data.name!;
+    final String imageUrl = data.participants[0].avatarUrl!;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
