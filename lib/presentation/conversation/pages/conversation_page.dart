@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/core/configs/theme/index.dart';
-import 'package:locket/di.dart';
-import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
 import 'package:locket/presentation/conversation/widgets/conversation_list.dart';
 import 'package:provider/provider.dart';
@@ -12,16 +10,7 @@ class ConversationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<ConversationControllerState>.value(
-          value: getIt<ConversationControllerState>(),
-        ),
-        Provider<ConversationController>.value(
-          value: getIt<ConversationController>(),
-        ),
-      ],
-      child: Consumer<ConversationControllerState>(
+    return  Consumer<ConversationControllerState>(
         builder: (context, conversationState, _) {
           return Scaffold(
             appBar: BasicAppbar(
@@ -37,7 +26,6 @@ class ConversationPage extends StatelessWidget {
             ),
           );
         },
-      ),
     );
   }
 }

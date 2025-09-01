@@ -8,8 +8,7 @@ class ConversationControllerState extends ChangeNotifier {
   List<ConversationEntity> _listConversation = [];
   String? _errorMessage;
   bool _hasInitialized = false;
-
-
+  int _unreadCountConversations = 0;
 
   bool get isLoadingConversations => _isLoadingConversations;
   bool get isRefreshingConversations => _isRefreshingConversations;
@@ -17,7 +16,7 @@ class ConversationControllerState extends ChangeNotifier {
   List<ConversationEntity> get listConversation => _listConversation;
   String? get errorMessage => _errorMessage;
   bool get hasInitialized => _hasInitialized;
-
+  int get unreadCountConversations => _unreadCountConversations;
 
   void setLoadingConversations(bool value) {
     if (_isLoadingConversations != value) {
@@ -38,20 +37,26 @@ class ConversationControllerState extends ChangeNotifier {
     notifyListeners();
   }
 
-    void setError(String? value) {
+  void setError(String? value) {
     if (_errorMessage != value) {
       _errorMessage = value;
       notifyListeners();
     }
   }
 
-    void setInitialized(bool value) {
+  void setInitialized(bool value) {
     if (_hasInitialized != value) {
       _hasInitialized = value;
       notifyListeners();
     }
   }
 
+  void setUnreadCountConversations(int value) {
+    if (_unreadCountConversations != value) {
+      _unreadCountConversations = value;
+      notifyListeners();
+    }
+  }
 
   void clearError() {
     if (_errorMessage != null) {

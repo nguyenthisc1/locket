@@ -5,6 +5,7 @@ import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';
+import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
@@ -28,12 +29,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final HomeController _homeController;
   late final FeedController _feedController;
+  late final ConversationController _conversationController;
 
   @override
   void initState() {
     super.initState();
     _homeController = getIt<HomeController>();
     _feedController = getIt<FeedController>();
+    _conversationController = getIt<ConversationController>();
     
     // Initialize both controllers
     _homeController.init();
@@ -42,6 +45,7 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _feedController.fetchInitialFeeds();
+        _conversationController.fetchUnreadCountConversation();
       }
     });
   }

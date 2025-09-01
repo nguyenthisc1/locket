@@ -30,4 +30,20 @@ class ConversationRepositoryImpl extends ConversationRepository {
       },
     );
   }
+  
+  @override
+  Future<Either<Failure, BaseResponse>> unreacdCountConversations() async {
+     final result = await _conversationApiService.unreadCountConversations();
+
+    return result.fold(
+      (failure) {
+        logger.e('Repository Get Unread count failed: ${failure.toString()}');
+        return Left(failure);
+      },
+      (result) {
+        logger.d('Repository Get Unread count successful for: ${result.data}');
+        return Right(result);
+      },
+    );
+  }
 }

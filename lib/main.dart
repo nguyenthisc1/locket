@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:locket/core/routes/router.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';
+import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
+import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +24,9 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: getIt<FeedControllerState>()),
         ChangeNotifierProvider.value(value: getIt<UserService>()),
+        ChangeNotifierProvider.value(value: getIt<ConversationControllerState>()),
         Provider.value(value: getIt<FeedController>()),
+        Provider.value(value: getIt<ConversationController>()),
       ],
       child: MyApp(),
     ),

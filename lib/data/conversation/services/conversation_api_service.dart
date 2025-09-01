@@ -10,6 +10,7 @@ import 'package:logger/logger.dart';
 
 abstract class ConversationApiService {
   Future<Either<Failure, BaseResponse>> getConversations(int? limit);
+  Future<Either<Failure, BaseResponse>> unreadCountConversations();
 }
 
 class ConversationApiServiceImpl extends ConversationApiService {
@@ -23,13 +24,12 @@ class ConversationApiServiceImpl extends ConversationApiService {
   @override
   Future<Either<Failure, BaseResponse>> getConversations(int? limit) async {
     try {
-
       final Map<String, dynamic> queryParameters = {};
       queryParameters['limit'] = limit ?? '10';
 
-      final response = await dioClient.get(ApiUrl.getUserConversations,
+      final response = await dioClient.get(
+        ApiUrl.getUserConversations,
         queryParameters: queryParameters,
-
       );
       logger.d('response feed: ${response.data}');
 
@@ -52,6 +52,75 @@ class ConversationApiServiceImpl extends ConversationApiService {
 
         return Right(baseResponse);
       }
+      // Handle specific status codes (since they're not treated as exceptions)
+      final statusCode = response.statusCode;
+      final message = response.data['message'] ?? 'Unknown error';
+      final errors = response.data['errors'];
+
+      logger.e(
+        '❌ Get Conversation failed: $errors $message (Status: $statusCode)',
+      );
+
+      if (statusCode == 401) {
+        return Left(
+          UnauthorizedFailure(message: message, statusCode: statusCode),
+        );
+      } else if (statusCode == 403) {
+        return Left(AuthFailure(message: message, statusCode: statusCode));
+      } else if (statusCode == 404) {
+        return Left(
+          DataFailure(
+            message: 'Conversation not found',
+            statusCode: statusCode,
+          ),
+        );
+      } else if (statusCode == 422) {
+        return Left(
+          ValidationFailure(message: message, statusCode: statusCode),
+        );
+      } else {
+        return Left(DataFailure(message: message, statusCode: statusCode));
+      }
+    } catch (e) {
+      logger.e('❌ Get Conversation failed: ${e.toString()}');
+
+      if (e is DioException) {
+        final statusCode = e.response?.statusCode;
+        final message = e.response?.data['message'] ?? 'Lỗi kết nối server';
+
+        // DioException will only occur for network issues or server errors (5xx)
+        if (statusCode != null && statusCode >= 500) {
+          return Left(ServerFailure(message: message, statusCode: statusCode));
+        } else {
+          return Left(NetworkFailure(message: message, statusCode: statusCode));
+        }
+      }
+
+      return Left(DataFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BaseResponse>> unreadCountConversations() async {
+    try {
+      final response = await dioClient.get(ApiUrl.unreadCountConversations);
+
+      if (response.statusCode == 200 && response.data.isNotEmpty) {
+        final unreadCount = response.data['data']['unreadCount'];
+
+        final data = {'unreadCount': unreadCount};
+        logger.d('unreadCount $data');
+
+        final baseResponse = BaseResponse<Map<String, dynamic>>(
+          success: response.data['success'],
+          message: response.data['message'],
+          data: data,
+          errors: response.data['errors'],
+        );
+
+        return Right(baseResponse);
+      }
+
       // Handle specific status codes (since they're not treated as exceptions)
       final statusCode = response.statusCode;
       final message = response.data['message'] ?? 'Unknown error';

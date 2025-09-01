@@ -12,8 +12,11 @@ class ApiUrl {
   static const String createConversation = '/conversation';
   static const String getUserConversations = '/conversation/user';
   static const String searchConversations = '/conversation/search';
+  static const String unreadCountConversations = '/conversation/unread-count';
   static String getConversationById(String conversationId) =>
       '/conversation/$conversationId';
+    static String readConversationById(String conversationId) =>
+      '/conversation/$conversationId/read';
   static String updateConversation(String conversationId) =>
       '/conversation/$conversationId';
   static String addParticipants(String conversationId) =>

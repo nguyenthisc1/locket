@@ -1,19 +1,23 @@
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
+import 'package:locket/domain/conversation/usecases/unread_count_conversations_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
 import 'package:logger/logger.dart';
 
 class ConversationController {
   final ConversationControllerState _state;
   final GetConversationsUsecase _getConversationsUsecase;
+  final UnreadCountConversationsUsecase _unreadCountConversationsUsecase;
   final Logger _logger;
 
   ConversationController({
     required ConversationControllerState state,
     required GetConversationsUsecase getConversationsUsecase,
+    required UnreadCountConversationsUsecase unreadCountConversationsUsecase,
     Logger? logger,
   }) : _state = state,
        _getConversationsUsecase = getConversationsUsecase,
+       _unreadCountConversationsUsecase = unreadCountConversationsUsecase,
        _logger =
            logger ??
            Logger(printer: PrettyPrinter(colors: true, printEmojis: true));
@@ -78,6 +82,40 @@ class ConversationController {
     await fetchConversations(
       isRefresh: true,
     );
+  }
+
+  Future<void> fetchUnreadCountConversation() async {
+     try {
+      final result = await _unreadCountConversationsUsecase();
+
+      result.fold(
+        (failure) {
+          _logger.e('Failed to fetch Unread Count Conversations: ${failure.message}');
+          _state.setError(failure.message);
+
+          // If it's a fresh fetch (not refresh) and we have no cached data, clear the list
+          if ( _state.unreadCountConversations < 0) {
+            _state.setUnreadCountConversations(0);
+          }
+        },
+        (response) {
+          _logger.d('Feed Unread Count Conversations successfully');
+          _state.clearError();
+
+          final unreadCount =
+              response.data['unreadCount'] as int;
+
+          _state.setUnreadCountConversations(unreadCount);
+        },
+      );
+    } catch (e) {
+      _logger.e('Error fetching Unread Count Conversations: $e');
+      _state.setError('An unexpected error occurred');
+
+      if (_state.unreadCountConversations < 0) {
+        _state.setUnreadCountConversations(0);
+      }
+    } 
   }
 
   /// Dispose resources

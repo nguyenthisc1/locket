@@ -19,6 +19,7 @@ import 'package:locket/domain/auth/repositories/auth_repository.dart';
 import 'package:locket/domain/auth/usecase/login_usecase.dart';
 import 'package:locket/domain/conversation/repositories/conversation_repository.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
+import 'package:locket/domain/conversation/usecases/unread_count_conversations_usecase.dart';
 import 'package:locket/domain/feed/repositories/feed_repository.dart';
 import 'package:locket/domain/feed/usecases/get_feed_usecase.dart';
 import 'package:locket/domain/feed/usecases/upload_feed_usecase.dart';
@@ -97,6 +98,10 @@ void setupDependencies() {
   getIt.registerFactory<GetConversationsUsecase>(
     () => GetConversationsUsecase(getIt<ConversationRepository>()),
   );
+  getIt.registerFactory<UnreadCountConversationsUsecase>(
+    () => UnreadCountConversationsUsecase(getIt<ConversationRepository>()),
+  );
+
   // Feed use cases
   getIt.registerFactory<GetFeedsUsecase>(
     () => GetFeedsUsecase(getIt<FeedRepository>()),
@@ -127,6 +132,7 @@ void setupDependencies() {
     () => ConversationController(
       state: getIt<ConversationControllerState>(),
       getConversationsUsecase: getIt<GetConversationsUsecase>(),
+      unreadCountConversationsUsecase: getIt<UnreadCountConversationsUsecase>(),
     ),
   );
   // Auth controller dependencies
