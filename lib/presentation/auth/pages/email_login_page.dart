@@ -28,11 +28,7 @@ class EmailLoginPage extends StatelessWidget {
                 left: AppDimensions.md,
                 right: AppDimensions.md,
               ),
-              child: Column(
-                children: [
-                  EmailLoginForm(),
-                ],
-              ),
+              child: Column(children: [EmailLoginForm()]),
             ),
           ),
         ),

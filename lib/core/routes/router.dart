@@ -8,14 +8,11 @@ import 'package:locket/presentation/auth/pages/email_login_page.dart';
 import 'package:locket/presentation/auth/pages/phone_login_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_detail_page.dart';
 import 'package:locket/presentation/conversation/pages/conversation_page.dart';
-import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
-import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/presentation/home/pages/gallery_page.dart';
 import 'package:locket/presentation/home/pages/home_page.dart';
 import 'package:locket/presentation/splash/pages/onboarding_page.dart';
 import 'package:locket/presentation/splash/pages/splash_page.dart';
 import 'package:logging/logging.dart';
-import 'package:provider/provider.dart';
 
 // Global RouteObserver for GoRouter
 final RouteObserver<ModalRoute> goRouterObserver = RouteObserver<ModalRoute>();
@@ -63,7 +60,7 @@ class AppRouter {
         builder: (context, state) => const PhoneLoginPage(),
       ),
       GoRoute(path: '/home', builder: (context, state) => const HomePage()),
-      
+
       // GoRoute(
       //   path: '/gallery',
       //   pageBuilder: (context, state) {

@@ -6,11 +6,8 @@ import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 
 class GalleryToolbar extends StatelessWidget {
   final FeedController? feedController;
-  
-  const GalleryToolbar({
-    super.key,
-    this.feedController,
-  });
+
+  const GalleryToolbar({super.key, this.feedController});
 
   @override
   Widget build(BuildContext context) {

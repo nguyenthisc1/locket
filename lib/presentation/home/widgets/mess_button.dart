@@ -11,52 +11,53 @@ class MessButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<ConversationControllerState>(
-      builder: (context, conversationState, _) { 
-        print('unread count state: ${conversationState.unreadCountConversations}');
-        return  Stack(
-        clipBehavior: Clip.none,
-        children: [
-          IconButton(
-            onPressed: () => AppNavigator.push(context, '/conversation'),
-            style: IconButton.styleFrom(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.sm,
-                vertical: AppDimensions.sm,
-              ),
-              backgroundColor: Colors.white.safeOpacity(0.2),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-              ),
-            ),
-            icon: const Icon(
-              Icons.cloud_outlined,
-              size: AppDimensions.iconLg,
-              color: Colors.white70,
-            ),
-          ),
-          if (conversationState.unreadCountConversations > 0)
-            Positioned(
-              top: -16,
-              right: -2,
-              child: Container(
-                padding: const EdgeInsets.all(AppDimensions.sm),
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
+      builder: (context, conversationState, _) {
+        print(
+          'unread count state: ${conversationState.unreadCountConversations}',
+        );
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            IconButton(
+              onPressed: () => AppNavigator.push(context, '/conversation'),
+              style: IconButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppDimensions.sm,
+                  vertical: AppDimensions.sm,
                 ),
-                child: Text(
-                  '${conversationState.unreadCountConversations}',
-                  style: AppTypography.bodyLarge.copyWith(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w800,
+                backgroundColor: Colors.white.safeOpacity(0.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+                ),
+              ),
+              icon: const Icon(
+                Icons.cloud_outlined,
+                size: AppDimensions.iconLg,
+                color: Colors.white70,
+              ),
+            ),
+            if (conversationState.unreadCountConversations > 0)
+              Positioned(
+                top: -16,
+                right: -2,
+                child: Container(
+                  padding: const EdgeInsets.all(AppDimensions.sm),
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    '${conversationState.unreadCountConversations}',
+                    style: AppTypography.bodyLarge.copyWith(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
-      );
-       },
-
+          ],
+        );
+      },
     );
   }
 }

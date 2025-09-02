@@ -84,34 +84,23 @@ class UserApiServiceImpl extends UserApiService {
       final statusCode = response.statusCode;
       final message = response.data['message'] ?? 'Unknown error';
       final errors = response.data['errors'];
-      
+
       logger.e('❌ Get Profile failed: $errors $message (Status: $statusCode)');
 
       if (statusCode == 401) {
-        return Left(UnauthorizedFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(
+          UnauthorizedFailure(message: message, statusCode: statusCode),
+        );
       } else if (statusCode == 403) {
-        return Left(AuthFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(AuthFailure(message: message, statusCode: statusCode));
       } else if (statusCode == 404) {
-        return Left(ProfileFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(ProfileFailure(message: message, statusCode: statusCode));
       } else if (statusCode == 422) {
-        return Left(ValidationFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(
+          ValidationFailure(message: message, statusCode: statusCode),
+        );
       } else {
-        return Left(ProfileFailure(
-          message: message,
-          statusCode: statusCode,
-        ));
+        return Left(ProfileFailure(message: message, statusCode: statusCode));
       }
     } catch (e) {
       logger.e('❌ Get Profile failed: ${e.toString()}');
@@ -119,18 +108,12 @@ class UserApiServiceImpl extends UserApiService {
       if (e is DioException) {
         final statusCode = e.response?.statusCode;
         final message = e.response?.data['message'] ?? 'Lỗi kết nối server';
-        
+
         // DioException will only occur for network issues or server errors (5xx)
         if (statusCode != null && statusCode >= 500) {
-          return Left(ServerFailure(
-            message: message,
-            statusCode: statusCode,
-          ));
+          return Left(ServerFailure(message: message, statusCode: statusCode));
         } else {
-          return Left(NetworkFailure(
-            message: message,
-            statusCode: statusCode,
-          ));
+          return Left(NetworkFailure(message: message, statusCode: statusCode));
         }
       }
 

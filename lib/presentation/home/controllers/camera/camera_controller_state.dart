@@ -135,8 +135,6 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     notifyListeners();
   }
 
-
-
   void setFadeController(FadeAnimationController? controller) {
     _fadeController = controller;
     notifyListeners();
@@ -161,7 +159,7 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     _isRecording = false;
     _recordingStartedAt = null;
     _recordingDuration = null;
-    _videoFile = null; 
+    _videoFile = null;
     print('Recording state reset');
     notifyListeners();
   }
@@ -186,8 +184,6 @@ class CameraControllerState extends ChangeNotifier implements TickerProvider {
     _errorMessage = null;
     notifyListeners();
   }
-
-
 
   @override
   void dispose() {

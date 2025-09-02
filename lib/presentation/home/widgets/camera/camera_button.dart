@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/common/wigets/take_button.dart';
+import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
 import 'package:provider/provider.dart';
 

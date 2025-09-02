@@ -44,7 +44,8 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
       DisplayMessage.success(context, 'Đăng nhập thành công');
       AppNavigator.pushAndRemove(context, '/home');
     } else {
-      final errorMessage = _authController.state.errorMessage ?? 'Đăng nhập thất bại';
+      final errorMessage =
+          _authController.state.errorMessage ?? 'Đăng nhập thất bại';
       DisplayMessage.error(context, errorMessage);
     }
   }
@@ -79,7 +80,9 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
               labelText: 'Mật khẩu',
               suffixIcon: IconButton(
                 icon: Icon(
-                  authState.obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  authState.obscurePassword
+                      ? Icons.visibility
+                      : Icons.visibility_off,
                 ),
                 onPressed: _authController.togglePasswordVisibility,
               ),
@@ -96,9 +99,10 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            child: authState.isLoading
-                ? const CircularProgressIndicator()
-                : const Text('Đăng nhập'),
+            child:
+                authState.isLoading
+                    ? const CircularProgressIndicator()
+                    : const Text('Đăng nhập'),
           ),
         ],
       ),

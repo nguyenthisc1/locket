@@ -1,6 +1,3 @@
-
-
-
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/domain/user/entities/user_profile_entity.dart';
 import 'package:locket/domain/user/usecase/get_profile_usecase.dart';
@@ -19,10 +16,12 @@ class UserController {
     required GetProfileUsecase getProfileUsecase,
     required UserService userService,
     Logger? logger,
-  })  : _state = state,
-        _getProfileUsecase = getProfileUsecase,
-        _userService = userService,
-        _logger = logger ?? Logger(printer: PrettyPrinter(colors: true, printEmojis: true));
+  }) : _state = state,
+       _getProfileUsecase = getProfileUsecase,
+       _userService = userService,
+       _logger =
+           logger ??
+           Logger(printer: PrettyPrinter(colors: true, printEmojis: true));
 
   // Getters for external access
   UserControllerState get state => _state;

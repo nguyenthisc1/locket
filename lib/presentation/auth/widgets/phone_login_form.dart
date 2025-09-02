@@ -6,8 +6,6 @@ import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/core/configs/theme/app_colors.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/presentation/auth/pages/email_login_page.dart';
-import 'package:locket/presentation/auth/pages/verify_phone_page.dart';
 
 class PhoneLoginForm extends StatefulWidget {
   const PhoneLoginForm({super.key});
@@ -112,8 +110,7 @@ class PhoneLoginFormState extends State<PhoneLoginForm> {
                 const SizedBox(height: AppDimensions.md),
 
                 ElevatedButton(
-                  onPressed:
-                      () => AppNavigator.push(context,'/'),
+                  onPressed: () => AppNavigator.push(context, '/'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.dark,
                     textStyle: const TextStyle(

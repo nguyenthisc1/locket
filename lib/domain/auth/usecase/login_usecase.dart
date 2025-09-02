@@ -8,7 +8,6 @@ class LoginUsecase {
 
   LoginUsecase(this._authRepository);
 
-
   Future<Either<Failure, BaseResponse>> call({
     required String identifier,
     required String password,
@@ -18,5 +17,4 @@ class LoginUsecase {
       password: password,
     );
   }
-  
 }

@@ -35,8 +35,7 @@ class OnboardingPage extends StatelessWidget {
               const SizedBox(height: AppDimensions.xl),
 
               ElevatedButton(
-                onPressed:
-                    () => AppNavigator.push(context, '/email-login'),
+                onPressed: () => AppNavigator.push(context, '/email-login'),
                 style: ElevatedButton.styleFrom(
                   textStyle: TextStyle(
                     fontSize: 24,

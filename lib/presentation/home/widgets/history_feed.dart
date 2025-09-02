@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
+import 'package:locket/domain/feed/entities/feed_entity.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:provider/provider.dart';
-import 'package:locket/domain/feed/entities/feed_entity.dart';
 
 class HistoryFeed extends StatefulWidget {
   const HistoryFeed({super.key});

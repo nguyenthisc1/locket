@@ -1,11 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:locket/core/models/last_message_model.dart';
-import 'package:locket/core/models/sender_model.dart';
-import 'package:locket/domain/conversation/entities/conversation_detail_entity.dart';
+
 import 'converstation_model.dart';
-
-
-
 
 class ThreadInfoModel extends Equatable {
   final int threadCount;
@@ -60,14 +56,21 @@ class ConversationDetailModel extends Equatable {
   /// Parses participants based on group type:
   /// - For groups (isGroup = true): participants should be a List
   /// - For single conversations (isGroup = false): participants should be a Map (single participant)
-  static List<ConversationParticipantModel> _parseParticipants(dynamic jsonValue, bool isGroup) {
+  static List<ConversationParticipantModel> _parseParticipants(
+    dynamic jsonValue,
+    bool isGroup,
+  ) {
     if (jsonValue == null) return [];
-    
+
     if (isGroup) {
       // For groups, expect a list of participants
       if (jsonValue is List) {
         return jsonValue
-            .map((e) => ConversationParticipantModel.fromJson(e as Map<String, dynamic>))
+            .map(
+              (e) => ConversationParticipantModel.fromJson(
+                e as Map<String, dynamic>,
+              ),
+            )
             .toList();
       } else if (jsonValue is Map<String, dynamic>) {
         // Fallback: if single participant provided for group, wrap in list
@@ -79,39 +82,57 @@ class ConversationDetailModel extends Equatable {
         return [ConversationParticipantModel.fromJson(jsonValue)];
       } else if (jsonValue is List && jsonValue.isNotEmpty) {
         // Fallback: if list provided for single conversation, take first participant
-        return [ConversationParticipantModel.fromJson(jsonValue.first as Map<String, dynamic>)];
+        return [
+          ConversationParticipantModel.fromJson(
+            jsonValue.first as Map<String, dynamic>,
+          ),
+        ];
       }
     }
-    
+
     return [];
   }
 
   factory ConversationDetailModel.fromJson(Map<String, dynamic> json) {
     final isGroup = json['isGroup'] as bool? ?? false;
-    
+
     return ConversationDetailModel(
       id: json['id'] as String,
       name: json['name'] as String?,
       participants: _parseParticipants(json['participants'], isGroup),
       isGroup: isGroup,
-      groupSettings: json['groupSettings'] != null
-          ? GroupSettingsModel.fromJson(json['groupSettings'] as Map<String, dynamic>)
-          : null,
-      lastMessage: json['lastMessage'] != null
-          ? LastMessageModel.fromJson(json['lastMessage'] as Map<String, dynamic>)
-          : null,
-      threadInfo: json['threadInfo'] != null
-          ? ThreadInfoModel.fromJson(json['threadInfo'] as Map<String, dynamic>)
-          : null,
+      groupSettings:
+          json['groupSettings'] != null
+              ? GroupSettingsModel.fromJson(
+                json['groupSettings'] as Map<String, dynamic>,
+              )
+              : null,
+      lastMessage:
+          json['lastMessage'] != null
+              ? LastMessageModel.fromJson(
+                json['lastMessage'] as Map<String, dynamic>,
+              )
+              : null,
+      threadInfo:
+          json['threadInfo'] != null
+              ? ThreadInfoModel.fromJson(
+                json['threadInfo'] as Map<String, dynamic>,
+              )
+              : null,
       isActive: json['isActive'] as bool? ?? false,
       pinnedMessages: List<dynamic>.from(json['pinnedMessages'] ?? []),
       settings: ConversationSettingsModel.fromJson(json['settings'] ?? {}),
-      startedAt: DateTime.tryParse(json['startedAt']?.toString() ?? '') ?? DateTime.now(),
+      startedAt:
+          DateTime.tryParse(json['startedAt']?.toString() ?? '') ??
+          DateTime.now(),
       readReceipts: List<dynamic>.from(json['readReceipts'] ?? []),
-      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'].toString())
-          : null,
+      createdAt:
+          DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          json['updatedAt'] != null
+              ? DateTime.tryParse(json['updatedAt'].toString())
+              : null,
     );
   }
 
@@ -136,19 +157,19 @@ class ConversationDetailModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        participants,
-        isGroup,
-        groupSettings,
-        lastMessage,
-        threadInfo,
-        isActive,
-        pinnedMessages,
-        settings,
-        startedAt,
-        readReceipts,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    name,
+    participants,
+    isGroup,
+    groupSettings,
+    lastMessage,
+    threadInfo,
+    isActive,
+    pinnedMessages,
+    settings,
+    startedAt,
+    readReceipts,
+    createdAt,
+    updatedAt,
+  ];
 }

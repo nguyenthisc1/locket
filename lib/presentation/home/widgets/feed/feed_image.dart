@@ -18,7 +18,7 @@ class FeedImage extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {  
+  Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       height: MediaQuery.of(context).size.height * 0.45,
@@ -41,7 +41,9 @@ class FeedImage extends StatelessWidget {
 
     return Transform(
       alignment: Alignment.center,
-      transform: isFront ? Matrix4.rotationY(math.pi) : Matrix4.identity() ..scale(1.2, 1.2),
+      transform:
+          isFront ? Matrix4.rotationY(math.pi) : Matrix4.identity()
+            ..scale(1.2, 1.2),
       child: child,
     );
   }

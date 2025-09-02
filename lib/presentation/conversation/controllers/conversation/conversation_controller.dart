@@ -82,23 +82,26 @@ class ConversationController {
   }
 
   /// Refresh feed data (pull-to-refresh)
-  Future<void> refreshConversations([String? query, DateTime? lastCreatedAt]) async {
-    await fetchConversations(
-      isRefresh: true,
-    );
+  Future<void> refreshConversations([
+    String? query,
+    DateTime? lastCreatedAt,
+  ]) async {
+    await fetchConversations(isRefresh: true);
   }
 
   Future<void> fetchUnreadCountConversation() async {
-     try {
+    try {
       final result = await _unreadCountConversationsUsecase();
 
       result.fold(
         (failure) {
-          _logger.e('Failed to fetch Unread Count Conversations: ${failure.message}');
+          _logger.e(
+            'Failed to fetch Unread Count Conversations: ${failure.message}',
+          );
           _state.setError(failure.message);
 
           // If it's a fresh fetch (not refresh) and we have no cached data, clear the list
-          if ( _state.unreadCountConversations < 0) {
+          if (_state.unreadCountConversations < 0) {
             _state.setUnreadCountConversations(0);
           }
         },
@@ -106,8 +109,7 @@ class ConversationController {
           _logger.d('Feed Unread Count Conversations successfully');
           _state.clearError();
 
-          final unreadCount =
-              response.data['unreadCount'] as int;
+          final unreadCount = response.data['unreadCount'] as int;
 
           _state.setUnreadCountConversations(unreadCount);
         },
@@ -119,7 +121,7 @@ class ConversationController {
       if (_state.unreadCountConversations < 0) {
         _state.setUnreadCountConversations(0);
       }
-    } 
+    }
   }
 
   /// Dispose resources

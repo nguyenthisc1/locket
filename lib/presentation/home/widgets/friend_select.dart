@@ -42,7 +42,10 @@ class FriendSelect extends StatelessWidget {
           initialLabel: 'Mọi người',
           items: dropdownItems,
           onChanged: (value) async {
-            await feedController.fetchFeed(query: value.toString(), isRefresh: true);
+            await feedController.fetchFeed(
+              query: value.toString(),
+              isRefresh: true,
+            );
           },
           dropdownChildBuilder: (index, item, selectedItem) {
             // Handle separator
@@ -81,7 +84,11 @@ class FriendSelect extends StatelessWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: Colors.white30, size: AppDimensions.iconMd,),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: Colors.white30,
+                    size: AppDimensions.iconMd,
+                  ),
                 ],
               ),
             );

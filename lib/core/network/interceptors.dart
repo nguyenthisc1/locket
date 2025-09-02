@@ -84,53 +84,52 @@ class TokenRefreshInterceptor extends Interceptor {
 
   /// Returns a configured [Fresh] interceptor for token management.
   Fresh<AuthTokenPair> get fresh => Fresh<AuthTokenPair>(
-        tokenStorage: _tokenStorage,
-        tokenHeader: (token) {
-          // Add the access token to the Authorization header for each request.
-          if (token.accessToken.isEmpty) {
-            // Defensive: Do not add header if token is missing.
-            return <String, String>{};
-          }
-          return {'Authorization': 'Bearer ${token.accessToken}'};
-        },
-        refreshToken: (token, client) async {
-          // Attempt to refresh the token when a 401 is encountered.
-          if (token == null ||
-              token.refreshToken.isEmpty ||
-              token.accessToken.isEmpty) {
-            // Defensive: If tokens are missing, trigger logout.
-            throw RevokeTokenException();
-          }
-          try {
-            final response = await client.post(
-              ApiUrl.refreshToken,
-              data: {
-                'refreshToken': token.refreshToken,
-                'accessToken': token.accessToken,
-              },
-            );
+    tokenStorage: _tokenStorage,
+    tokenHeader: (token) {
+      // Add the access token to the Authorization header for each request.
+      if (token.accessToken.isEmpty) {
+        // Defensive: Do not add header if token is missing.
+        return <String, String>{};
+      }
+      return {'Authorization': 'Bearer ${token.accessToken}'};
+    },
+    refreshToken: (token, client) async {
+      // Attempt to refresh the token when a 401 is encountered.
+      if (token == null ||
+          token.refreshToken.isEmpty ||
+          token.accessToken.isEmpty) {
+        // Defensive: If tokens are missing, trigger logout.
+        throw RevokeTokenException();
+      }
+      try {
+        final response = await client.post(
+          ApiUrl.refreshToken,
+          data: {
+            'refreshToken': token.refreshToken,
+            'accessToken': token.accessToken,
+          },
+        );
 
-            final newTokens = response.data;
-            if (newTokens == null ||
-                newTokens['accessToken'] == null ||
-                newTokens['refreshToken'] == null) {
-              // Defensive: If response is malformed, trigger logout.
-              throw RevokeTokenException();
-            }
+        final newTokens = response.data;
+        if (newTokens == null ||
+            newTokens['accessToken'] == null ||
+            newTokens['refreshToken'] == null) {
+          // Defensive: If response is malformed, trigger logout.
+          throw RevokeTokenException();
+        }
 
-            return AuthTokenPair(
-              accessToken: newTokens['accessToken'] as String,
-              refreshToken: newTokens['refreshToken'] as String,
-            );
-          } catch (e) {
-            // If refresh fails, throw to trigger logout.
-            throw RevokeTokenException();
-          }
-        },
-        shouldRefresh: (response) {
-          // Only attempt refresh on HTTP 401 Unauthorized.
-          return response?.statusCode == 401;
-        },
-      );
+        return AuthTokenPair(
+          accessToken: newTokens['accessToken'] as String,
+          refreshToken: newTokens['refreshToken'] as String,
+        );
+      } catch (e) {
+        // If refresh fails, throw to trigger logout.
+        throw RevokeTokenException();
+      }
+    },
+    shouldRefresh: (response) {
+      // Only attempt refresh on HTTP 401 Unauthorized.
+      return response?.statusCode == 401;
+    },
+  );
 }
-

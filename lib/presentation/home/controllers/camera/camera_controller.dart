@@ -1,8 +1,8 @@
 // ignore_for_file: avoid_print
 import 'package:camera/camera.dart' as cam;
 import 'package:locket/common/animations/fade_animation_controller.dart';
-import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 import 'package:locket/domain/feed/entities/feed_entity.dart';
+import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 
 /// Business logic class for camera operations - uses CameraControllerState
 class CameraController {
@@ -157,8 +157,15 @@ class CameraController {
       _state.setPictureTaken(true, DateTime.now());
 
       // Create draft feed via feed controller
-      final isFrontCamera = _state.controller?.description.lensDirection == cam.CameraLensDirection.front;
-      _state.feedController.createDraftFeed(image.path, MediaType.image, image.name, isFrontCamera);
+      final isFrontCamera =
+          _state.controller?.description.lensDirection ==
+          cam.CameraLensDirection.front;
+      _state.feedController.createDraftFeed(
+        image.path,
+        MediaType.image,
+        image.name,
+        isFrontCamera,
+      );
 
       print('Picture taken successfully: ${image.path}');
     } on cam.CameraException catch (e) {
@@ -213,8 +220,15 @@ class CameraController {
       _state.setPictureTaken(true, endTime); // Mark as media captured
 
       // Create draft feed via feed controller
-      final isFrontCamera = _state.controller?.description.lensDirection == cam.CameraLensDirection.front;
-      _state.feedController.createDraftFeed(video.path, MediaType.video, video.name, isFrontCamera);
+      final isFrontCamera =
+          _state.controller?.description.lensDirection ==
+          cam.CameraLensDirection.front;
+      _state.feedController.createDraftFeed(
+        video.path,
+        MediaType.video,
+        video.name,
+        isFrontCamera,
+      );
 
       print('Video recording stopped at: $endTime');
       print('Recording duration: ${_state.getFormattedRecordingDuration()}');
@@ -257,13 +271,13 @@ class CameraController {
   /// Cancel current draft (removes draft feed from list)
   void cancelDraft() {
     print('Canceling current draft...');
-    
+
     // Remove draft feed from list if it exists
     _state.feedController.resetUploadState();
-    
+
     // Reset camera state
     resetState();
-    
+
     print('Draft canceled successfully');
   }
 
@@ -285,12 +299,19 @@ class CameraController {
       final isVideo = _state.videoFile != null;
       final mediaType = isVideo ? 'video' : 'image';
       final fileName = mediaFile.name;
-      final isFrontCamera = _state.controller?.description.lensDirection == cam.CameraLensDirection.front;
+      final isFrontCamera =
+          _state.controller?.description.lensDirection ==
+          cam.CameraLensDirection.front;
 
       print('Uploading $mediaType: $fileName');
 
       // Upload via feed controller
-      await _state.feedController.uploadMedia(mediaFile.path, fileName, mediaType, isFrontCamera);
+      await _state.feedController.uploadMedia(
+        mediaFile.path,
+        fileName,
+        mediaType,
+        isFrontCamera,
+      );
 
       // Reset state after successful upload (the feed controller handles the delay)
       Future.delayed(const Duration(seconds: 2), () {
@@ -300,7 +321,7 @@ class CameraController {
       _logError('Upload exception', e.toString());
     }
   }
-  
+
   /// Get current recording status for UI
   String getRecordingStatus() {
     if (!_state.isRecording) return 'Not recording';
@@ -337,8 +358,6 @@ class CameraController {
       await stopVideoRecording();
     }
   }
-
-
 
   /// Dispose resources
   void dispose() {

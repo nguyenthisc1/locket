@@ -44,24 +44,27 @@ class _FeedVideoState extends State<FeedVideo> {
       _controller = VideoPlayerController.network(videoPath);
     }
 
-    _controller.initialize().then((_) {
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
+    _controller
+        .initialize()
+        .then((_) {
+          if (mounted) {
+            setState(() {
+              _isInitialized = true;
+            });
+            _controller.setLooping(true);
+            if (widget.autoplay) {
+              _controller.play();
+            }
+          }
+        })
+        .catchError((error) {
+          if (mounted) {
+            setState(() {
+              _hasError = true;
+            });
+          }
+          print('Video player error: $error');
         });
-        _controller.setLooping(true);
-        if (widget.autoplay) {
-          _controller.play();
-        }
-      }
-    }).catchError((error) {
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-        });
-      }
-      print('Video player error: $error');
-    });
   }
 
   bool _isLocalFilePath(String path) {
@@ -107,11 +110,12 @@ class _FeedVideoState extends State<FeedVideo> {
 
     return Transform(
       alignment: Alignment.center,
-      transform: widget.isFront
-          ? (Matrix4.identity()
-            ..scale(-1.0, 1.5)
-            ..scale(1.0, 1.1))
-          : (Matrix4.identity()..scale(1.0, 1.65)),
+      transform:
+          widget.isFront
+              ? (Matrix4.identity()
+                ..scale(-1.0, 1.5)
+                ..scale(1.0, 1.1))
+              : (Matrix4.identity()..scale(1.0, 1.65)),
       child: VideoPlayer(_controller),
     );
   }

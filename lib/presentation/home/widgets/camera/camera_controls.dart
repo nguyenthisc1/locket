@@ -13,7 +13,7 @@ class CameraControls extends StatelessWidget {
     // Access both state and controller via provider - no props needed!
     final cameraState = context.watch<CameraControllerState>();
     final cameraController = context.read<CameraController>();
-    
+
     return Column(
       children: [
         // Top controls row
@@ -25,7 +25,8 @@ class CameraControls extends StatelessWidget {
             _buildControlButton(
               onTap: cameraController.toggleFlash,
               icon: cameraState.isFlashOn ? Icons.flash_on : Icons.flash_off,
-              iconColor: cameraState.isFlashOn ? AppColors.primary : Colors.white70,
+              iconColor:
+                  cameraState.isFlashOn ? AppColors.primary : Colors.white70,
             ),
 
             // ZOOM CONTROLS

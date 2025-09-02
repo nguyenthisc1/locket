@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
-import 'package:locket/domain/conversation/entities/conversation_detail_entity.dart';
 
 class ConversationEntity extends Equatable {
   final String id;

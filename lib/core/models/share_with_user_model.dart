@@ -4,10 +4,7 @@ class SharedWithUser extends Equatable {
   final String id;
   final String? username;
 
-  const SharedWithUser({
-    required this.id,
-    this.username,
-  });
+  const SharedWithUser({required this.id, this.username});
 
   factory SharedWithUser.fromJson(Map<String, dynamic> json) {
     return SharedWithUser(
@@ -16,10 +13,7 @@ class SharedWithUser extends Equatable {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        '_id': id,
-        'username': username,
-      };
+  Map<String, dynamic> toJson() => {'_id': id, 'username': username};
 
   @override
   List<Object?> get props => [id, username];

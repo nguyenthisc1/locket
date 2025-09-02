@@ -37,39 +37,40 @@ class FriendTopbar extends StatelessWidget {
       builder: (context, userService, child) {
         final friends = userService.currentUser?.friends;
 
-      return GestureDetector(
-        onTap: () => _showFriendBottomSheet(context),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: AppDimensions.md,
-            vertical: AppDimensions.sm,
-          ),
-          decoration: BoxDecoration(
-            // ignore: deprecated_member_use
-            color: Colors.white.safeOpacity(0.2),
-            borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-          ),
-          child: Row(
-            children: [
-              // Icon double user
-              const Icon(
-                Icons.people,
-                size: AppDimensions.iconLg,
-                color: Colors.white70,
-              ),
-              const SizedBox(width: AppDimensions.sm),
-              // Count friend
-              Text(
-                '${(friends == null || friends.isEmpty) ? '0' : friends.length.toString()} người bạn',
-                style: AppTypography.headlineMedium.copyWith(
-                  fontWeight: FontWeight.w800,
+        return GestureDetector(
+          onTap: () => _showFriendBottomSheet(context),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppDimensions.md,
+              vertical: AppDimensions.sm,
+            ),
+            decoration: BoxDecoration(
+              // ignore: deprecated_member_use
+              color: Colors.white.safeOpacity(0.2),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+            ),
+            child: Row(
+              children: [
+                // Icon double user
+                const Icon(
+                  Icons.people,
+                  size: AppDimensions.iconLg,
                   color: Colors.white70,
                 ),
-              ),
-            ],
+                const SizedBox(width: AppDimensions.sm),
+                // Count friend
+                Text(
+                  '${(friends == null || friends.isEmpty) ? '0' : friends.length.toString()} người bạn',
+                  style: AppTypography.headlineMedium.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      );}
+        );
+      },
     );
   }
 }

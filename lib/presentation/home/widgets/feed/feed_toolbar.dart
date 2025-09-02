@@ -24,10 +24,7 @@ class FeedToolbar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        BuildIconButton(
-          onPressed: onGalleryTap,
-          icon: Icons.menu,
-        ),
+        BuildIconButton(onPressed: onGalleryTap, icon: Icons.menu),
         GestureDetector(
           onTap: onScrollToTop,
           child: TakeButton(size: AppDimensions.xxl),

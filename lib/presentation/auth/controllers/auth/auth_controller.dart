@@ -15,10 +15,12 @@ class AuthController {
     required LoginUsecase loginUsecase,
     required UserService userService,
     Logger? logger,
-  })  : _state = state,
-        _loginUsecase = loginUsecase,
-        _userService = userService,
-        _logger = logger ?? Logger(printer: PrettyPrinter(colors: true, printEmojis: true));
+  }) : _state = state,
+       _loginUsecase = loginUsecase,
+       _userService = userService,
+       _logger =
+           logger ??
+           Logger(printer: PrettyPrinter(colors: true, printEmojis: true));
 
   // Getters for external access
   AuthControllerState get state => _state;

@@ -13,7 +13,7 @@ class InitializeHomeUsecase {
     try {
       // Load cached user first
       await _userService.loadUserFromStorage();
-      
+
       // If no cached user, return failure
       if (!_userService.isLoggedIn) {
         // Try to fetch fresh profile
@@ -23,10 +23,10 @@ class InitializeHomeUsecase {
           (success) => const Right(true),
         );
       }
-      
+
       return const Right(true);
     } catch (e) {
-      return Left(ServerFailure( message: 'Failed to initialize home: $e'));
+      return Left(ServerFailure(message: 'Failed to initialize home: $e'));
     }
   }
 }

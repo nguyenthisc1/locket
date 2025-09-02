@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
-import 'package:locket/core/entities/sender_entity.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 
 class ThreadInfoEntity extends Equatable {

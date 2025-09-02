@@ -14,7 +14,8 @@ class CustomDropdown extends StatefulWidget {
     int index,
     Map<String, String> item,
     String selectedValue,
-  ) dropdownChildBuilder;
+  )
+  dropdownChildBuilder;
 
   const CustomDropdown({
     super.key,
@@ -43,7 +44,11 @@ class _CustomDropdownState extends State<CustomDropdown>
     // Find initial value from label, fallback to first item's value
     final initialItem = widget.items.firstWhere(
       (item) => item['label'] == widget.initialLabel,
-      orElse: () => widget.items.isNotEmpty ? widget.items.first : {'label': '', 'value': '', 'avatarUrl': ''},
+      orElse:
+          () =>
+              widget.items.isNotEmpty
+                  ? widget.items.first
+                  : {'label': '', 'value': '', 'avatarUrl': ''},
     );
     _selectedValue = initialItem['value'] ?? initialItem['label'] ?? '';
     _arrowController = AnimationController(
@@ -175,7 +180,6 @@ class _CustomDropdownState extends State<CustomDropdown>
               Icons.keyboard_arrow_down,
               size: AppDimensions.iconMd,
               color: Colors.white70,
-
             ),
           ),
         ],
@@ -192,7 +196,8 @@ class _DropdownItemsMenu extends StatefulWidget {
     int index,
     Map<String, String> item,
     String selectedValue,
-  ) dropdownChildBuilder;
+  )
+  dropdownChildBuilder;
   final VoidCallback onDismissed;
   final void Function(VoidCallback close) registerClose;
 
@@ -264,19 +269,20 @@ class _DropdownItemsMenuState extends State<_DropdownItemsMenu>
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: widget.items.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                final value = item['value'] ?? item['label'] ?? '';
-                return InkWell(
-                  onTap: () => _select(value),
-                  child: widget.dropdownChildBuilder(
-                    index,
-                    item,
-                    widget.selectedValue,
-                  ),
-                );
-              }).toList(),
+              children:
+                  widget.items.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final item = entry.value;
+                    final value = item['value'] ?? item['label'] ?? '';
+                    return InkWell(
+                      onTap: () => _select(value),
+                      child: widget.dropdownChildBuilder(
+                        index,
+                        item,
+                        widget.selectedValue,
+                      ),
+                    );
+                  }).toList(),
             ),
           ),
         ),
