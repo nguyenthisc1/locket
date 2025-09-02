@@ -57,7 +57,7 @@ class _ConversationListState extends State<ConversationList> {
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => AppNavigator.push(context, '/converstion/:id'),
-          child: ConverstationItem(data: conversation),
+          child: ConversationItem(data: conversation),
         );
       },
     );

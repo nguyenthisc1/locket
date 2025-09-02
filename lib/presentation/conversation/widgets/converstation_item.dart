@@ -2,29 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:locket/common/helper/utils.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/core/services/user_service.dart';
+import 'package:locket/di.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 
-class ConverstationItem extends StatelessWidget {
+class ConversationItem extends StatelessWidget {
   final ConversationEntity data;
 
-  const ConverstationItem({super.key, required this.data});
+  const ConversationItem({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
-    final String lastMessageText = data.lastMessage!.text;
-    final DateTime timestampText = data.lastMessage!.timestamp;
-    final bool isRead = data.lastMessage!.isRead;
-    final String nameText = data.name!;
-    final String? imageUrl = data.participants[0].avatarUrl;
+    final currentUserId = getIt<UserService>().currentUser?.id;
+    final lastMessage = data.lastMessage;
+    final String lastMessageText = lastMessage?.text ?? '';
+    final DateTime? timestamp = lastMessage?.timestamp;
+    final bool isRead = lastMessage?.isRead ?? true;
+    final String nameText = data.name ?? '';
+    final String? imageUrl = data.participants.isNotEmpty ? data.participants[0].avatarUrl : null;
+    final String senderId = lastMessage?.sender.id ?? '';
+    final bool isMine = senderId == currentUserId;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // AVT
+        // Avatar with unread indicator
         Stack(
           clipBehavior: Clip.none,
           children: [
-            if (!isRead)
+            if (!isMine && !isRead)
               Positioned(
                 top: -8,
                 left: -8,
@@ -45,7 +51,7 @@ class ConverstationItem extends StatelessWidget {
         ),
         const SizedBox(width: AppDimensions.md),
 
-        // NAME
+        // Name and message
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,7 +69,7 @@ class ConverstationItem extends StatelessWidget {
                   ),
                   const SizedBox(width: AppDimensions.sm),
                   Text(
-                    formatVietnameseTimestamp(timestampText),
+                    timestamp != null ? formatVietnameseTimestamp(timestamp) : '',
                     style: AppTypography.bodySmall.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
@@ -77,7 +83,9 @@ class ConverstationItem extends StatelessWidget {
                 lastMessageText,
                 style: AppTypography.headlineLarge.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: isRead ? AppColors.textSecondary : Colors.white,
+                  color: isMine || isRead
+                      ? AppColors.textSecondary
+                      : Colors.white,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
