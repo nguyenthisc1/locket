@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
@@ -10,12 +11,11 @@ class ConverstationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Defensive: fallback for missing lastMessage
-    final String lastMessageText = data.lastMessage?.text ?? '';
-    final String timestampText = data.lastMessage?.timestamp.toString() ?? '';
-    final bool isRead = data.lastMessage?.isRead ?? false;
+    final String lastMessageText = data.lastMessage!.text;
+    final DateTime timestampText = data.lastMessage!.timestamp;
+    final bool isRead = data.lastMessage!.isRead;
     final String nameText = data.name!;
-    final String imageUrl = data.participants[0].avatarUrl!;
+    final String? imageUrl = data.participants[0].avatarUrl;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -63,7 +63,7 @@ class ConverstationItem extends StatelessWidget {
                   ),
                   const SizedBox(width: AppDimensions.sm),
                   Text(
-                    timestampText,
+                    formatVietnameseTimestamp(timestampText),
                     style: AppTypography.bodySmall.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
@@ -77,6 +77,7 @@ class ConverstationItem extends StatelessWidget {
                 lastMessageText,
                 style: AppTypography.headlineLarge.copyWith(
                   fontWeight: FontWeight.w800,
+                  color: isRead ? AppColors.textSecondary : Colors.white,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

@@ -15,7 +15,7 @@ class SenderModel extends Equatable {
 
   factory SenderModel.fromJson(Map<String, dynamic> json) {
     return SenderModel(
-      id: json['id'] as String,
+      id: (json['_id'] ?? json['id']) as String,
       username: json['username'] as String,
       avatarUrl: json['avatarUrl'] as String?,
     );
@@ -155,26 +155,43 @@ class ConversationDetailModel extends Equatable {
     this.updatedAt,
   });
 
-  /// Accepts both a List or a single Map for participants.
-  static List<ConversationParticipantModel> _parseParticipants(dynamic jsonValue) {
+  /// Parses participants based on group type:
+  /// - For groups (isGroup = true): participants should be a List
+  /// - For single conversations (isGroup = false): participants should be a Map (single participant)
+  static List<ConversationParticipantModel> _parseParticipants(dynamic jsonValue, bool isGroup) {
     if (jsonValue == null) return [];
-    if (jsonValue is List) {
-      return jsonValue
-          .map((e) => ConversationParticipantModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } else if (jsonValue is Map<String, dynamic>) {
-      // Single participant as object
-      return [ConversationParticipantModel.fromJson(jsonValue)];
+    
+    if (isGroup) {
+      // For groups, expect a list of participants
+      if (jsonValue is List) {
+        return jsonValue
+            .map((e) => ConversationParticipantModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else if (jsonValue is Map<String, dynamic>) {
+        // Fallback: if single participant provided for group, wrap in list
+        return [ConversationParticipantModel.fromJson(jsonValue)];
+      }
+    } else {
+      // For single conversations, expect a single participant as Map
+      if (jsonValue is Map<String, dynamic>) {
+        return [ConversationParticipantModel.fromJson(jsonValue)];
+      } else if (jsonValue is List && jsonValue.isNotEmpty) {
+        // Fallback: if list provided for single conversation, take first participant
+        return [ConversationParticipantModel.fromJson(jsonValue.first as Map<String, dynamic>)];
+      }
     }
+    
     return [];
   }
 
   factory ConversationDetailModel.fromJson(Map<String, dynamic> json) {
+    final isGroup = json['isGroup'] as bool? ?? false;
+    
     return ConversationDetailModel(
       id: json['id'] as String,
       name: json['name'] as String?,
-      participants: _parseParticipants(json['participants']),
-      isGroup: json['isGroup'] as bool? ?? false,
+      participants: _parseParticipants(json['participants'], isGroup),
+      isGroup: isGroup,
       groupSettings: json['groupSettings'] != null
           ? GroupSettingsModel.fromJson(json['groupSettings'] as Map<String, dynamic>)
           : null,

@@ -37,15 +37,17 @@ class _HomePageState extends State<HomePage> {
     _homeController = getIt<HomeController>();
     _feedController = getIt<FeedController>();
     _conversationController = getIt<ConversationController>();
-    
+
     // Initialize both controllers
     _homeController.init();
-    
+
     // Fetch feeds when HomePage is mounted
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _feedController.fetchInitialFeeds();
-        _conversationController.fetchUnreadCountConversation();
+        _conversationController
+          ..fetchConversations()
+          ..fetchUnreadCountConversation();
       }
     });
   }
@@ -91,14 +93,14 @@ class _HomePageState extends State<HomePage> {
               scrollDirection: Axis.vertical,
               children: [
                 _CameraSection(
-                  onHistoryFeedTap: () =>
-                      _homeController.handleScrollPageViewOuter(1),
+                  onHistoryFeedTap:
+                      () => _homeController.handleScrollPageViewOuter(1),
                 ),
                 _FeedSection(
                   innerController: _homeController.innerController,
                   outerController: _homeController.outerController,
-                  onScrollFeedToTop: () =>
-                      _homeController.handleScrollPageViewOuter(0),
+                  onScrollFeedToTop:
+                      () => _homeController.handleScrollPageViewOuter(0),
                 ),
               ],
             ),
@@ -111,17 +113,13 @@ class _HomePageState extends State<HomePage> {
   Widget _buildAppBarActions(HomeControllerState homeState) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.md,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const UserImage(),
-            homeState.enteredFeed
-                ? const FriendSelect()
-                : const FriendTopbar(),
+            homeState.enteredFeed ? const FriendSelect() : const FriendTopbar(),
             const MessButton(),
           ],
         ),
@@ -142,9 +140,7 @@ class _CameraSection extends StatelessWidget {
         ChangeNotifierProvider<CameraControllerState>.value(
           value: getIt<CameraControllerState>(),
         ),
-        Provider<CameraController>.value(
-          value: getIt<CameraController>(),
-        )
+        Provider<CameraController>.value(value: getIt<CameraController>()),
       ],
       child: Stack(
         children: [

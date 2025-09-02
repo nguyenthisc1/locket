@@ -6,10 +6,15 @@ import 'package:locket/core/mappers/conversation_mapper.dart';
 import 'package:locket/core/models/base_response_model.dart';
 import 'package:locket/core/network/dio_client.dart';
 import 'package:locket/data/conversation/models/converstation_model.dart';
+import 'package:locket/domain/conversation/entities/conversation_detail_entity.dart';
 import 'package:logger/logger.dart';
 
 abstract class ConversationApiService {
   Future<Either<Failure, BaseResponse>> getConversations(int? limit);
+  Future<Either<Failure, BaseResponse>> getConversation({
+    required String conversationId,
+    int? limit,
+  });
   Future<Either<Failure, BaseResponse>> unreadCountConversations();
 }
 
@@ -31,14 +36,14 @@ class ConversationApiServiceImpl extends ConversationApiService {
         ApiUrl.getUserConversations,
         queryParameters: queryParameters,
       );
-      logger.d('response feed: ${response.data}');
+      logger.d('response conversations: ${response.data}');
 
-      if (response.statusCode == 200 && response.data.isNotEmty) {
-        final conversations = ConversationMapper.toEntityList(
-          response.data['data']['conversations']
-              .map((json) => ConversationModel.fromJson(json))
-              .toList(),
-        );
+      if (response.statusCode == 200 && response.data.isNotEmpty) {
+        final conversationsJson = response.data['data']['conversations'] as List<dynamic>;
+        final conversationModels = conversationsJson
+            .map((json) => ConversationModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+        final conversations = ConversationMapper.toEntityList(conversationModels);
 
         final data = {'conversations': conversations};
         logger.d('conversations $data');
@@ -83,6 +88,86 @@ class ConversationApiServiceImpl extends ConversationApiService {
       }
     } catch (e) {
       logger.e('❌ Get Conversation failed: ${e.toString()}');
+
+      if (e is DioException) {
+        final statusCode = e.response?.statusCode;
+        final message = e.response?.data['message'] ?? 'Lỗi kết nối server';
+
+        // DioException will only occur for network issues or server errors (5xx)
+        if (statusCode != null && statusCode >= 500) {
+          return Left(ServerFailure(message: message, statusCode: statusCode));
+        } else {
+          return Left(NetworkFailure(message: message, statusCode: statusCode));
+        }
+      }
+
+      return Left(DataFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BaseResponse>> getConversation({
+    required String conversationId,
+    int? limit,
+  }) async {
+    try {
+      final Map<String, dynamic> queryParameters = {};
+      queryParameters['limit'] = limit ?? '10';
+
+      final response = await dioClient.get(
+        ApiUrl.getConversationById(conversationId),
+        queryParameters: queryParameters,
+      );
+      logger.d('response conversation detail: ${response.data}');
+
+      if (response.statusCode == 200 && response.data.isNotEmty) {
+        final conversation = ConversationDetailEntity.fromJson(
+          response.data['data'],
+        );
+
+        final data = {'conversation': conversation};
+        logger.d('conversation detail $data');
+
+        final baseResponse = BaseResponse<Map<String, dynamic>>(
+          success: response.data['success'],
+          message: response.data['message'],
+          data: data,
+          errors: response.data['errors'],
+        );
+
+        return Right(baseResponse);
+      }
+      // Handle specific status codes (since they're not treated as exceptions)
+      final statusCode = response.statusCode;
+      final message = response.data['message'] ?? 'Unknown error';
+      final errors = response.data['errors'];
+
+      logger.e(
+        '❌ Get conversation detail failed: $errors $message (Status: $statusCode)',
+      );
+
+      if (statusCode == 401) {
+        return Left(
+          UnauthorizedFailure(message: message, statusCode: statusCode),
+        );
+      } else if (statusCode == 403) {
+        return Left(AuthFailure(message: message, statusCode: statusCode));
+      } else if (statusCode == 404) {
+        return Left(
+          DataFailure(
+            message: 'conversation detail not found',
+            statusCode: statusCode,
+          ),
+        );
+      } else if (statusCode == 422) {
+        return Left(
+          ValidationFailure(message: message, statusCode: statusCode),
+        );
+      } else {
+        return Left(DataFailure(message: message, statusCode: statusCode));
+      }
+    } catch (e) {
+      logger.e('❌ Get conversation detail failed: ${e.toString()}');
 
       if (e is DioException) {
         final statusCode = e.response?.statusCode;

@@ -46,4 +46,23 @@ class ConversationRepositoryImpl extends ConversationRepository {
       },
     );
   }
+  
+  @override
+  Future<Either<Failure, BaseResponse>> getConversation({
+    required String conversationId,
+    int? limit
+  }) async {
+   final result = await _conversationApiService.getConversation(conversationId: conversationId, limit: limit);
+
+    return result.fold(
+      (failure) {
+        logger.e('Repository Get Conversation detail failed: ${failure.toString()}');
+        return Left(failure);
+      },
+      (result) {
+        logger.d('Repository Get Conversation detail successful for: ${result.data}');
+        return Right(result);
+      },
+    );
+  }
 }

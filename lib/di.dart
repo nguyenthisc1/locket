@@ -37,6 +37,8 @@ import 'package:locket/presentation/home/controllers/home/home_controller.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller_state.dart';
 import 'package:locket/presentation/user/controllers/user/user_controller.dart';
 import 'package:locket/presentation/user/controllers/user/user_controller_state.dart';
+import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
+
 
 final getIt = GetIt.instance;
 
@@ -98,6 +100,9 @@ void setupDependencies() {
   getIt.registerFactory<GetConversationsUsecase>(
     () => GetConversationsUsecase(getIt<ConversationRepository>()),
   );
+   getIt.registerFactory<GetConversationDetailUsecase>(
+    () => GetConversationDetailUsecase(getIt<ConversationRepository>()),
+  );
   getIt.registerFactory<UnreadCountConversationsUsecase>(
     () => UnreadCountConversationsUsecase(getIt<ConversationRepository>()),
   );
@@ -132,6 +137,7 @@ void setupDependencies() {
     () => ConversationController(
       state: getIt<ConversationControllerState>(),
       getConversationsUsecase: getIt<GetConversationsUsecase>(),
+      getConversationDetailUsecase: getIt<GetConversationDetailUsecase>(),
       unreadCountConversationsUsecase: getIt<UnreadCountConversationsUsecase>(),
     ),
   );

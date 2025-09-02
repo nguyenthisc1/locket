@@ -12,6 +12,7 @@ class MessButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ConversationControllerState>(
       builder: (context, conversationState, _) { 
+        print('unread count state: ${conversationState.unreadCountConversations}');
         return  Stack(
         clipBehavior: Clip.none,
         children: [
@@ -33,7 +34,7 @@ class MessButton extends StatelessWidget {
               color: Colors.white70,
             ),
           ),
-          if (conversationState.unreadCountConversations < 0)
+          if (conversationState.unreadCountConversations > 0)
             Positioned(
               top: -16,
               right: -2,

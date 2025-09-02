@@ -14,7 +14,7 @@ class SenderEntity extends Equatable {
 
   factory SenderEntity.fromJson(Map<String, dynamic> json) {
     return SenderEntity(
-      id: json['id'] as String,
+      id: (json['_id'] ?? json['id']) as String,
       username: json['username'] as String,
       avatarUrl: json['avatarUrl'] as String?,
     );
@@ -63,7 +63,11 @@ class LastMessageEntity extends Equatable {
     return LastMessageEntity(
       messageId: model.messageId,
       text: model.text,
-      sender: model.sender,
+      sender: SenderEntity(
+        id: model.sender.id,
+        username: model.sender.username,
+        avatarUrl: model.sender.avatarUrl,
+      ),
       timestamp: model.timestamp,
       isRead: model.isRead,
     );
@@ -133,22 +137,64 @@ class ConversationDetailEntity extends Equatable {
     this.updatedAt,
   });
 
+  /// Parses participants based on group type:
+  /// - For groups (isGroup = true): participants should be a List
+  /// - For single conversations (isGroup = false): participants should be a Map (single participant)
+  static List<ConversationParticipantEntity> _parseParticipants(dynamic jsonValue, bool isGroup) {
+    if (jsonValue == null) return [];
+    
+    if (isGroup) {
+      // For groups, expect a list of participants
+      if (jsonValue is List) {
+        return jsonValue
+            .map<ConversationParticipantEntity>((e) => ConversationParticipantEntity(
+                  id: (e['_id'] ?? e['id']) as String,
+                  username: e['username'] as String?,
+                  email: e['email'] as String?,
+                  avatarUrl: e['avatarUrl'] as String?,
+                ))
+            .toList();
+      } else if (jsonValue is Map<String, dynamic>) {
+        // Fallback: if single participant provided for group, wrap in list
+        return [ConversationParticipantEntity(
+          id: (jsonValue['_id'] ?? jsonValue['id']) as String,
+          username: jsonValue['username'] as String?,
+          email: jsonValue['email'] as String?,
+          avatarUrl: jsonValue['avatarUrl'] as String?,
+        )];
+      }
+    } else {
+      // For single conversations, expect a single participant as Map
+      if (jsonValue is Map<String, dynamic>) {
+        return [ConversationParticipantEntity(
+          id: (jsonValue['_id'] ?? jsonValue['id']) as String,
+          username: jsonValue['username'] as String?,
+          email: jsonValue['email'] as String?,
+          avatarUrl: jsonValue['avatarUrl'] as String?,
+        )];
+      } else if (jsonValue is List && jsonValue.isNotEmpty) {
+        // Fallback: if list provided for single conversation, take first participant
+        final firstParticipant = jsonValue.first;
+        return [ConversationParticipantEntity(
+          id: (firstParticipant['_id'] ?? firstParticipant['id']) as String,
+          username: firstParticipant['username'] as String?,
+          email: firstParticipant['email'] as String?,
+          avatarUrl: firstParticipant['avatarUrl'] as String?,
+        )];
+      }
+    }
+    
+    return [];
+  }
+
   factory ConversationDetailEntity.fromJson(Map<String, dynamic> json) {
+    final isGroup = json['isGroup'] as bool? ?? false;
+    
     return ConversationDetailEntity(
       id: json['id'] as String,
       name: json['name'] as String?,
-      participants: (json['participants'] is List
-              ? (json['participants'] as List)
-              : [json['participants']])
-          .map<ConversationParticipantEntity>(
-              (e) => ConversationParticipantEntity(
-                    id: e['id'] as String,
-                    username: e['username'] as String?,
-                    email: e['email'] as String?,
-                    avatarUrl: e['avatarUrl'] as String?,
-                  ))
-          .toList(),
-      isGroup: json['isGroup'] as bool? ?? false,
+      participants: _parseParticipants(json['participants'], isGroup),
+      isGroup: isGroup,
       groupSettings: json['groupSettings'] != null
           ? GroupSettingsEntity(
               allowMemberInvite: (json['groupSettings'] as Map<String, dynamic>)['allowMemberInvite'] as bool? ?? false,

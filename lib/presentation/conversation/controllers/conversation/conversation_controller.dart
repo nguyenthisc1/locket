@@ -1,4 +1,5 @@
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
+import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
 import 'package:locket/domain/conversation/usecases/unread_count_conversations_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
@@ -7,16 +8,19 @@ import 'package:logger/logger.dart';
 class ConversationController {
   final ConversationControllerState _state;
   final GetConversationsUsecase _getConversationsUsecase;
+  final GetConversationDetailUsecase _getConversationDetailUsecase;
   final UnreadCountConversationsUsecase _unreadCountConversationsUsecase;
   final Logger _logger;
 
   ConversationController({
     required ConversationControllerState state,
     required GetConversationsUsecase getConversationsUsecase,
+    required GetConversationDetailUsecase getConversationDetailUsecase,
     required UnreadCountConversationsUsecase unreadCountConversationsUsecase,
     Logger? logger,
   }) : _state = state,
        _getConversationsUsecase = getConversationsUsecase,
+       _getConversationDetailUsecase = getConversationDetailUsecase,
        _unreadCountConversationsUsecase = unreadCountConversationsUsecase,
        _logger =
            logger ??
