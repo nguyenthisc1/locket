@@ -1,5 +1,6 @@
 
 import 'package:equatable/equatable.dart';
+import 'package:locket/core/models/last_message_model.dart';
 import 'package:locket/data/conversation/models/conversation_detail_model.dart';
 
 class ConversationParticipantModel extends Equatable {

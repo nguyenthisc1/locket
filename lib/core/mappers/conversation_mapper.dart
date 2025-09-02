@@ -1,3 +1,5 @@
+import 'package:locket/core/entities/last_message_entity.dart';
+import 'package:locket/core/models/last_message_model.dart';
 import 'package:locket/data/conversation/models/conversation_detail_model.dart';
 import 'package:locket/data/conversation/models/converstation_model.dart';
 import 'package:locket/domain/conversation/entities/conversation_detail_entity.dart';
