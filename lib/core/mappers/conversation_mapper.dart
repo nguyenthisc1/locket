@@ -97,4 +97,5 @@ class ConversationMapper {
   ) {
     return entities.map((e) => toModel(e)).toList();
   }
+
 }

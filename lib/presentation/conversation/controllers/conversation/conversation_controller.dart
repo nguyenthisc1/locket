@@ -1,3 +1,6 @@
+import 'package:locket/core/mappers/pagination_mapper.dart';
+import 'package:locket/core/models/pagination_model.dart';
+import 'package:locket/core/services/conversation_cache_service.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
@@ -7,6 +10,7 @@ import 'package:logger/logger.dart';
 
 class ConversationController {
   final ConversationControllerState _state;
+  final ConversationCacheService _cacheService;
   final GetConversationsUsecase _getConversationsUsecase;
   final GetConversationDetailUsecase _getConversationDetailUsecase;
   final UnreadCountConversationsUsecase _unreadCountConversationsUsecase;
@@ -14,11 +18,13 @@ class ConversationController {
 
   ConversationController({
     required ConversationControllerState state,
+    required ConversationCacheService cacheService,
     required GetConversationsUsecase getConversationsUsecase,
     required GetConversationDetailUsecase getConversationDetailUsecase,
     required UnreadCountConversationsUsecase unreadCountConversationsUsecase,
     Logger? logger,
   }) : _state = state,
+       _cacheService = cacheService,
        _getConversationsUsecase = getConversationsUsecase,
        _getConversationDetailUsecase = getConversationDetailUsecase,
        _unreadCountConversationsUsecase = unreadCountConversationsUsecase,
@@ -33,9 +39,31 @@ class ConversationController {
     }
 
     // Load cached data first (instant UI update)
-    // await _loadCachedFeeds();
+    await _loadCachedConversations();
+
+    // Then fetch fresh data in background
     await fetchConversations();
     _state.setInitialized(true);
+  }
+
+  /// Load cached conversations for instant UI display
+  Future<void> _loadCachedConversations() async {
+    try {
+      final cachedConversations = await _cacheService.loadCachedConversations();
+
+      if (cachedConversations.isNotEmpty) {
+        _logger.d(
+          '📦 Loaded ${cachedConversations.length} cached conversations',
+        );
+        _state.setConversations(cachedConversations, isFromCache: true);
+      } else {
+        _logger.d('📦 No cached conversations found');
+      }
+    } catch (e) {
+      _logger.e('❌ Error loading cached conversations: $e');
+      // Don't show error for cache loading failures
+      // The fresh fetch will handle error display if needed
+    }
   }
 
   Future<void> fetchConversations({int? limit, bool isRefresh = false}) async {
@@ -64,8 +92,33 @@ class ConversationController {
 
           final conversations =
               response.data['conversations'] as List<ConversationEntity>;
+          final paginationData = response.data['pagination'];
 
-          _state.setConversations(conversations);
+          // Parse pagination data if available
+          if (paginationData != null) {
+            final paginationModel = PaginationModel.fromJson(paginationData);
+            final pagination = PaginationMapper.toEntity(paginationModel);
+            _logger.d(
+              'Pagination info: hasNextPage=${pagination.hasNextPage}, nextCursor=${pagination.nextCursor}',
+            );
+
+            // Update pagination state with server response
+            _state.setHasMoreData(pagination.hasNextPage);
+            if (pagination.nextCursor != null) {
+              _state.setLastCreatedAt(pagination.nextCursor);
+            }
+          } else {
+            // Fallback to old logic if no pagination data
+            if (conversations.isNotEmpty) {
+              _state.setLastCreatedAt(conversations.last.createdAt);
+              _state.setHasMoreData(conversations.length == limit);
+            } else {
+              _state.setHasMoreData(false);
+            }
+          }
+
+          _state.setConversations(conversations, isFromCache: false);
+          _cacheService.cacheConversations(_state.listConversation);
         },
       );
     } catch (e) {
@@ -122,6 +175,23 @@ class ConversationController {
         _state.setUnreadCountConversations(0);
       }
     }
+  }
+
+  /// Get cached conversations for instant display
+  Future<void> loadCachedConversationsOnly() async {
+    await _loadCachedConversations();
+  }
+
+  /// Check if we have cached conversations
+  bool get hasCachedConversations => _cacheService.hasCachedData;
+
+  /// Get cache info for debugging
+  Map<String, dynamic> get cacheInfo => _cacheService.getCacheInfo();
+
+  /// Clear conversation cache
+  Future<void> clearCache() async {
+    await _cacheService.clearCache();
+    _state.setConversations([]);
   }
 
   /// Dispose resources

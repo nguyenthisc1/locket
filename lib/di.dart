@@ -3,6 +3,7 @@ import 'package:fresh_dio/fresh_dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:locket/core/network/dio_client.dart';
 import 'package:locket/core/routes/middleware.dart';
+import 'package:locket/core/services/conversation_cache_service.dart';
 import 'package:locket/core/services/feed_cache_service.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
@@ -57,6 +58,7 @@ void setupDependencies() {
   // Services
   getIt.registerLazySingleton<UserService>(() => UserService());
   getIt.registerLazySingleton<FeedCacheService>(() => FeedCacheService());
+  getIt.registerLazySingleton<ConversationCacheService>(() => ConversationCacheService());
   getIt.registerLazySingleton<Middleware>(() => Middleware());
 
   // API Services
@@ -136,6 +138,7 @@ void setupDependencies() {
   getIt.registerLazySingleton<ConversationController>(
     () => ConversationController(
       state: getIt<ConversationControllerState>(),
+      cacheService: getIt<ConversationCacheService>(),
       getConversationsUsecase: getIt<GetConversationsUsecase>(),
       getConversationDetailUsecase: getIt<GetConversationDetailUsecase>(),
       unreadCountConversationsUsecase: getIt<UnreadCountConversationsUsecase>(),
