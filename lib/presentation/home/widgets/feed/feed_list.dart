@@ -33,18 +33,18 @@ class _FeedListState extends State<FeedList> {
     final feedController = context.read<FeedController>();
     final feedState = context.read<FeedControllerState>();
 
+    if (!widget.innerController.hasClients) return;
+
     // Check if we're near the end and need to load more
-    if (widget.innerController.hasClients) {
-      final maxScrollExtent = widget.innerController.position.maxScrollExtent;
-      final currentPosition = widget.innerController.position.pixels;
+    final maxScrollExtent = widget.innerController.position.maxScrollExtent;
+    final currentPosition = widget.innerController.position.pixels;
 
-      final triggerOffset = maxScrollExtent * 0.8;
+    final triggerOffset = maxScrollExtent * 0.8;
 
-      if (currentPosition >= triggerOffset &&
-          feedState.hasMoreData &&
-          !feedState.isLoadingMore) {
-        feedController.loadMoreFeeds();
-      }
+    if (currentPosition >= triggerOffset &&
+        feedState.hasMoreData &&
+        !feedState.isLoadingMore) {
+      feedController.loadMoreFeeds();
     }
   }
 
