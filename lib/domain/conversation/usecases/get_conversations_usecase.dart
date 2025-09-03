@@ -8,7 +8,7 @@ class GetConversationsUsecase {
 
      GetConversationsUsecase(this._conversationRepository);
 
-     Future<Either<Failure, BaseResponse>> call(int? limit) async {
-      return await _conversationRepository.getConversations(limit);
+     Future<Either<Failure, BaseResponse>> call({int? limit, DateTime? lastCreatedAt}) async {
+      return await _conversationRepository.getConversations(limit: limit, lastCreatedAt: lastCreatedAt);
      }
 }

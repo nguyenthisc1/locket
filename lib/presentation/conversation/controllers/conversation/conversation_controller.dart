@@ -66,7 +66,11 @@ class ConversationController {
     }
   }
 
-  Future<void> fetchConversations({int? limit, bool isRefresh = false}) async {
+  Future<void> fetchConversations({
+    int? limit,
+    DateTime? lastCreatedAt,
+    bool isRefresh = false,
+  }) async {
     if (isRefresh) {
       _state.setRefreshingConversations(true);
     } else {
@@ -74,7 +78,10 @@ class ConversationController {
     }
     _state.clearError();
     try {
-      final result = await _getConversationsUsecase(limit);
+      final result = await _getConversationsUsecase(
+        limit: limit,
+        lastCreatedAt: lastCreatedAt,
+      );
 
       result.fold(
         (failure) {
@@ -140,6 +147,80 @@ class ConversationController {
     DateTime? lastCreatedAt,
   ]) async {
     await fetchConversations(isRefresh: true);
+  }
+
+  /// Load more feeds for infinite scroll
+  Future<void> loadMoreConversations() async {
+    if (_state.isLoadingMore || !_state.hasMoreData) {
+      return; // Already loading or no more data
+    }
+
+    _state.setLoadingMore(true);
+    _state.clearError();
+
+    try {
+      final result = await _getConversationsUsecase.call(
+        lastCreatedAt: _state.lastCreatedAt,
+      );
+
+      result.fold(
+        (failure) {
+          _logger.e('Failed to load more conversations: ${failure.message}');
+          _state.setError(failure.message);
+        },
+        (response) {
+          _logger.d('More conversations loaded successfully');
+          _state.clearError();
+
+          final newConversations =
+              response.data['conversations'] as List<ConversationEntity>;
+          final paginationData = response.data['pagination'];
+          _logger.d('new Loadmore feed $newConversations');
+
+          // Parse pagination data if available
+          if (paginationData != null) {
+            final paginationModel = PaginationModel.fromJson(paginationData);
+            final pagination = PaginationMapper.toEntity(paginationModel);
+            _logger.d(
+              'Load more pagination: hasNextPage=${pagination.hasNextPage}, nextCursor=${pagination.nextCursor}',
+            );
+
+            // Update pagination state with server response
+            _state.setHasMoreData(pagination.hasNextPage);
+            if (pagination.nextCursor != null) {
+              _state.setLastCreatedAt(pagination.nextCursor);
+            }
+          } else {
+            // Fallback to old logic if no pagination data
+            if (newConversations.isEmpty) {
+              _state.setHasMoreData(false);
+            } else if (newConversations.isNotEmpty) {
+              _state.setLastCreatedAt(newConversations.last.createdAt);
+            }
+          }
+
+          // Append new feeds while preserving drafts and avoiding duplicates
+          if (newConversations.isNotEmpty) {
+            // Fix: Merge newConversations into the existing list, preserving drafts and avoiding duplicates
+            final existing = _state.listConversation;
+            final existingIds = existing.map((c) => c.id).toSet();
+            final merged = [
+              ...existing,
+              ...newConversations.where((c) => !existingIds.contains(c.id)),
+            ];
+            _state.setConversations(merged);
+          }
+
+          // Cache only server feeds (not drafts)
+          _cacheService.cacheConversations(_state.listConversation);
+        },
+      );
+    } catch (e) {
+      _logger.e('Error loading more conversations: $e');
+      _state.setError('Failed to load more conversations');
+    } finally {
+      _state.setLoadingMore(false);
+    }
   }
 
   Future<void> fetchUnreadCountConversation() async {

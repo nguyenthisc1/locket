@@ -10,7 +10,7 @@ import 'package:locket/domain/conversation/entities/conversation_detail_entity.d
 import 'package:logger/logger.dart';
 
 abstract class ConversationApiService {
-  Future<Either<Failure, BaseResponse>> getConversations(int? limit);
+  Future<Either<Failure, BaseResponse>> getConversations({int? limit, DateTime? lastCreatedAt});
   Future<Either<Failure, BaseResponse>> getConversation({
     required String conversationId,
     int? limit,
@@ -27,7 +27,7 @@ class ConversationApiServiceImpl extends ConversationApiService {
   ConversationApiServiceImpl(this.dioClient);
 
   @override
-  Future<Either<Failure, BaseResponse>> getConversations(int? limit) async {
+  Future<Either<Failure, BaseResponse>> getConversations({int? limit, DateTime? lastCreatedAt}) async {
     try {
       final Map<String, dynamic> queryParameters = {};
       queryParameters['limit'] = limit ?? '10';

@@ -15,9 +15,9 @@ class ConversationRepositoryImpl extends ConversationRepository {
 
   @override
   Future<Either<Failure, BaseResponse>> getConversations(
-    int? limit
+  {int? limit, DateTime? lastCreatedAt}
   ) async {
-    final result = await _conversationApiService.getConversations(limit);
+    final result = await _conversationApiService.getConversations(limit: limit, lastCreatedAt: lastCreatedAt);
 
     return result.fold(
       (failure) {

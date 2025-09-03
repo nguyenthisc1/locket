@@ -11,18 +11,42 @@ class ConversationList extends StatefulWidget {
   const ConversationList({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _ConversationListState createState() => _ConversationListState();
 }
 
 class _ConversationListState extends State<ConversationList> {
+  late final ScrollController _scrollController;
 
-  // void _onScroll() {
-  //   final conversationController = context.read<ConversationController>()
-  //   final conversationState = context.read<ConversationControllerState>()
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
 
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-  // }
+  void _onScroll() {
+    final conversationController = context.read<ConversationController>();
+    final conversationState = context.read<ConversationControllerState>();
+
+    if (!_scrollController.hasClients) return;
+
+    final maxScrollExtent = _scrollController.position.maxScrollExtent;
+    final currentPosition = _scrollController.position.pixels;
+    final triggerOffset = maxScrollExtent * 0.8;
+
+    if (currentPosition >= triggerOffset &&
+        conversationState.hasMoreData &&
+        !conversationState.isLoadingMore) {
+      conversationController.loadMoreConversations();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +105,7 @@ class _ConversationListState extends State<ConversationList> {
         // Conversation list
         Expanded(
           child: ListView.separated(
+            controller: _scrollController,
             physics: const ScrollPhysics(),
             itemCount: conversationState.listConversation.length,
             separatorBuilder:
