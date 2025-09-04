@@ -71,6 +71,47 @@ class FeedEntity extends Equatable {
   
   double get aspectRatio => width > 0 && height > 0 ? width / height : 1.0;
 
+  /// Create a copy of this entity with optional parameter overrides
+  FeedEntity copyWith({
+    String? id,
+    FeedUser? user,
+    String? imageUrl,
+    String? publicId,
+    String? caption,
+    bool? isFrontCamera,
+    List<SharedWithUser>? sharedWith,
+    LocationModel? location,
+    List<ReactionModel>? reactions,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    MediaType? mediaType,
+    String? format,
+    int? width,
+    int? height,
+    int? fileSize,
+    double? duration,
+  }) {
+    return FeedEntity(
+      id: id ?? this.id,
+      user: user ?? this.user,
+      imageUrl: imageUrl ?? this.imageUrl,
+      publicId: publicId ?? this.publicId,
+      caption: caption ?? this.caption,
+      isFrontCamera: isFrontCamera ?? this.isFrontCamera,
+      sharedWith: sharedWith ?? this.sharedWith,
+      location: location ?? this.location,
+      reactions: reactions ?? this.reactions,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      mediaType: mediaType ?? this.mediaType,
+      format: format ?? this.format,
+      width: width ?? this.width,
+      height: height ?? this.height,
+      fileSize: fileSize ?? this.fileSize,
+      duration: duration ?? this.duration,
+    );
+  }
+
   @override
   List<Object?> get props => [
         id,

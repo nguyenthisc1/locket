@@ -349,7 +349,10 @@ class FeedController {
       );
 
       _state.setNewFeed(draftFeed);
-      _logger.d('Draft feed created: ${draftFeed.id}');
+      
+      // Immediately add the draft feed to the list for preview
+      _state.addFeed(draftFeed);
+      _logger.d('Draft feed created and added to list: ${draftFeed.id}');
     } catch (e) {
       _logger.e('Error creating draft feed: $e');
     }
@@ -422,9 +425,19 @@ class FeedController {
   /// Add the new feed to the list (used after successful upload)
   void addNewFeedToList() {
     if (_state.newFeed != null) {
-      _logger.d('Adding new feed to list: ${_state.newFeed!.id}');
-      _state.addFeed(_state.newFeed!);
-      _logger.d('Feed added to list. Total feeds: ${_state.listFeed.length}');
+      // Check if the draft feed is already in the list
+      final existingIndex = _state.listFeed.indexWhere((feed) => feed.id == _state.newFeed!.id);
+      
+      if (existingIndex == -1) {
+        // Feed not in list yet, add it
+        _logger.d('Adding new feed to list: ${_state.newFeed!.id}');
+        _state.addFeed(_state.newFeed!);
+        _logger.d('Feed added to list. Total feeds: ${_state.listFeed.length}');
+      } else {
+        // Feed already in list, just update it if needed
+        _state.updateFeedAtIndex(existingIndex, _state.newFeed!);
+        _logger.d('Updated existing feed in list at index $existingIndex');
+      }
     } else {
       _logger.w('No new feed to add to list');
     }
@@ -467,6 +480,21 @@ class FeedController {
   void setCaption(String caption) {
     _state.setCaption(caption);
     _logger.d('Caption updated: $caption');
+    
+    // Update the draft feed with the new caption if it exists
+    if (_state.newFeed != null) {
+      final updatedDraftFeed = _state.newFeed!.copyWith(caption: caption);
+      _state.setNewFeed(updatedDraftFeed);
+      
+      // Also update the feed in the list if it's already there
+      final draftIndex = _state.listFeed.indexWhere((feed) => feed.id == _state.newFeed!.id);
+      if (draftIndex != -1) {
+        _state.updateFeedAtIndex(draftIndex, updatedDraftFeed);
+        _logger.d('Updated draft feed caption in list at index $draftIndex');
+      }
+      
+      _logger.d('Updated draft feed caption: $caption');
+    }
   }
 
   /// Dispose resources
