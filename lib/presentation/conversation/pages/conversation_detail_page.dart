@@ -3,14 +3,13 @@ import 'package:locket/common/helper/utils.dart' as utils;
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/common/wigets/user_image.dart';
+import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/core/services/message_cache_service.dart';
+import 'package:locket/di.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/conversation_detail_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:locket/presentation/conversation/widgets/message.dart';
-import 'package:locket/di.dart';
-
-import '../../../core/configs/theme/index.dart';
 
 class ConversationDetailPage extends StatefulWidget {
   final String conversationId;
@@ -27,11 +26,9 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
   @override
   void initState() {
     super.initState();
-    
-    // Initialize state
+
+    // Create local instances to avoid shared state between conversations
     _state = ConversationDetailControllerState();
-    
-    // Initialize controller with dependencies
     _controller = ConversationDetailController(
       state: _state,
       cacheService: getIt<MessageCacheService>(),
@@ -54,185 +51,198 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
     return AnimatedBuilder(
       animation: _state,
       builder: (context, _) {
-        return Scaffold(
-          appBar: BasicAppbar(
-            backgroundColor: Colors.transparent,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                UserImage(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-                  size: AppDimensions.avatarMd,
-                ),
-                const SizedBox(width: AppDimensions.md),
-                Text(
-                  'Conversation Detail',
-                  style: AppTypography.headlineLarge.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-            action: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-              child: Icon(Icons.more_horiz, size: AppDimensions.iconLg),
-            ),
-          ),
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: _controller.currentBackgroundGradient,
-            ),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              decoration: BoxDecoration(
-                gradient: _controller.currentBackgroundGradient,
-              ),
-              child: Stack(
-                children: [
-                  // Error state
-                  if (_state.errorMessage != null && _state.listMessages.isEmpty)
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _state.errorMessage!,
-                            style: AppTypography.bodyLarge.copyWith(
-                              color: Colors.white,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: AppDimensions.md),
-                          ElevatedButton(
-                            onPressed: () => _controller.refreshMessages(),
-                            child: const Text('Retry'),
-                          ),
-                        ],
+            return Scaffold(
+              appBar: BasicAppbar(
+                backgroundColor: Colors.transparent,
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    UserImage(
+                      imageUrl:
+                          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+                      size: AppDimensions.avatarMd,
+                    ),
+                    const SizedBox(width: AppDimensions.md),
+                    Text(
+                      'Conversation Detail',
+                      style: AppTypography.headlineLarge.copyWith(
+                        fontWeight: FontWeight.w800,
                       ),
-                    )
-                  // Loading state (only when no messages and loading)
-                  else if (_state.isLoadingMessages && _state.listMessages.isEmpty)
-                    const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    )
-                  // Messages list
-                  else
-                    RefreshIndicator(
-                      onRefresh: _controller.refreshMessages,
-                      child: NotificationListener<ScrollNotification>(
-                        onNotification: (ScrollNotification scrollInfo) {
-                          // Load more messages when reaching the top (since we use reverse: true)
-                          if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 100) {
-                            if (_state.hasMoreData && !_state.isLoadingMore) {
-                              _controller.loadMoreMessages();
-                            }
-                          }
-                          return false;
-                        },
-                        child: ListView.builder(
-                          reverse: true,
-                          controller: _state.scrollController,
-                          itemCount: _state.listMessages.length + (_state.isLoadingMore ? 1 : 0),
-                          padding: const EdgeInsets.only(
-                            top: AppDimensions.lg,
-                            bottom: AppDimensions.xxl * 2,
-                          ),
-                          itemBuilder: (context, index) {
-                            // Show loading indicator at the top when loading more
-                            if (index == _state.listMessages.length) {
-                              return const Padding(
-                                padding: EdgeInsets.all(AppDimensions.md),
-                                child: Center(
-                                  child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  ],
+                ),
+                action: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.md,
+                  ),
+                  child: Icon(Icons.more_horiz, size: AppDimensions.iconLg),
+                ),
+              ),
+              body: Container(
+                decoration: BoxDecoration(
+                  gradient: _controller.currentBackgroundGradient,
+                ),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 500),
+                  decoration: BoxDecoration(
+                    gradient: _controller.currentBackgroundGradient,
+                  ),
+                  child: Stack(
+                    children: [
+                      // Error state
+                      if (_state.errorMessage != null &&
+                          _state.listMessages.isEmpty)
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _state.errorMessage!,
+                                style: AppTypography.bodyLarge.copyWith(
+                                  color: Colors.white,
                                 ),
-                              );
-                            }
-
-                            final messageData = _state.listMessages[index];
-                            final showTimestamp =
-                                _state.shouldShowTimestamp(
-                                  index,
-                                  _state.listMessages,
-                                ) ||
-                                _state.visibleTimestamps.contains(index);
-
-                            return GestureDetector(
-                              behavior: HitTestBehavior.translucent,
-                              onTap: () => _state.toggleTimestampVisibility(index),
-                              child: Column(
-                                crossAxisAlignment:
-                                    messageData.isMe
-                                        ? CrossAxisAlignment.end
-                                        : CrossAxisAlignment.start,
-                                children: [
-                                  if (showTimestamp)
-                                    Align(
-                                      alignment: Alignment.center,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: AppDimensions.sm,
-                                        ),
-                                        child: Text(
-                                          utils.formatVietnameseTimestamp(
-                                            messageData.createdAt,
-                                          ),
-                                          style: AppTypography.bodyMedium
-                                              .copyWith(
-                                                color: Colors.grey[400],
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: AppDimensions.md),
+                              ElevatedButton(
+                                onPressed: () => _controller.refreshMessages(),
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        )
+                      // Loading state (only when no messages and loading)
+                      else if (_state.isLoadingMessages &&
+                          _state.listMessages.isEmpty)
+                        const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                      // Messages list
+                      else
+                        RefreshIndicator(
+                          onRefresh: _controller.refreshMessages,
+                          child: NotificationListener<ScrollNotification>(
+                            onNotification: (ScrollNotification scrollInfo) {
+                              // Load more messages when reaching the top (since we use reverse: true)
+                              if (scrollInfo.metrics.pixels >=
+                                  scrollInfo.metrics.maxScrollExtent - 100) {
+                                if (_state.hasMoreData &&
+                                    !_state.isLoadingMore) {
+                                  _controller.loadMoreMessages();
+                                }
+                              }
+                              return false;
+                            },
+                            child: ListView.builder(
+                              reverse: true,
+                              controller: _state.scrollController,
+                              itemCount:
+                                  _state.listMessages.length +
+                                  (_state.isLoadingMore ? 1 : 0),
+                              padding: const EdgeInsets.only(
+                                top: AppDimensions.lg,
+                                bottom: AppDimensions.xxl * 2,
+                              ),
+                              itemBuilder: (context, index) {
+                                // Show loading indicator at the top when loading more
+                                if (index == _state.listMessages.length) {
+                                  return const Padding(
+                                    padding: EdgeInsets.all(AppDimensions.md),
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
                                       ),
                                     ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: AppDimensions.md,
-                                      right: AppDimensions.md,
-                                      bottom: AppDimensions.xl,
-                                    ),
-                                    child: Message(data: messageData),
+                                  );
+                                }
+
+                                final messageData = _state.listMessages[index];
+                                final showTimestamp =
+                                    _state.shouldShowTimestamp(
+                                      index,
+                                      _state.listMessages,
+                                    ) ||
+                                    _state.visibleTimestamps.contains(index);
+
+                                return GestureDetector(
+                                  behavior: HitTestBehavior.translucent,
+                                  onTap:
+                                      () => _state.toggleTimestampVisibility(
+                                        index,
+                                      ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        messageData.isMe
+                                            ? CrossAxisAlignment.end
+                                            : CrossAxisAlignment.start,
+                                    children: [
+                                      if (showTimestamp)
+                                        Align(
+                                          alignment: Alignment.center,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: AppDimensions.sm,
+                                            ),
+                                            child: Text(
+                                              utils.formatVietnameseTimestamp(
+                                                messageData.createdAt,
+                                              ),
+                                              style: AppTypography.bodyMedium
+                                                  .copyWith(
+                                                    color: Colors.grey[400],
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: AppDimensions.md,
+                                          right: AppDimensions.md,
+                                          bottom: AppDimensions.xl,
+                                        ),
+                                        child: Message(data: messageData),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-
-                  // Message input field
-                  Positioned.fill(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: MessageField(),
-                  ),
-
-                  // Cache indicator (for development)
-                  if (_state.isShowingCachedData)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        color: Colors.orange.withOpacity(0.7),
-                        padding: const EdgeInsets.all(AppDimensions.xs),
-                        child: Text(
-                          'Showing cached data',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                                );
+                              },
+                            ),
                           ),
-                          textAlign: TextAlign.center,
                         ),
+
+                      // Message input field
+                      Positioned.fill(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: MessageField(),
                       ),
-                    ),
-                ],
+
+                      // Cache indicator (for development)
+                      if (_state.isShowingCachedData)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            color: Colors.orange.withOpacity(0.7),
+                            padding: const EdgeInsets.all(AppDimensions.xs),
+                            child: Text(
+                              'Showing cached data',
+                              style: AppTypography.bodySmall.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
+            );
       },
     );
   }

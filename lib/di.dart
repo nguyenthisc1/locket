@@ -135,6 +135,7 @@ void setupDependencies() {
   // Controller States
   getIt.registerLazySingleton<HomeControllerState>(() => HomeControllerState());
   getIt.registerLazySingleton<ConversationControllerState>(() => ConversationControllerState());
+  // ConversationDetailControllerState NOT registered in DI - created locally to avoid shared state
   getIt.registerLazySingleton<AuthControllerState>(() => AuthControllerState());
   getIt.registerLazySingleton<UserControllerState>(() => UserControllerState());
   getIt.registerLazySingleton<CameraControllerState>(() => CameraControllerState());
@@ -159,6 +160,9 @@ void setupDependencies() {
       unreadCountConversationsUsecase: getIt<UnreadCountConversationsUsecase>(),
     ),
   );
+
+  // ConversationDetailController NOT registered in DI - created locally to avoid shared state between conversations
+
   // Auth controller dependencies
   getIt.registerLazySingleton<AuthController>(
     () => AuthController(

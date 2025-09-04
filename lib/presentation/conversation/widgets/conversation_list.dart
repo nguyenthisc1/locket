@@ -11,7 +11,7 @@ class ConversationList extends StatefulWidget {
   const ConversationList({super.key});
 
   @override
-  _ConversationListState createState() => _ConversationListState();
+  State<ConversationList> createState() => _ConversationListState();
 }
 
 class _ConversationListState extends State<ConversationList> {
