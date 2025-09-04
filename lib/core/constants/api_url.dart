@@ -1,7 +1,7 @@
 
 class ApiUrl {
   // static const String baseUrl = 'https://locket-backend.onrender.com/api/v1';
-  static const String baseUrl = 'http://172.16.16.74:8000/api/v1';
+  static const String baseUrl = 'http://192.168.20.29:8000/api/v1';
 
   static const String register = '/auth/register';
   static const String login = '/auth/login';

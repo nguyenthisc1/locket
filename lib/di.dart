@@ -5,13 +5,16 @@ import 'package:locket/core/network/dio_client.dart';
 import 'package:locket/core/routes/middleware.dart';
 import 'package:locket/core/services/conversation_cache_service.dart';
 import 'package:locket/core/services/feed_cache_service.dart';
+import 'package:locket/core/services/message_cache_service.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
 import 'package:locket/data/auth/repositories/token_store_impl.dart';
 import 'package:locket/data/auth/services/auth_api_service.dart';
 import 'package:locket/data/conversation/repositories/conversation_repository_impl.dart';
+import 'package:locket/data/conversation/repositories/message_repository_impl.dart';
 import 'package:locket/data/conversation/services/conversation_api_service.dart';
+import 'package:locket/data/conversation/services/message_api_service.dart';
 import 'package:locket/data/feed/respositories/feed_repository_impl.dart';
 import 'package:locket/data/feed/services/feed_api_service.dart';
 import 'package:locket/data/user/repositories/user_repository_impl.dart';
@@ -19,7 +22,9 @@ import 'package:locket/data/user/services/user_api_service.dart';
 import 'package:locket/domain/auth/repositories/auth_repository.dart';
 import 'package:locket/domain/auth/usecase/login_usecase.dart';
 import 'package:locket/domain/conversation/repositories/conversation_repository.dart';
+import 'package:locket/domain/conversation/repositories/message_repository.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
+import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
 import 'package:locket/domain/conversation/usecases/unread_count_conversations_usecase.dart';
 import 'package:locket/domain/feed/repositories/feed_repository.dart';
 import 'package:locket/domain/feed/usecases/get_feed_usecase.dart';
@@ -59,6 +64,7 @@ void setupDependencies() {
   getIt.registerLazySingleton<UserService>(() => UserService());
   getIt.registerLazySingleton<FeedCacheService>(() => FeedCacheService());
   getIt.registerLazySingleton<ConversationCacheService>(() => ConversationCacheService());
+  getIt.registerLazySingleton<MessageCacheService>(() => MessageCacheService());
   getIt.registerLazySingleton<Middleware>(() => Middleware());
 
   // API Services
@@ -74,6 +80,9 @@ void setupDependencies() {
   getIt.registerLazySingleton<ConversationApiService>(
     () => ConversationApiServiceImpl(getIt<DioClient>()),
   );
+  getIt.registerLazySingleton<MessageApiService>(
+    () => MessageApiServiceImpl(getIt<DioClient>()),
+  );
 
   // Repositories
   getIt.registerLazySingleton<AuthRepository>(
@@ -87,6 +96,9 @@ void setupDependencies() {
   );
   getIt.registerLazySingleton<ConversationRepository>(
     () => ConversationRepositoryImpl(getIt<ConversationApiService>()),
+  );
+  getIt.registerLazySingleton<MessageRepository>(
+    () => MessageRepositoryImpl(getIt<MessageApiService>()),
   );
 
   // Use Cases
@@ -107,6 +119,9 @@ void setupDependencies() {
   );
   getIt.registerFactory<UnreadCountConversationsUsecase>(
     () => UnreadCountConversationsUsecase(getIt<ConversationRepository>()),
+  );
+  getIt.registerFactory<GetMessagesConversationUsecase>(
+    () => GetMessagesConversationUsecase(getIt<MessageRepository>()),
   );
 
   // Feed use cases

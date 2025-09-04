@@ -1,31 +1,56 @@
 import 'package:locket/domain/conversation/entities/message_entity.dart';
 
-class MessageModel extends MessageEntity {
+class MessageModel {
+  final String id;
+  final String conversationId;
+  final String senderId;
+  final String senderName;
+  final String text;
+  final String type;
+  final List<Map<String, dynamic>> attachments;
+  final String? replyTo;
+  final ReplyInfoEntity? replyInfo;
+  final String? forwardedFrom;
+  final Map<String, dynamic>? forwardInfo;
+  final Map<String, dynamic>? threadInfo;
+  final List<Map<String, dynamic>> reactions;
+  final bool isRead;
+  final bool isEdited;
+  final bool isDeleted;
+  final bool isPinned;
+  final List<Map<String, dynamic>> editHistory;
+  final Map<String, dynamic> metadata;
+  final String? sticker;
+  final String? emote;
+  final DateTime createdAt;
+  final String timestamp;
+  final bool isMe;
+
   const MessageModel({
-    required super.id,
-    required super.conversationId,
-    required super.senderId,
-    required super.senderName,
-    required super.text,
-    required super.type,
-    required super.attachments,
-    super.replyTo,
-    super.replyInfo,
-    super.forwardedFrom,
-    super.forwardInfo,
-    super.threadInfo,
-    required super.reactions,
-    required super.isRead,
-    required super.isEdited,
-    required super.isDeleted,
-    required super.isPinned,
-    required super.editHistory,
-    required super.metadata,
-    super.sticker,
-    super.emote,
-    required super.createdAt,
-    required super.timestamp,
-    required super.isMe,
+    required this.id,
+    required this.conversationId,
+    required this.senderId,
+    required this.senderName,
+    required this.text,
+    required this.type,
+    required this.attachments,
+    this.replyTo,
+    this.replyInfo,
+    this.forwardedFrom,
+    this.forwardInfo,
+    this.threadInfo,
+    required this.reactions,
+    required this.isRead,
+    required this.isEdited,
+    required this.isDeleted,
+    required this.isPinned,
+    required this.editHistory,
+    required this.metadata,
+    this.sticker,
+    this.emote,
+    required this.createdAt,
+    required this.timestamp,
+    required this.isMe,
   });
 
   /// Creates a [MessageModel] from a map (e.g., from JSON or database).
@@ -46,42 +71,35 @@ class MessageModel extends MessageEntity {
       senderName: map['senderName'] ?? '',
       text: map['text'] ?? '',
       type: map['type'] ?? '',
-      attachments:
-          map['attachments'] is List
-              ? List<Map<String, dynamic>>.from(map['attachments'])
-              : const [],
+      attachments: map['attachments'] is List
+          ? List<Map<String, dynamic>>.from(map['attachments'])
+          : const [],
       replyTo: map['replyTo'],
-      replyInfo:
-          map['replyInfo'] is Map<String, dynamic>
-              ? ReplyInfoEntity.fromJson(
-                Map<String, dynamic>.from(map['replyInfo']),
-              )
-              : null,
+      replyInfo: map['replyInfo'] is Map<String, dynamic>
+          ? ReplyInfoEntity.fromJson(
+              Map<String, dynamic>.from(map['replyInfo']),
+            )
+          : null,
       forwardedFrom: map['forwardedFrom'],
-      forwardInfo:
-          map['forwardInfo'] is Map
-              ? Map<String, dynamic>.from(map['forwardInfo'])
-              : null,
-      threadInfo:
-          map['threadInfo'] is Map
-              ? Map<String, dynamic>.from(map['threadInfo'])
-              : null,
-      reactions:
-          map['reactions'] is List
-              ? List<Map<String, dynamic>>.from(map['reactions'])
-              : const [],
+      forwardInfo: map['forwardInfo'] is Map
+          ? Map<String, dynamic>.from(map['forwardInfo'])
+          : null,
+      threadInfo: map['threadInfo'] is Map
+          ? Map<String, dynamic>.from(map['threadInfo'])
+          : null,
+      reactions: map['reactions'] is List
+          ? List<Map<String, dynamic>>.from(map['reactions'])
+          : const [],
       isRead: map['isRead'] ?? false,
       isEdited: map['isEdited'] ?? false,
       isDeleted: map['isDeleted'] ?? false,
       isPinned: map['isPinned'] ?? false,
-      editHistory:
-          map['editHistory'] is List
-              ? List<Map<String, dynamic>>.from(map['editHistory'])
-              : const [],
-      metadata:
-          map['metadata'] is Map
-              ? Map<String, dynamic>.from(map['metadata'])
-              : const {},
+      editHistory: map['editHistory'] is List
+          ? List<Map<String, dynamic>>.from(map['editHistory'])
+          : const [],
+      metadata: map['metadata'] is Map
+          ? Map<String, dynamic>.from(map['metadata'])
+          : const {},
       sticker: map['sticker'],
       emote: map['emote'],
       createdAt: _parseCreatedAt(map['createdAt']),
@@ -90,8 +108,62 @@ class MessageModel extends MessageEntity {
     );
   }
 
+  /// Creates a [MessageModel] from a JSON map.
+  factory MessageModel.fromJson(Map<String, dynamic> json) {
+    DateTime _parseCreatedAt(dynamic value) {
+      if (value is DateTime) return value;
+      if (value is String) {
+        final parsed = DateTime.tryParse(value);
+        if (parsed != null) return parsed;
+      }
+      return DateTime.now();
+    }
+
+    return MessageModel(
+      id: json['id'] ?? '',
+      conversationId: json['conversationId'] ?? '',
+      senderId: json['senderId'] ?? '',
+      senderName: json['senderName'] ?? '',
+      text: json['text'] ?? '',
+      type: json['type'] ?? '',
+      attachments: json['attachments'] is List
+          ? List<Map<String, dynamic>>.from(json['attachments'])
+          : const [],
+      replyTo: json['replyTo'],
+      replyInfo: json['replyInfo'] is Map<String, dynamic>
+          ? ReplyInfoEntity.fromJson(
+              Map<String, dynamic>.from(json['replyInfo']),
+            )
+          : null,
+      forwardedFrom: json['forwardedFrom'],
+      forwardInfo: json['forwardInfo'] is Map
+          ? Map<String, dynamic>.from(json['forwardInfo'])
+          : null,
+      threadInfo: json['threadInfo'] is Map
+          ? Map<String, dynamic>.from(json['threadInfo'])
+          : null,
+      reactions: json['reactions'] is List
+          ? List<Map<String, dynamic>>.from(json['reactions'])
+          : const [],
+      isRead: json['isRead'] ?? false,
+      isEdited: json['isEdited'] ?? false,
+      isDeleted: json['isDeleted'] ?? false,
+      isPinned: json['isPinned'] ?? false,
+      editHistory: json['editHistory'] is List
+          ? List<Map<String, dynamic>>.from(json['editHistory'])
+          : const [],
+      metadata: json['metadata'] is Map
+          ? Map<String, dynamic>.from(json['metadata'])
+          : const {},
+      sticker: json['sticker'],
+      emote: json['emote'],
+      createdAt: _parseCreatedAt(json['createdAt']),
+      timestamp: json['timestamp'] ?? '',
+      isMe: json['isMe'] ?? false,
+    );
+  }
+
   /// Converts this [MessageModel] to a map (e.g., for JSON or database).
-  @override
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -121,33 +193,6 @@ class MessageModel extends MessageEntity {
     };
   }
 
-  /// Creates a [MessageModel] from a [MessageEntity].
-  factory MessageModel.fromEntity(MessageEntity entity) {
-    return MessageModel(
-      id: entity.id,
-      conversationId: entity.conversationId,
-      senderId: entity.senderId,
-      senderName: entity.senderName,
-      text: entity.text,
-      type: entity.type,
-      attachments: List<Map<String, dynamic>>.from(entity.attachments),
-      replyTo: entity.replyTo,
-      replyInfo: entity.replyInfo,
-      forwardedFrom: entity.forwardedFrom,
-      forwardInfo: entity.forwardInfo,
-      threadInfo: entity.threadInfo,
-      reactions: List<Map<String, dynamic>>.from(entity.reactions),
-      isRead: entity.isRead,
-      isEdited: entity.isEdited,
-      isDeleted: entity.isDeleted,
-      isPinned: entity.isPinned,
-      editHistory: List<Map<String, dynamic>>.from(entity.editHistory),
-      metadata: Map<String, dynamic>.from(entity.metadata),
-      sticker: entity.sticker,
-      emote: entity.emote,
-      createdAt: entity.createdAt,
-      timestamp: entity.timestamp,
-      isMe: entity.isMe,
-    );
-  }
+  /// Converts this [MessageModel] to a JSON map.
+  Map<String, dynamic> toJson() => toMap();
 }
