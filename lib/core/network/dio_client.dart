@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:fresh_dio/fresh_dio.dart';
 import 'package:locket/core/constants/api_url.dart';
+import 'package:locket/core/constants/request_defaults.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/di.dart';
 
@@ -24,7 +25,7 @@ class DioClient {
         baseUrl: ApiUrl.baseUrl,
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         responseType: ResponseType.json,
-        receiveTimeout: const Duration(seconds: 20),
+        receiveTimeout: Duration(seconds: RequestDefaults.defaultTimeout),
         validateStatus: (status) {
           return status != null && status < 500;
         },

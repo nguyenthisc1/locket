@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:locket/core/constants/api_url.dart';
+import 'package:locket/core/constants/request_defaults.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/mappers/feed_mapper.dart';
 import 'package:locket/core/models/base_response_model.dart';
@@ -41,7 +42,7 @@ class FeedApiServiceImpl extends FeedApiService {
       if (lastCreatedAt != null) {
         queryParameters['lastCreatedAt'] = lastCreatedAt.toIso8601String();
       }
-      queryParameters['limit'] = limit ?? '10';
+      queryParameters['limit'] = limit ?? RequestDefaults.feedListLimit.toString();
 
       final response = await dioClient.get(
         ApiUrl.getPhotos,

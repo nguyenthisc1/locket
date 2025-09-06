@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:locket/core/constants/request_defaults.dart';
 import 'package:locket/core/mappers/conversation_mapper.dart';
 import 'package:locket/data/conversation/models/converstation_model.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
@@ -8,8 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ConversationCacheService {
   static const String _conversationsCacheKey = 'cached_conversations';
-  static const String _cacheTimestampKey = 'conversations_cache_timestamp';
-  static const String _cacheVersionKey = 'conversations_cache_version';
 
   // No expiration: cache is persistent until explicitly cleared or overwritten
   static const int _currentCacheVersion = 1;
@@ -115,9 +114,9 @@ class ConversationCacheService {
     try {
       _cachedConversations = [conversation, ..._cachedConversations];
 
-      // Limit cache size (keep only latest 100 conversations)
-      if (_cachedConversations.length > 100) {
-        _cachedConversations = _cachedConversations.take(100).toList();
+      // Limit cache size (keep only latest conversations based on configuration)
+      if (_cachedConversations.length > RequestDefaults.maxCachedConversations) {
+        _cachedConversations = _cachedConversations.take(RequestDefaults.maxCachedConversations).toList();
       }
 
       await cacheConversations(_cachedConversations);

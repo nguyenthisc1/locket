@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:locket/core/constants/api_url.dart';
+import 'package:locket/core/constants/request_defaults.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/mappers/conversation_mapper.dart';
 import 'package:locket/core/models/base_response_model.dart';
@@ -30,7 +31,7 @@ class ConversationApiServiceImpl extends ConversationApiService {
   Future<Either<Failure, BaseResponse>> getConversations({int? limit, DateTime? lastCreatedAt}) async {
     try {
       final Map<String, dynamic> queryParameters = {};
-      queryParameters['limit'] = limit ?? '10';
+      queryParameters['limit'] = limit ?? RequestDefaults.conversationListLimit.toString();
 
       final response = await dioClient.get(
         ApiUrl.getUserConversations,
@@ -112,7 +113,7 @@ class ConversationApiServiceImpl extends ConversationApiService {
   }) async {
     try {
       final Map<String, dynamic> queryParameters = {};
-      queryParameters['limit'] = limit ?? '10';
+      queryParameters['limit'] = limit ?? RequestDefaults.conversationListLimit.toString();
 
       final response = await dioClient.get(
         ApiUrl.getConversationById(conversationId),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:locket/core/constants/request_defaults.dart';
 import 'package:locket/core/mappers/message_mapper.dart';
 import 'package:locket/data/conversation/models/message_model.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
@@ -130,9 +131,9 @@ class MessageCacheService {
       final currentMessages = _cachedMessages[conversationId] ?? [];
       final updatedMessages = [...currentMessages, message];
 
-      // Limit cache size (keep only latest 200 messages per conversation)
-      if (updatedMessages.length > 200) {
-        final limitedMessages = updatedMessages.skip(updatedMessages.length - 200).toList();
+      // Limit cache size (keep only latest messages per conversation based on configuration)
+      if (updatedMessages.length > RequestDefaults.maxCachedMessages) {
+        final limitedMessages = updatedMessages.skip(updatedMessages.length - RequestDefaults.maxCachedMessages).toList();
         await cacheMessages(conversationId, limitedMessages);
       } else {
         await cacheMessages(conversationId, updatedMessages);

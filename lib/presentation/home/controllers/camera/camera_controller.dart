@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'package:camera/camera.dart' as cam;
 import 'package:locket/common/animations/fade_animation_controller.dart';
+import 'package:locket/core/constants/request_defaults.dart';
 import 'package:locket/domain/feed/entities/feed_entity.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 
@@ -333,7 +334,7 @@ class CameraController {
       _state.isRecording && _state.recordingStartedAt != null;
 
   /// Check if recording duration exceeds limit (optional safety check)
-  bool isRecordingOverLimit({Duration limit = const Duration(minutes: 5)}) {
+  bool isRecordingOverLimit({Duration limit = const Duration(minutes: RequestDefaults.maxVideoRecordingMinutes)}) {
     if (!_state.isRecording) return false;
     final duration = _state.getCurrentRecordingDuration();
     return duration != null && duration > limit;

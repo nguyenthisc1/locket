@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:locket/core/constants/api_url.dart';
+import 'package:locket/core/constants/request_defaults.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/mappers/message_mapper.dart';
 import 'package:locket/core/models/base_response_model.dart';
@@ -32,7 +33,7 @@ class MessageApiServiceImpl extends MessageApiService {
   }) async {
     try {
       final Map<String, dynamic> queryParameters = {};
-      queryParameters['limit'] = limit ?? '10';
+      queryParameters['limit'] = limit ?? RequestDefaults.messageListLimit.toString();
 
       final response = await dioClient.get(
         ApiUrl.getConversationMessages(conversationId),
