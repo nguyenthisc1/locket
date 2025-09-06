@@ -32,7 +32,7 @@ class MessageApiServiceImpl extends MessageApiService {
     DateTime? lastCreatedAt,
   }) async {
     try {
-      print('conversation Id: $conversationId');
+        logger.d('🔍 Fetching messages for conversation: $conversationId');
       final Map<String, dynamic> queryParameters = {};
       queryParameters['limit'] = limit ?? RequestDefaults.messageListLimit.toString();
 

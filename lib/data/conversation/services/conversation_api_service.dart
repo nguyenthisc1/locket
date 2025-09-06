@@ -111,7 +111,7 @@ class ConversationApiServiceImpl extends ConversationApiService {
       );
       logger.d('response conversation detail: ${response.data}');
 
-      if (response.statusCode == 200 && response.data.isNotEmty) {
+      if (response.statusCode == 200 && response.data.isNotEmpty) {
         final conversation = ConversationDetailEntity.fromJson(
           response.data['data'],
         );

@@ -63,12 +63,12 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                   children: [
                     UserImage(
                       imageUrl:
-                          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+                          _state.conversation?.participants[0].avatarUrl,
                       size: AppDimensions.avatarMd,
                     ),
                     const SizedBox(width: AppDimensions.md),
                     Text(
-                      'Conversation Detail',
+                      _state.conversation?.name ?? 'Tên', 
                       style: AppTypography.headlineLarge.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -110,7 +110,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                               const SizedBox(height: AppDimensions.md),
                               ElevatedButton(
                                 onPressed: () => _controller.refreshMessages(),
-                                child: const Text('Retry'),
+                                child: const Text('Thử lại'),
                               ),
                             ],
                           ),
@@ -233,7 +233,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                             color: Colors.orange.withOpacity(0.7),
                             padding: const EdgeInsets.all(AppDimensions.xs),
                             child: Text(
-                              'Showing cached data',
+                              'Đang tải tin nhắn',
                               style: AppTypography.bodySmall.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
