@@ -4,8 +4,10 @@ import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
 import 'package:locket/di.dart';
+import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/conversation_detail_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
@@ -32,7 +34,9 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
     _controller = ConversationDetailController(
       state: _state,
       cacheService: getIt<MessageCacheService>(),
+      conversationDetailCacheService: getIt<ConversationDetailCacheService>(),
       getMessagesUsecase: getIt<GetMessagesConversationUsecase>(),
+      getConversationDetailUsecase: getIt<GetConversationDetailUsecase>(),
     );
 
     // Initialize the controller with conversation ID

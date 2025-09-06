@@ -12,10 +12,7 @@ import 'package:logger/logger.dart';
 
 abstract class ConversationApiService {
   Future<Either<Failure, BaseResponse>> getConversations({int? limit, DateTime? lastCreatedAt});
-  Future<Either<Failure, BaseResponse>> getConversation({
-    required String conversationId,
-    int? limit,
-  });
+  Future<Either<Failure, BaseResponse>> getConversation(String conversationId);
   Future<Either<Failure, BaseResponse>> unreadCountConversations();
 }
 
@@ -107,17 +104,10 @@ class ConversationApiServiceImpl extends ConversationApiService {
   }
 
   @override
-  Future<Either<Failure, BaseResponse>> getConversation({
-    required String conversationId,
-    int? limit,
-  }) async {
+  Future<Either<Failure, BaseResponse>> getConversation(String conversationId) async {
     try {
-      final Map<String, dynamic> queryParameters = {};
-      queryParameters['limit'] = limit ?? RequestDefaults.conversationListLimit.toString();
-
       final response = await dioClient.get(
-        ApiUrl.getConversationById(conversationId),
-        queryParameters: queryParameters,
+        ApiUrl.getConversationById(conversationId)
       );
       logger.d('response conversation detail: ${response.data}');
 

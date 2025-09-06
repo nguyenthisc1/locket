@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:locket/core/network/dio_client.dart';
 import 'package:locket/core/routes/middleware.dart';
 import 'package:locket/core/services/conversation_cache_service.dart';
+import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/feed_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
 import 'package:locket/core/services/user_service.dart';
@@ -64,6 +65,7 @@ void setupDependencies() {
   getIt.registerLazySingleton<UserService>(() => UserService());
   getIt.registerLazySingleton<FeedCacheService>(() => FeedCacheService());
   getIt.registerLazySingleton<ConversationCacheService>(() => ConversationCacheService());
+  getIt.registerLazySingleton<ConversationDetailCacheService>(() => ConversationDetailCacheService());
   getIt.registerLazySingleton<MessageCacheService>(() => MessageCacheService());
   getIt.registerLazySingleton<Middleware>(() => Middleware());
 

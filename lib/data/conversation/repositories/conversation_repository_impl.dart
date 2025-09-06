@@ -48,11 +48,8 @@ class ConversationRepositoryImpl extends ConversationRepository {
   }
   
   @override
-  Future<Either<Failure, BaseResponse>> getConversation({
-    required String conversationId,
-    int? limit
-  }) async {
-   final result = await _conversationApiService.getConversation(conversationId: conversationId, limit: limit);
+  Future<Either<Failure, BaseResponse>> getConversation( String conversationId) async {
+   final result = await _conversationApiService.getConversation(conversationId);
 
     return result.fold(
       (failure) {

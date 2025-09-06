@@ -3,8 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:locket/core/mappers/pagination_mapper.dart';
 import 'package:locket/core/models/pagination_model.dart';
+import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
+import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
+import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:logger/logger.dart';
@@ -12,7 +15,9 @@ import 'package:logger/logger.dart';
 class ConversationDetailController {
   final ConversationDetailControllerState _state;
   final MessageCacheService _cacheService;
+  final ConversationDetailCacheService _conversationDetailCacheService;
   final GetMessagesConversationUsecase _getMessagesUsecase;
+  final GetConversationDetailUsecase _getConversationDetailUsecase;
   final Logger _logger;
 
   // Background gradient functionality
@@ -71,11 +76,15 @@ class ConversationDetailController {
   ConversationDetailController({
     required ConversationDetailControllerState state,
     required MessageCacheService cacheService,
+    required ConversationDetailCacheService conversationDetailCacheService,
     required GetMessagesConversationUsecase getMessagesUsecase,
+    required GetConversationDetailUsecase getConversationDetailUsecase,
     Logger? logger,
   }) : _state = state,
        _cacheService = cacheService,
+       _conversationDetailCacheService = conversationDetailCacheService,
        _getMessagesUsecase = getMessagesUsecase,
+       _getConversationDetailUsecase = getConversationDetailUsecase,
        _logger = logger ??
            Logger(printer: PrettyPrinter(colors: true, printEmojis: true)) {
     
@@ -96,15 +105,39 @@ class ConversationDetailController {
       _state.setConversationId(conversationId);
     }
 
-    // Load cached data first (instant UI update)
+    // Load cached conversation detail first (instant UI update)
+    await _loadCachedConversationDetail(conversationId);
+
+    // Then fetch fresh conversation details in background
+    await fetchConversationDetail(conversationId);
+
+    // Load cached data for messages (instant UI update)
     await _loadCachedMessages();
 
-    // Then fetch fresh data in background
+    // Then fetch fresh message data in background
     await fetchMessages();
     _state.setInitialized(true);
 
     // Scroll to bottom after loading messages
     _scrollToBottomDelayed();
+  }
+
+  /// Load cached conversation detail for instant UI display
+  Future<void> _loadCachedConversationDetail(String conversationId) async {
+    try {
+      final cachedConversation = await _conversationDetailCacheService.loadCachedConversationDetail(conversationId);
+
+      if (cachedConversation != null) {
+        _logger.d('📦 Loaded cached conversation detail for ID: $conversationId');
+        _state.setConversation(cachedConversation);
+      } else {
+        _logger.d('📦 No cached conversation detail found for ID: $conversationId');
+      }
+    } catch (e) {
+      _logger.e('❌ Error loading cached conversation detail: $e');
+      // Don't show error for cache loading failures
+      // The fresh fetch will handle error display if needed
+    }
   }
 
   /// Load cached messages for instant UI display
@@ -300,6 +333,58 @@ class ConversationDetailController {
     await _cacheService.removeMessageFromCache(_state.conversationId, messageId);
   }
 
+
+  /// Fetch conversation detail data
+  Future<void> fetchConversationDetail(String conversationId) async {
+    try {
+      _logger.d('🔍 Fetching conversation detail for ID: $conversationId');
+      
+      final result = await _getConversationDetailUsecase.call(conversationId);
+      
+      result.fold(
+        (failure) {
+          _logger.e('❌ Failed to fetch conversation detail: ${failure.message}');
+          _state.setError('Failed to load conversation details: ${failure.message}');
+        },
+        (response) {
+          _logger.d('✅ Conversation detail fetched successfully');
+          
+          final conversationDetail = response.data['conversation'];
+          
+          if (conversationDetail != null) {
+            // Convert ConversationDetailEntity to ConversationEntity for state
+            final conversation = ConversationEntity(
+              id: conversationDetail.id,
+              name: conversationDetail.name,
+              participants: conversationDetail.participants,
+              isGroup: conversationDetail.isGroup,
+              groupSettings: conversationDetail.groupSettings,
+              isActive: conversationDetail.isActive,
+              pinnedMessages: conversationDetail.pinnedMessages,
+              settings: conversationDetail.settings ?? const ConversationSettingsEntity(
+                muteNotifications: false,
+                theme: '',
+              ),
+              readReceipts: conversationDetail.readReceipts,
+              lastMessage: conversationDetail.lastMessage,
+              createdAt: conversationDetail.createdAt,
+              updatedAt: conversationDetail.updatedAt,
+            );
+            
+            _state.setConversation(conversation);
+            _logger.d('💾 Conversation detail set in state: ${conversation.name ?? 'Unnamed'}');
+            
+            // Cache the conversation detail for future use (non-blocking)
+            _conversationDetailCacheService.cacheConversationDetail(conversationId, conversation);
+          }
+        },
+      );
+    } catch (e) {
+      _logger.e('❌ Error fetching conversation detail: $e');
+      _state.setError('An unexpected error occurred while loading conversation details');
+    }
+  }
+
   /// Handles scroll events and triggers background gradient changes
   void _onScroll() {
     final currentPosition = _state.scrollController.position.pixels;
@@ -339,13 +424,33 @@ class ConversationDetailController {
   /// Check if we have cached messages
   bool get hasCachedMessages => _cacheService.hasCachedData(_state.conversationId);
 
+  /// Check if we have cached conversation detail
+  bool get hasCachedConversationDetail => _conversationDetailCacheService.hasCachedData(_state.conversationId);
+
   /// Get cache info for debugging
-  Map<String, dynamic> get cacheInfo => _cacheService.getCacheInfo(_state.conversationId);
+  Map<String, dynamic> get cacheInfo => {
+    'messages': _cacheService.getCacheInfo(_state.conversationId),
+    'conversationDetail': _conversationDetailCacheService.getCacheInfo(_state.conversationId),
+  };
 
   /// Clear message cache for this conversation
-  Future<void> clearCache() async {
+  Future<void> clearMessageCache() async {
     await _cacheService.clearCache(_state.conversationId);
     _state.setMessages([]);
+  }
+
+  /// Clear conversation detail cache for this conversation
+  Future<void> clearConversationDetailCache() async {
+    await _conversationDetailCacheService.clearConversationDetailCache(_state.conversationId);
+    _state.setConversation(null);
+  }
+
+  /// Clear all caches for this conversation
+  Future<void> clearAllCaches() async {
+    await Future.wait([
+      clearMessageCache(),
+      clearConversationDetailCache(),
+    ]);
   }
 
   /// Dispose resources

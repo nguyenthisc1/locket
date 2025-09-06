@@ -8,7 +8,7 @@ class GetConversationDetailUsecase {
 
      GetConversationDetailUsecase(this._conversationRepository);
 
-     Future<Either<Failure, BaseResponse>> call({required String conversationId, int? limit}) async {
-      return await _conversationRepository.getConversation(conversationId: conversationId, limit: limit);
+     Future<Either<Failure, BaseResponse>> call(String conversationId) async {
+      return await _conversationRepository.getConversation(conversationId);
      }
 }

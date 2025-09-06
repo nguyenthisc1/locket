@@ -123,8 +123,8 @@ class AppRouter {
       GoRoute(
         path: '/converstion/:id',
         builder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
-          return ConversationDetailPage(conversationId: id);
+          final conversationId = state.extra as String? ?? '';
+          return ConversationDetailPage(conversationId: conversationId);
         },
       ),
     ],

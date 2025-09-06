@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
+import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 
 class ConversationDetailControllerState extends ChangeNotifier {
   // Loading and error state
@@ -13,6 +14,9 @@ class ConversationDetailControllerState extends ChangeNotifier {
   // Message data
   List<MessageEntity> _listMessages = [];
   String _conversationId = '';
+
+  // Conversation data
+  ConversationEntity? _conversation;
 
   // Pagination state
   bool _isLoadingMore = false;
@@ -37,6 +41,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
   bool get isLoadingMoreMessages => _isLoadingMoreMessages;
   List<MessageEntity> get listMessages => _listMessages;
   String get conversationId => _conversationId;
+  ConversationEntity? get conversation => _conversation;
   String? get errorMessage => _errorMessage;
   bool get hasInitialized => _hasInitialized;
   bool get isShowingCachedData => _isShowingCachedData;
@@ -52,6 +57,13 @@ class ConversationDetailControllerState extends ChangeNotifier {
   void setConversationId(String value) {
     if (_conversationId != value) {
       _conversationId = value;
+      notifyListeners();
+    }
+  }
+
+  void setConversation(ConversationEntity? value) {
+    if (_conversation != value) {
+      _conversation = value;
       notifyListeners();
     }
   }
@@ -203,6 +215,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
 
   void reset() {
     _listMessages.clear();
+    _conversation = null;
     _isLoadingMessages = false;
     _isRefreshingMessages = false;
     _isLoadingMoreMessages = false;
