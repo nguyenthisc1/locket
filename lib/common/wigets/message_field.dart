@@ -9,6 +9,7 @@ class MessageField extends StatefulWidget {
   final EdgeInsetsGeometry? padding;
   final bool? isVisibleBackdrop;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
 
   const MessageField({
     super.key,
@@ -21,6 +22,7 @@ class MessageField extends StatefulWidget {
     this.isVisibleBackdrop = false,
     this.focusNode,
     this.onChanged,
+    this.onSubmitted,
   });
 
   @override
@@ -31,6 +33,7 @@ class _MessageFieldState extends State<MessageField>
     with TickerProviderStateMixin {
   FocusNode? _internalFocusNode;
   FocusNode get _effectiveFocusNode => widget.focusNode ?? _internalFocusNode!;
+  final TextEditingController _textController = TextEditingController();
 
   bool isKeyboardVisible = false;
 
@@ -77,6 +80,14 @@ class _MessageFieldState extends State<MessageField>
     );
   }
 
+  void _handleSubmit() {
+    final text = _textController.text.trim();
+    if (text.isNotEmpty) {
+      widget.onSubmitted?.call(text);
+      _textController.clear();
+    }
+  }
+
   @override
   void dispose() {
     if (widget.focusNode == null) {
@@ -86,6 +97,7 @@ class _MessageFieldState extends State<MessageField>
       widget.focusNode?.removeListener(_handleFocusChange);
       // Do not dispose external focusNode
     }
+    _textController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -132,8 +144,10 @@ class _MessageFieldState extends State<MessageField>
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: TextField(
+                  controller: _textController,
                   focusNode: _effectiveFocusNode,
                   onChanged: widget.onChanged,
+                  onSubmitted: (_) => _handleSubmit(),
                   decoration: InputDecoration(
                     hintText: 'Gửi tin nhắn...',
                     filled: true,
@@ -143,6 +157,10 @@ class _MessageFieldState extends State<MessageField>
                         AppDimensions.radiusXxl,
                       ),
                       borderSide: BorderSide.none,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.send, color: Colors.white),
+                      onPressed: _handleSubmit,
                     ),
                   ),
                   style: AppTypography.headlineMedium,
