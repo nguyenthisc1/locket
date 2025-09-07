@@ -161,12 +161,12 @@ class CameraController {
       final isFrontCamera =
           _state.controller?.description.lensDirection ==
           cam.CameraLensDirection.front;
-      _state.feedController.createDraftFeed(
-        image.path,
-        MediaType.image,
-        image.name,
-        isFrontCamera,
-      );
+      // _state.feedController.createDraftFeed(
+      //   image.path,
+      //   MediaType.image,
+      //   image.name,
+      //   isFrontCamera,
+      // );
 
       print('Picture taken successfully: ${image.path}');
     } on cam.CameraException catch (e) {
@@ -224,12 +224,12 @@ class CameraController {
       final isFrontCamera =
           _state.controller?.description.lensDirection ==
           cam.CameraLensDirection.front;
-      _state.feedController.createDraftFeed(
-        video.path,
-        MediaType.video,
-        video.name,
-        isFrontCamera,
-      );
+      // _state.feedController.createDraftFeed(
+      //   video.path,
+      //   MediaType.video,
+      //   video.name,
+      //   isFrontCamera,
+      // );
 
       print('Video recording stopped at: $endTime');
       print('Recording duration: ${_state.getFormattedRecordingDuration()}');
@@ -304,7 +304,12 @@ class CameraController {
           _state.controller?.description.lensDirection ==
           cam.CameraLensDirection.front;
 
-      print('Uploading $mediaType: $fileName');
+      _state.feedController.createDraftFeed(
+        mediaFile.path,
+        isVideo ? MediaType.video : MediaType.image,
+        fileName,
+        isFrontCamera,
+      );
 
       // Upload via feed controller
       await _state.feedController.uploadMedia(
@@ -334,7 +339,11 @@ class CameraController {
       _state.isRecording && _state.recordingStartedAt != null;
 
   /// Check if recording duration exceeds limit (optional safety check)
-  bool isRecordingOverLimit({Duration limit = const Duration(minutes: RequestDefaults.maxVideoRecordingMinutes)}) {
+  bool isRecordingOverLimit({
+    Duration limit = const Duration(
+      minutes: RequestDefaults.maxVideoRecordingMinutes,
+    ),
+  }) {
     if (!_state.isRecording) return false;
     final duration = _state.getCurrentRecordingDuration();
     return duration != null && duration > limit;
