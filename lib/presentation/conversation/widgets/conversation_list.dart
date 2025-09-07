@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/helper/utils.dart';
+import 'package:locket/common/wigets/loading_text.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
@@ -53,10 +54,6 @@ class _ConversationListState extends State<ConversationList> {
     final conversationController = context.read<ConversationController>();
     final conversationState = context.watch<ConversationControllerState>();
 
-    // if (conversationState.isLoadingConversations) {
-    //   return const Center(child: CircularProgressIndicator());
-    // }
-
     if (conversationState.errorMessage != null &&
         conversationState.listConversation.isEmpty) {
       return Center(
@@ -80,35 +77,11 @@ class _ConversationListState extends State<ConversationList> {
       );
     }
 
-    return Column(
+    return Stack(
       children: [
-        // Show cached data indicator
-        if (conversationState.isLoadingConversations)
-          Container(
-            margin: const EdgeInsets.only(bottom: AppDimensions.md),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.lg,
-              vertical: AppDimensions.md,
-            ),
-            color: Colors.orange.safeOpacity(0.1),
-            child: Row(
-              children: [
-                Icon(Icons.cached, size: 16, color: Colors.orange[700]),
-                const SizedBox(width: AppDimensions.md),
-                Text(
-                  'Showing cached data',
-                  style: TextStyle(
-                    color: Colors.orange[700],
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
 
         // Conversation list
-        Expanded(
+        Positioned.fill(
           child: ListView.separated(
             controller: _scrollController,
             physics: const ScrollPhysics(),
@@ -129,6 +102,14 @@ class _ConversationListState extends State<ConversationList> {
               );
             },
           ),
+        ),
+
+        if (conversationState.isLoadingConversations)
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: LoadingText(text: 'Đang tải tin nhắn'),
         ),
       ],
     );
