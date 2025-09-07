@@ -52,13 +52,13 @@ class FeedController {
     }
 
     // Load cached data first (instant UI update)
-    await _loadCachedFeeds();
+    await fetchFeed();
     _state.setInitialized(true);
   }
 
   /// Fetch initial feeds from server (called when HomePage is mounted)
   Future<void> fetchInitialFeeds() async {
-    await fetchFeed();
+    await _loadCachedFeeds();
   }
 
   /// Load cached feeds (fast, offline-first)
