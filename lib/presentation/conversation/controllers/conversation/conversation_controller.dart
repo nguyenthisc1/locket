@@ -38,16 +38,13 @@ class ConversationController {
       return;
     }
 
-    // Load cached data first (instant UI update)
-    await _loadCachedConversations();
-
     // Then fetch fresh data in background
     await fetchConversations();
     _state.setInitialized(true);
   }
 
   /// Load cached conversations for instant UI display
-  Future<void> _loadCachedConversations() async {
+  Future<void> loadCachedConversations() async {
     try {
       final cachedConversations = await _cacheService.loadCachedConversations();
 
@@ -256,11 +253,6 @@ class ConversationController {
         _state.setUnreadCountConversations(0);
       }
     }
-  }
-
-  /// Get cached conversations for instant display
-  Future<void> loadCachedConversationsOnly() async {
-    await _loadCachedConversations();
   }
 
   /// Check if we have cached conversations
