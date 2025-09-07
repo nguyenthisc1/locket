@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:locket/core/mappers/pagination_mapper.dart';
 import 'package:locket/core/models/pagination_model.dart';
 import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
+import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
@@ -18,7 +20,14 @@ class ConversationDetailController {
   final ConversationDetailCacheService _conversationDetailCacheService;
   final GetMessagesConversationUsecase _getMessagesUsecase;
   final GetConversationDetailUsecase _getConversationDetailUsecase;
+  final SocketService _socketService;
   final Logger _logger;
+
+  // Socket.IO stream subscriptions
+  StreamSubscription<MessageEntity>? _messageSubscription;
+  StreamSubscription<ConversationEntity>? _conversationUpdateSubscription;
+  StreamSubscription<Map<String, dynamic>>? _typingSubscription;
+  StreamSubscription<Map<String, dynamic>>? _readReceiptSubscription;
 
   // Background gradient functionality
   final List<LinearGradient> _backgroundGradients = [
@@ -79,16 +88,19 @@ class ConversationDetailController {
     required ConversationDetailCacheService conversationDetailCacheService,
     required GetMessagesConversationUsecase getMessagesUsecase,
     required GetConversationDetailUsecase getConversationDetailUsecase,
+    required SocketService socketService,
     Logger? logger,
   }) : _state = state,
        _cacheService = cacheService,
        _conversationDetailCacheService = conversationDetailCacheService,
        _getMessagesUsecase = getMessagesUsecase,
        _getConversationDetailUsecase = getConversationDetailUsecase,
+       _socketService = socketService,
        _logger =
            logger ??
            Logger(printer: PrettyPrinter(colors: true, printEmojis: true)) {
     _state.scrollController.addListener(_onScroll);
+    _setupSocketListeners();
   }
 
   Future<void> init(String conversationId) async {
@@ -104,6 +116,9 @@ class ConversationDetailController {
       _state.reset();
       _state.setConversationId(conversationId);
     }
+
+    // Join the conversation room for real-time updates
+    await _socketService.joinConversation(conversationId);
 
     // Then fetch fresh conversation details in background
     await fetchConversationDetail(conversationId);
@@ -492,8 +507,184 @@ class ConversationDetailController {
     await Future.wait([clearMessageCache(), clearConversationDetailCache()]);
   }
 
+  /// Setup Socket.IO listeners for real-time updates
+  void _setupSocketListeners() {
+    // Listen for new messages
+    _messageSubscription = _socketService.messageStream.listen(
+      (message) {
+        _logger.d('📨 Received real-time message: ${message.id}');
+        
+        // Only add message if it's for the current conversation
+        if (message.conversationId == _state.conversationId) {
+          // Check if message already exists to avoid duplicates
+          final existingMessage = _state.listMessages
+              .where((m) => m.id == message.id)
+              .isNotEmpty;
+          
+          if (!existingMessage) {
+            addMessage(message);
+          }
+        }
+      },
+      onError: (error) {
+        _logger.e('❌ Error in message stream: $error');
+      },
+    );
+
+    // Listen for conversation updates
+    _conversationUpdateSubscription = _socketService.conversationUpdateStream.listen(
+      (conversation) {
+        _logger.d('💬 Received conversation update: ${conversation.id}');
+        
+        if (conversation.id == _state.conversationId) {
+          _state.setConversation(conversation);
+          _conversationDetailCacheService.cacheConversationDetail(
+            _state.conversationId,
+            conversation,
+          );
+        }
+      },
+      onError: (error) {
+        _logger.e('❌ Error in conversation update stream: $error');
+      },
+    );
+
+    // Listen for typing indicators
+    _typingSubscription = _socketService.typingStream.listen(
+      (typingData) {
+        _logger.d('⌨️ Received typing indicator: $typingData');
+        final userId = typingData['userId'] as String?;
+        final conversationId = typingData['conversationId'] as String?;
+        final isTyping = typingData['isTyping'] as bool? ?? false;
+        
+        if (userId != null && conversationId == _state.conversationId) {
+          if (isTyping) {
+            _state.addTypingUser(userId);
+          } else {
+            _state.removeTypingUser(userId);
+          }
+        }
+      },
+      onError: (error) {
+        _logger.e('❌ Error in typing stream: $error');
+      },
+    );
+
+    // Listen for read receipts
+    _readReceiptSubscription = _socketService.readReceiptStream.listen(
+      (readReceiptData) {
+        _logger.d('👁️ Received read receipt: $readReceiptData');
+        // Handle read receipts - update message read status
+        final messageId = readReceiptData['messageId'] as String?;
+        if (messageId != null) {
+          _updateMessageReadStatus(messageId);
+        }
+      },
+      onError: (error) {
+        _logger.e('❌ Error in read receipt stream: $error');
+      },
+    );
+  }
+
+  /// Send a message via Socket.IO
+  Future<void> sendMessage({
+    required String text,
+    String? replyTo,
+    List<Map<String, dynamic>>? attachments,
+  }) async {
+    if (text.trim().isEmpty) return;
+
+    _state.setSendingMessage(true);
+
+    try {
+      await _socketService.sendMessage(
+        conversationId: _state.conversationId,
+        text: text,
+        replyTo: replyTo,
+        attachments: attachments,
+      );
+      
+      _logger.d('📤 Message sent via Socket.IO');
+    } catch (e) {
+      _logger.e('❌ Error sending message: $e');
+      _state.setError('Failed to send message');
+    } finally {
+      _state.setSendingMessage(false);
+    }
+  }
+
+  /// Send typing indicator
+  Future<void> sendTypingIndicator() async {
+    await _socketService.sendTyping(_state.conversationId);
+  }
+
+  /// Send stop typing indicator
+  Future<void> sendStopTypingIndicator() async {
+    await _socketService.sendStopTyping(_state.conversationId);
+  }
+
+  /// Send read receipt for a message
+  Future<void> sendReadReceipt(String messageId) async {
+    await _socketService.sendReadReceipt(_state.conversationId, messageId);
+  }
+
+  /// Update message read status
+  void _updateMessageReadStatus(String messageId) {
+    final messageIndex = _state.listMessages.indexWhere(
+      (m) => m.id == messageId,
+    );
+    
+    if (messageIndex != -1) {
+      final message = _state.listMessages[messageIndex];
+      final updatedMessage = MessageEntity(
+        id: message.id,
+        conversationId: message.conversationId,
+        senderId: message.senderId,
+        senderName: message.senderName,
+        text: message.text,
+        type: message.type,
+        attachments: message.attachments,
+        replyTo: message.replyTo,
+        replyInfo: message.replyInfo,
+        forwardedFrom: message.forwardedFrom,
+        forwardInfo: message.forwardInfo,
+        threadInfo: message.threadInfo,
+        reactions: message.reactions,
+        isRead: true, // Mark as read
+        isEdited: message.isEdited,
+        isDeleted: message.isDeleted,
+        isPinned: message.isPinned,
+        editHistory: message.editHistory,
+        metadata: message.metadata,
+        sticker: message.sticker,
+        emote: message.emote,
+        createdAt: message.createdAt,
+        timestamp: message.timestamp,
+        isMe: message.isMe,
+      );
+      
+      updateMessage(updatedMessage);
+    }
+  }
+
+  /// Leave conversation room when disposing
+  Future<void> _leaveConversation() async {
+    if (_state.conversationId.isNotEmpty) {
+      await _socketService.leaveConversation(_state.conversationId);
+    }
+  }
+
   /// Dispose resources
   void dispose() {
     _state.scrollController.removeListener(_onScroll);
+    
+    // Cancel socket subscriptions
+    _messageSubscription?.cancel();
+    _conversationUpdateSubscription?.cancel();
+    _typingSubscription?.cancel();
+    _readReceiptSubscription?.cancel();
+    
+    // Leave conversation room
+    _leaveConversation();
   }
 }

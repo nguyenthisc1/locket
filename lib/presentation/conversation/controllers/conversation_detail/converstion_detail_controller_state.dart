@@ -35,6 +35,9 @@ class ConversationDetailControllerState extends ChangeNotifier {
   // Background gradient state
   int _currentGradientIndex = 0;
 
+  // Typing indicators
+  final Set<String> _typingUsers = {};
+
   // Getters
   bool get isLoadingMessages => _isLoadingMessages;
   bool get isRefreshingMessages => _isRefreshingMessages;
@@ -52,6 +55,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
   String? get pendingMessageText => _pendingMessageText;
   String? get pendingAttachmentPath => _pendingAttachmentPath;
   int get currentGradientIndex => _currentGradientIndex;
+  Set<String> get typingUsers => Set.from(_typingUsers);
 
   // Setters
   void setConversationId(String value) {
@@ -179,6 +183,25 @@ class ConversationDetailControllerState extends ChangeNotifier {
     }
   }
 
+  void addTypingUser(String userId) {
+    if (_typingUsers.add(userId)) {
+      notifyListeners();
+    }
+  }
+
+  void removeTypingUser(String userId) {
+    if (_typingUsers.remove(userId)) {
+      notifyListeners();
+    }
+  }
+
+  void clearTypingUsers() {
+    if (_typingUsers.isNotEmpty) {
+      _typingUsers.clear();
+      notifyListeners();
+    }
+  }
+
   void clearError() {
     if (_errorMessage != null) {
       _errorMessage = null;
@@ -228,6 +251,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
     _lastCreatedAt = null;
     _errorMessage = null;
     visibleTimestamps.clear();
+    _typingUsers.clear();
     notifyListeners();
   }
 

@@ -6,12 +6,15 @@ import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
+import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/di.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/conversation_detail_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:locket/presentation/conversation/widgets/message.dart';
+import 'package:locket/presentation/conversation/widgets/typing_indicator.dart';
+import 'package:locket/core/services/user_service.dart';
 
 class ConversationDetailPage extends StatefulWidget {
   final String conversationId;
@@ -37,6 +40,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       conversationDetailCacheService: getIt<ConversationDetailCacheService>(),
       getMessagesUsecase: getIt<GetMessagesConversationUsecase>(),
       getConversationDetailUsecase: getIt<GetConversationDetailUsecase>(),
+      socketService: getIt<SocketService>(),
     );
 
     _controller.init(widget.conversationId);
@@ -212,12 +216,38 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                       ),
                     ),
 
+                  // Typing indicator
+                  if (_state.typingUsers.isNotEmpty)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 100, // Position above message field
+                      child: TypingIndicator(
+                        typingUsers: _state.typingUsers.toList(),
+                        currentUserId: getIt<UserService>().currentUser?.id ?? '',
+                      ),
+                    ),
+
                   // Message input field
                   Positioned.fill(
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: MessageField(),
+                    child: MessageField(
+                      onChanged: (text) {
+                        // Handle typing indicators
+                        if (text.isNotEmpty) {
+                          _controller.sendTypingIndicator();
+                        } else {
+                          _controller.sendStopTypingIndicator();
+                        }
+                      },
+                      onSubmitted: (text) {
+                        if (text.trim().isNotEmpty) {
+                          _controller.sendMessage(text: text.trim());
+                        }
+                      },
+                    ),
                   ),
 
                   // if (_state.isLoadingMessages)
