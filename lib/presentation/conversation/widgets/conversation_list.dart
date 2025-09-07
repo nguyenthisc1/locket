@@ -53,9 +53,9 @@ class _ConversationListState extends State<ConversationList> {
     final conversationController = context.read<ConversationController>();
     final conversationState = context.watch<ConversationControllerState>();
 
-    if (conversationState.isLoadingConversations) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    // if (conversationState.isLoadingConversations) {
+    //   return const Center(child: CircularProgressIndicator());
+    // }
 
     if (conversationState.errorMessage != null &&
         conversationState.listConversation.isEmpty) {
@@ -64,13 +64,13 @@ class _ConversationListState extends State<ConversationList> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimensions.lg),
             Text(
               conversationState.errorMessage!,
               style: TextStyle(color: Colors.grey[600], fontSize: 16),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimensions.lg),
             ElevatedButton(
               onPressed: () => conversationController.refreshConversations(),
               child: const Text('Thử lại'),
@@ -83,14 +83,18 @@ class _ConversationListState extends State<ConversationList> {
     return Column(
       children: [
         // Show cached data indicator
-        if (conversationState.isShowingCachedData)
+        if (conversationState.isLoadingConversations)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            margin: const EdgeInsets.only(bottom: AppDimensions.md),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.lg,
+              vertical: AppDimensions.md,
+            ),
             color: Colors.orange.safeOpacity(0.1),
             child: Row(
               children: [
                 Icon(Icons.cached, size: 16, color: Colors.orange[700]),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppDimensions.md),
                 Text(
                   'Showing cached data',
                   style: TextStyle(
@@ -102,6 +106,7 @@ class _ConversationListState extends State<ConversationList> {
               ],
             ),
           ),
+
         // Conversation list
         Expanded(
           child: ListView.separated(
@@ -114,11 +119,12 @@ class _ConversationListState extends State<ConversationList> {
               final conversation = conversationState.listConversation[index];
               return GestureDetector(
                 behavior: HitTestBehavior.translucent,
-                onTap: () => AppNavigator.push(
-                  context,
-                  '/converstion/:id',
-                  extra: conversation.id,
-                ),
+                onTap:
+                    () => AppNavigator.push(
+                      context,
+                      '/converstion/:id',
+                      extra: conversation.id,
+                    ),
                 child: ConversationItem(data: conversation),
               );
             },
