@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
-import 'package:locket/common/helper/utils.dart';
-import 'package:locket/common/wigets/loading_text.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
@@ -104,13 +102,13 @@ class _ConversationListState extends State<ConversationList> {
           ),
         ),
 
-        if (conversationState.isLoadingConversations)
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: LoadingText(text: 'Đang tải tin nhắn'),
-        ),
+        // if (conversationState.isLoadingConversations)
+        // Positioned(
+        //   top: 0,
+        //   left: 0,
+        //   right: 0,
+        //   child: LoadingText(text: 'Đang tải tin nhắn'),
+        // ),
       ],
     );
   }

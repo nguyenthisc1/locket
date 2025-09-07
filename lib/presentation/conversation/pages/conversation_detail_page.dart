@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/utils.dart' as utils;
 import 'package:locket/common/wigets/appbar/appbar.dart';
-import 'package:locket/common/wigets/loading_text.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
@@ -221,13 +220,13 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                     child: MessageField(),
                   ),
 
-                  if (_state.isLoadingMessages)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: LoadingText(text: 'Đang tải tin nhắn'),
-                    ),
+                  // if (_state.isLoadingMessages)
+                  //   Positioned(
+                  //     top: 0,
+                  //     left: 0,
+                  //     right: 0,
+                  //     child: LoadingText(text: 'Đang tải tin nhắn'),
+                  //   ),
                 ],
               ),
             ),
