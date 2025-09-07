@@ -3,7 +3,6 @@ import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
-import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
@@ -63,9 +62,8 @@ class _HomePageState extends State<HomePage> {
       create: (_) => _homeController.state,
       child: Consumer<HomeControllerState>(
         builder: (context, homeState, _) {
-          final userService = getIt<UserService>();
 
-          if (homeState.isLoadingProfile && !userService.isLoggedIn) {
+          if (homeState.isLoadingProfile) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
