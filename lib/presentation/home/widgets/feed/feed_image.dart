@@ -79,7 +79,9 @@ class FeedImage extends StatelessWidget {
 
   bool _isLocalFilePath(String path) {
     // Check if it's a local file path or has our local prefix
+    // Accepts both 'local:///' and 'local:////' as local prefixes for compatibility
     return path.startsWith('local:///') ||
+        path.startsWith('local:////') ||
         path.startsWith('/') ||
         path.startsWith('file://') ||
         path.contains('/var/mobile/') ||
@@ -88,6 +90,10 @@ class FeedImage extends StatelessWidget {
   }
 
   String _getActualFilePath(String path) {
+    // Remove both 'local:///' and 'local:////' prefixes if present
+    if (path.startsWith('local:////')) {
+      return path.substring(10); // Remove 'local:////' prefix
+    }
     if (path.startsWith('local:///')) {
       return path.substring(9); // Remove 'local:///' prefix
     }
