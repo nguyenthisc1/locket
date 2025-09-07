@@ -7,6 +7,7 @@ import 'package:locket/core/services/conversation_cache_service.dart';
 import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/feed_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
+import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
@@ -67,6 +68,7 @@ void setupDependencies() {
   getIt.registerLazySingleton<ConversationCacheService>(() => ConversationCacheService());
   getIt.registerLazySingleton<ConversationDetailCacheService>(() => ConversationDetailCacheService());
   getIt.registerLazySingleton<MessageCacheService>(() => MessageCacheService());
+  getIt.registerLazySingleton<SocketService>(() => SocketService());
   getIt.registerLazySingleton<Middleware>(() => Middleware());
 
   // API Services
@@ -171,6 +173,7 @@ void setupDependencies() {
       state: getIt<AuthControllerState>(),
       loginUsecase: getIt<LoginUsecase>(),
       userService: getIt<UserService>(),
+      socketService: getIt<SocketService>(),
     ),
   );
   // User controller dependencies
