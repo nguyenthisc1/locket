@@ -42,12 +42,11 @@ class _HomePageState extends State<HomePage> {
     _homeController.init();
 
     // Fetch feeds when HomePage is mounted
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        _feedController.fetchInitialFeeds();
-        _conversationController
-          ..fetchConversations()
-          ..fetchUnreadCountConversation();
+      await _feedController.fetchInitialFeeds();
+      await _conversationController.loadCachedConversations();
+      await _conversationController.fetchUnreadCountConversation();
       }
     });
   }

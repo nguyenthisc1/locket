@@ -5,7 +5,6 @@ import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
-import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/di.dart';
 
