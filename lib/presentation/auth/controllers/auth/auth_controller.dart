@@ -1,4 +1,6 @@
 import 'package:fresh_dio/fresh_dio.dart';
+import 'package:locket/core/constants/api_url.dart';
+import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/di.dart';
@@ -11,18 +13,22 @@ class AuthController {
   final AuthControllerState _state;
   final LoginUsecase _loginUsecase;
   final UserService _userService;
+  final SocketService _socketService;
   final Logger _logger;
 
   AuthController({
     required AuthControllerState state,
     required LoginUsecase loginUsecase,
     required UserService userService,
+    required SocketService socketService,
     Logger? logger,
-  })  : _state = state,
-        _loginUsecase = loginUsecase,
-        _userService = userService,
-        _logger = logger ??
-            Logger(printer: PrettyPrinter(colors: true, printEmojis: true));
+  }) : _state = state,
+       _loginUsecase = loginUsecase,
+       _userService = userService,
+       _socketService = socketService,
+       _logger =
+           logger ??
+           Logger(printer: PrettyPrinter(colors: true, printEmojis: true));
 
   // Getters for external access
   AuthControllerState get state => _state;
@@ -48,6 +54,9 @@ class AuthController {
         // Convert UserProfileModel to UserEntity if needed
         _state.setLoggedIn(true);
         _logger.d('User already logged in: ${_userService.currentUser?.email}');
+
+        // Initialize Socket.IO connection
+        await _initializeSocketConnection();
       }
     } catch (e) {
       _logger.e('Error initializing auth: $e');
@@ -78,6 +87,10 @@ class AuthController {
           _logger.d('Login successful');
           _state.setLoggedIn(true);
           _state.clearError();
+
+          // Initialize Socket.IO connection after successful login
+          _initializeSocketConnection();
+
           return true;
         },
       );
@@ -93,12 +106,39 @@ class AuthController {
   /// Handle user logout
   Future<void> logout() async {
     try {
+      // Disconnect Socket.IO connection
+      await _socketService.disconnect();
+
       await _userService.clearUser();
       _state.reset();
       _logger.d('User logged out successfully');
     } catch (e) {
       _logger.e('Logout error: $e');
       _state.setError('Failed to logout');
+    }
+  }
+
+  /// Initialize Socket.IO connection
+  Future<void> _initializeSocketConnection() async {
+    try {
+      final currentUser = _userService.currentUser;
+      final tokenStorage = getIt<TokenStorage<AuthTokenPair>>();
+      final tokenPair = await tokenStorage.read();
+
+      if (currentUser != null && tokenPair?.accessToken != null) {
+        await _socketService.initialize(
+          serverUrl: ApiUrl.socketUrl,
+          userId: currentUser.id,
+          authToken: tokenPair!.accessToken,
+        );
+
+        _logger.d(
+          '🔌 Socket.IO connection initialized for user: ${currentUser.email}',
+        );
+      }
+    } catch (e) {
+      _logger.e('❌ Failed to initialize Socket.IO connection: $e');
+      // Don't throw error here as it shouldn't block the login process
     }
   }
 
