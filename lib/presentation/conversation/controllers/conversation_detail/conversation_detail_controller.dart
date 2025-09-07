@@ -85,15 +85,15 @@ class ConversationDetailController {
        _conversationDetailCacheService = conversationDetailCacheService,
        _getMessagesUsecase = getMessagesUsecase,
        _getConversationDetailUsecase = getConversationDetailUsecase,
-       _logger = logger ??
+       _logger =
+           logger ??
            Logger(printer: PrettyPrinter(colors: true, printEmojis: true)) {
-    
     _state.scrollController.addListener(_onScroll);
   }
 
   Future<void> init(String conversationId) async {
     _state.setConversationId(conversationId);
-    
+
     // Only initialize once per conversation
     if (_state.hasInitialized && _state.conversationId == conversationId) {
       return;
@@ -105,14 +105,8 @@ class ConversationDetailController {
       _state.setConversationId(conversationId);
     }
 
-    // Load cached conversation detail first (instant UI update)
-    await _loadCachedConversationDetail(conversationId);
-
     // Then fetch fresh conversation details in background
     await fetchConversationDetail(conversationId);
-
-    // Load cached data for messages (instant UI update)
-    await _loadCachedMessages();
 
     // Then fetch fresh message data in background
     await fetchMessages();
@@ -122,16 +116,29 @@ class ConversationDetailController {
     _scrollToBottomDelayed();
   }
 
+  Future<void> initBefore(String conversationId) async {
+    // Load cached conversation detail first (instant UI update)
+    await _loadCachedConversationDetail(conversationId);
+
+    // Load cached data for messages (instant UI update)
+    await _loadCachedMessages();
+  }
+
   /// Load cached conversation detail for instant UI display
   Future<void> _loadCachedConversationDetail(String conversationId) async {
     try {
-      final cachedConversation = await _conversationDetailCacheService.loadCachedConversationDetail(conversationId);
+      final cachedConversation = await _conversationDetailCacheService
+          .loadCachedConversationDetail(conversationId);
 
       if (cachedConversation != null) {
-        _logger.d('📦 Loaded cached conversation detail for ID: $conversationId');
+        _logger.d(
+          '📦 Loaded cached conversation detail for ID: $conversationId',
+        );
         _state.setConversation(cachedConversation);
       } else {
-        _logger.d('📦 No cached conversation detail found for ID: $conversationId');
+        _logger.d(
+          '📦 No cached conversation detail found for ID: $conversationId',
+        );
       }
     } catch (e) {
       _logger.e('❌ Error loading cached conversation detail: $e');
@@ -143,7 +150,9 @@ class ConversationDetailController {
   /// Load cached messages for instant UI display
   Future<void> _loadCachedMessages() async {
     try {
-      final cachedMessages = await _cacheService.loadCachedMessages(_state.conversationId);
+      final cachedMessages = await _cacheService.loadCachedMessages(
+        _state.conversationId,
+      );
 
       if (cachedMessages.isNotEmpty) {
         _logger.d(
@@ -151,7 +160,9 @@ class ConversationDetailController {
         );
         _state.setMessages(cachedMessages, isFromCache: true);
       } else {
-        _logger.d('📦 No cached messages found for conversation ${_state.conversationId}');
+        _logger.d(
+          '📦 No cached messages found for conversation ${_state.conversationId}',
+        );
       }
     } catch (e) {
       _logger.e('❌ Error loading cached messages: $e');
@@ -220,7 +231,10 @@ class ConversationDetailController {
           }
 
           _state.setMessages(messages, isFromCache: false);
-          _cacheService.cacheMessages(_state.conversationId, _state.listMessages);
+          _cacheService.cacheMessages(
+            _state.conversationId,
+            _state.listMessages,
+          );
         },
       );
     } catch (e) {
@@ -303,7 +317,10 @@ class ConversationDetailController {
           }
 
           // Cache messages
-          _cacheService.cacheMessages(_state.conversationId, _state.listMessages);
+          _cacheService.cacheMessages(
+            _state.conversationId,
+            _state.listMessages,
+          );
         },
       );
     } catch (e) {
@@ -324,33 +341,42 @@ class ConversationDetailController {
   /// Update existing message (e.g., when message status changes)
   Future<void> updateMessage(MessageEntity updatedMessage) async {
     _state.updateMessage(updatedMessage);
-    await _cacheService.updateMessageInCache(_state.conversationId, updatedMessage);
+    await _cacheService.updateMessageInCache(
+      _state.conversationId,
+      updatedMessage,
+    );
   }
 
   /// Remove message (e.g., when message is deleted)
   Future<void> removeMessage(String messageId) async {
     _state.removeMessage(messageId);
-    await _cacheService.removeMessageFromCache(_state.conversationId, messageId);
+    await _cacheService.removeMessageFromCache(
+      _state.conversationId,
+      messageId,
+    );
   }
-
 
   /// Fetch conversation detail data
   Future<void> fetchConversationDetail(String conversationId) async {
     try {
       _logger.d('🔍 Fetching conversation detail for ID: $conversationId');
-      
+
       final result = await _getConversationDetailUsecase.call(conversationId);
-      
+
       result.fold(
         (failure) {
-          _logger.e('❌ Failed to fetch conversation detail: ${failure.message}');
-          _state.setError('Failed to load conversation details: ${failure.message}');
+          _logger.e(
+            '❌ Failed to fetch conversation detail: ${failure.message}',
+          );
+          _state.setError(
+            'Failed to load conversation details: ${failure.message}',
+          );
         },
         (response) {
           _logger.d('✅ Conversation detail fetched successfully');
-          
+
           final conversationDetail = response.data['conversation'];
-          
+
           if (conversationDetail != null) {
             // Convert ConversationDetailEntity to ConversationEntity for state
             final conversation = ConversationEntity(
@@ -361,27 +387,36 @@ class ConversationDetailController {
               groupSettings: conversationDetail.groupSettings,
               isActive: conversationDetail.isActive,
               pinnedMessages: conversationDetail.pinnedMessages,
-              settings: conversationDetail.settings ?? const ConversationSettingsEntity(
-                muteNotifications: false,
-                theme: '',
-              ),
+              settings:
+                  conversationDetail.settings ??
+                  const ConversationSettingsEntity(
+                    muteNotifications: false,
+                    theme: '',
+                  ),
               readReceipts: conversationDetail.readReceipts,
               lastMessage: conversationDetail.lastMessage,
               createdAt: conversationDetail.createdAt,
               updatedAt: conversationDetail.updatedAt,
             );
-            
+
             _state.setConversation(conversation);
-            _logger.d('💾 Conversation detail set in state: ${conversation.name ?? 'Unnamed'}');
-            
+            _logger.d(
+              '💾 Conversation detail set in state: ${conversation.name ?? 'Unnamed'}',
+            );
+
             // Cache the conversation detail for future use (non-blocking)
-            _conversationDetailCacheService.cacheConversationDetail(conversationId, conversation);
+            _conversationDetailCacheService.cacheConversationDetail(
+              conversationId,
+              conversation,
+            );
           }
         },
       );
     } catch (e) {
       _logger.e('❌ Error fetching conversation detail: $e');
-      _state.setError('An unexpected error occurred while loading conversation details');
+      _state.setError(
+        'An unexpected error occurred while loading conversation details',
+      );
     }
   }
 
@@ -404,7 +439,8 @@ class ConversationDetailController {
     int newIndex;
     do {
       newIndex = random.nextInt(_backgroundGradients.length);
-    } while (newIndex == _state.currentGradientIndex && _backgroundGradients.length > 1);
+    } while (newIndex == _state.currentGradientIndex &&
+        _backgroundGradients.length > 1);
 
     _currentBackgroundGradient = _backgroundGradients[newIndex];
     _state.setCurrentGradientIndex(newIndex);
@@ -422,15 +458,19 @@ class ConversationDetailController {
   }
 
   /// Check if we have cached messages
-  bool get hasCachedMessages => _cacheService.hasCachedData(_state.conversationId);
+  bool get hasCachedMessages =>
+      _cacheService.hasCachedData(_state.conversationId);
 
   /// Check if we have cached conversation detail
-  bool get hasCachedConversationDetail => _conversationDetailCacheService.hasCachedData(_state.conversationId);
+  bool get hasCachedConversationDetail =>
+      _conversationDetailCacheService.hasCachedData(_state.conversationId);
 
   /// Get cache info for debugging
   Map<String, dynamic> get cacheInfo => {
     'messages': _cacheService.getCacheInfo(_state.conversationId),
-    'conversationDetail': _conversationDetailCacheService.getCacheInfo(_state.conversationId),
+    'conversationDetail': _conversationDetailCacheService.getCacheInfo(
+      _state.conversationId,
+    ),
   };
 
   /// Clear message cache for this conversation
@@ -441,16 +481,15 @@ class ConversationDetailController {
 
   /// Clear conversation detail cache for this conversation
   Future<void> clearConversationDetailCache() async {
-    await _conversationDetailCacheService.clearConversationDetailCache(_state.conversationId);
+    await _conversationDetailCacheService.clearConversationDetailCache(
+      _state.conversationId,
+    );
     _state.setConversation(null);
   }
 
   /// Clear all caches for this conversation
   Future<void> clearAllCaches() async {
-    await Future.wait([
-      clearMessageCache(),
-      clearConversationDetailCache(),
-    ]);
+    await Future.wait([clearMessageCache(), clearConversationDetailCache()]);
   }
 
   /// Dispose resources
