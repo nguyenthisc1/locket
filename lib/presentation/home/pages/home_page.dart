@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/navigation/app_navigation.dart';
 import 'package:locket/common/wigets/appbar/appbar.dart';
-import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/di.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
@@ -16,6 +15,7 @@ import 'package:locket/presentation/home/widgets/friend_select.dart';
 import 'package:locket/presentation/home/widgets/friend_topbar.dart';
 import 'package:locket/presentation/home/widgets/history_feed.dart';
 import 'package:locket/presentation/home/widgets/mess_button.dart';
+import 'package:locket/presentation/home/widgets/user_info.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -52,6 +52,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    // Don't dispose the controller as it's a singleton managed by DI
+    // Just clean up the PageControllers and listeners
     _homeController.dispose();
     super.dispose();
   }
@@ -115,7 +117,7 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const UserImage(),
+            UserInfo(),
             homeState.enteredFeed ? const FriendSelect() : const FriendTopbar(),
             const MessButton(),
           ],
