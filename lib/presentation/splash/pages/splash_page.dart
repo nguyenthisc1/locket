@@ -6,6 +6,7 @@ import 'package:locket/common/wigets/logo.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
 import 'package:locket/data/auth/models/token_model.dart';
+import 'package:locket/presentation/auth/controllers/auth/auth_controller.dart';
 import 'package:locket/di.dart';
 
 class SplashPage extends StatefulWidget {
@@ -20,10 +21,13 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late Animation<double> textAnimation;
   late AnimationController logoController;
   late AnimationController textController;
+  late final AuthController _authController;
 
   @override
   void initState() {
     super.initState();
+
+  _authController = getIt<AuthController>();
 
     // Logo animation controller
     logoController = AnimationController(
@@ -75,6 +79,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     if (!mounted) return;
 
     if (tokenPair?.accessToken != null) {
+      _authController.init();
       AppNavigator.pushReplacement(context, '/home');
     } else {
       AppNavigator.pushReplacement(context, '/onboarding');
