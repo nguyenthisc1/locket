@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:locket/core/mappers/message_mapper.dart';
+import 'package:locket/data/conversation/models/message_model.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
 import 'package:logger/logger.dart';
@@ -18,25 +20,29 @@ class SocketService {
   String? _authToken;
 
   // Event streams
-  final StreamController<MessageEntity> _messageController = 
+  final StreamController<MessageEntity> _messageController =
       StreamController<MessageEntity>.broadcast();
-  final StreamController<ConversationEntity> _conversationUpdateController = 
+  final StreamController<ConversationEntity> _conversationUpdateController =
       StreamController<ConversationEntity>.broadcast();
-  final StreamController<String> _connectionStatusController = 
+  final StreamController<String> _connectionStatusController =
       StreamController<String>.broadcast();
-  final StreamController<Map<String, dynamic>> _typingController = 
+  final StreamController<Map<String, dynamic>> _typingController =
       StreamController<Map<String, dynamic>>.broadcast();
-  final StreamController<Map<String, dynamic>> _readReceiptController = 
+  final StreamController<Map<String, dynamic>> _readReceiptController =
       StreamController<Map<String, dynamic>>.broadcast();
 
   // Getters for streams
   Stream<MessageEntity> get messageStream => _messageController.stream;
-  Stream<ConversationEntity> get conversationUpdateStream => _conversationUpdateController.stream;
-  Stream<String> get connectionStatusStream => _connectionStatusController.stream;
+  Stream<ConversationEntity> get conversationUpdateStream =>
+      _conversationUpdateController.stream;
+  Stream<String> get connectionStatusStream =>
+      _connectionStatusController.stream;
   Stream<Map<String, dynamic>> get typingStream => _typingController.stream;
-  Stream<Map<String, dynamic>> get readReceiptStream => _readReceiptController.stream;
+  Stream<Map<String, dynamic>> get readReceiptStream =>
+      _readReceiptController.stream;
 
   bool get isConnected => _isConnected;
+  bool get socketConnected => _socket?.connected ?? false;
   String? get currentUserId => _currentUserId;
 
   /// Initialize socket connection
@@ -75,7 +81,7 @@ class SocketService {
     // Connection events
     _socket!.onConnect((_) {
       _isConnected = true;
-      _logger.d('🔗 Socket connected');
+      _logger.d('🔗 Socket connected ${_socket?.id} ${_socket?.auth}');
       _connectionStatusController.add('connected');
     });
 
@@ -91,11 +97,16 @@ class SocketService {
       _connectionStatusController.add('error');
     });
 
+    // _socket!.onAny((event, data) {
+    //   _logger.d('📡 Event: $event - $data');
+    // });
+
     // Message events
     _socket!.on('new_message', (data) {
       try {
         _logger.d('📨 Received new message: $data');
         final message = _parseMessage(data);
+        _logger.d('Parsed message: $message');
         if (message != null) {
           _messageController.add(message);
         }
@@ -175,8 +186,25 @@ class SocketService {
     });
   }
 
+  Future<void> connect() async {
+    if (_socket != null && !_isConnected) {
+      try {
+        _logger.d('🔌 Manually connecting socket...');
+        _socket!.connect();
+      } catch (e) {
+        _logger.e('❌ Error manually connecting socket: $e');
+        rethrow;
+      }
+    } else if (_socket == null) {
+      _logger.w('⚠️ Socket not initialized, cannot connect');
+    } else {
+      _logger.d('🔗 Socket already connected');
+    }
+  }
+
   /// Join a conversation room
   Future<void> joinConversation(String conversationId) async {
+    _logger.d('check Socket ${_socket} ${_isConnected}');
     if (_socket == null || !_isConnected) {
       _logger.w('⚠️ Socket not connected, cannot join conversation');
       return;
@@ -184,10 +212,7 @@ class SocketService {
 
     try {
       _logger.d('🚪 Joining conversation: $conversationId');
-      _socket!.emit('join_conversation', {
-        'conversationId': conversationId,
-        'userId': _currentUserId,
-      });
+      _socket!.emit('conversation:join', {'conversationId': conversationId});
     } catch (e) {
       _logger.e('❌ Error joining conversation: $e');
     }
@@ -202,10 +227,7 @@ class SocketService {
 
     try {
       _logger.d('🚪 Leaving conversation: $conversationId');
-      _socket!.emit('leave_conversation', {
-        'conversationId': conversationId,
-        'userId': _currentUserId,
-      });
+      _socket!.emit('conversation:leave', {'conversationId': conversationId});
     } catch (e) {
       _logger.e('❌ Error leaving conversation: $e');
     }
@@ -288,34 +310,7 @@ class SocketService {
   MessageEntity? _parseMessage(dynamic data) {
     try {
       if (data is Map<String, dynamic>) {
-        return MessageEntity(
-          id: data['id'] ?? '',
-          conversationId: data['conversationId'] ?? '',
-          senderId: data['senderId'] ?? '',
-          senderName: data['senderName'] ?? '',
-          text: data['text'] ?? '',
-          type: data['type'] ?? 'text',
-          attachments: List<Map<String, dynamic>>.from(data['attachments'] ?? []),
-          replyTo: data['replyTo'],
-          replyInfo: data['replyInfo'] != null 
-              ? ReplyInfoEntity.fromJson(data['replyInfo']) 
-              : null,
-          forwardedFrom: data['forwardedFrom'],
-          forwardInfo: data['forwardInfo'],
-          threadInfo: data['threadInfo'],
-          reactions: List<Map<String, dynamic>>.from(data['reactions'] ?? []),
-          isRead: data['isRead'] ?? false,
-          isEdited: data['isEdited'] ?? false,
-          isDeleted: data['isDeleted'] ?? false,
-          isPinned: data['isPinned'] ?? false,
-          editHistory: List<Map<String, dynamic>>.from(data['editHistory'] ?? []),
-          metadata: Map<String, dynamic>.from(data['metadata'] ?? {}),
-          sticker: data['sticker'],
-          emote: data['emote'],
-          createdAt: DateTime.tryParse(data['createdAt'] ?? '') ?? DateTime.now(),
-          timestamp: data['timestamp'] ?? DateTime.now().toIso8601String(),
-          isMe: data['senderId'] == _currentUserId,
-        );
+        return MessageMapper.toEntity(MessageModel.fromJson(data['message']));
       }
       return null;
     } catch (e) {
@@ -338,6 +333,16 @@ class SocketService {
       _logger.e('❌ Error parsing conversation: $e');
       return null;
     }
+  }
+
+  /// Check socket connection status with detailed logging
+  void checkConnectionStatus() {
+    _logger.d('🔍 Socket status check:');
+    _logger.d('  - Socket instance: ${_socket != null ? 'exists' : 'null'}');
+    _logger.d('  - Is connected: $_isConnected');
+    _logger.d('  - Socket connected: ${_socket?.connected ?? false}');
+    _logger.d('  - Current user ID: $_currentUserId');
+    _logger.d('  - Auth token: ${_authToken != null ? 'exists' : 'null'}');
   }
 
   /// Reconnect socket

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:locket/core/routes/router.dart';
+import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';
+import 'package:locket/presentation/auth/controllers/auth/auth_controller.dart';
+import 'package:locket/presentation/auth/controllers/auth/auth_controller_state.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
@@ -22,9 +25,12 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: getIt<FeedControllerState>()),
+        ChangeNotifierProvider.value(value: getIt<AuthControllerState>()),
         ChangeNotifierProvider.value(value: getIt<UserService>()),
+        ChangeNotifierProvider.value(value: getIt<FeedControllerState>()),
         ChangeNotifierProvider.value(value: getIt<ConversationControllerState>()),
+        Provider.value(value: getIt<AuthController>()),
+        Provider.value(value: getIt<SocketService>()),
         Provider.value(value: getIt<FeedController>()),
         Provider.value(value: getIt<ConversationController>()),
       ],

@@ -53,6 +53,15 @@ class AuthApiServiceImpl extends AuthApiService {
 
         // Store tokens securely
         await dioClient.tokenStorage.write(tokenPair);
+        logger.d('Token stored to secure storage');
+        
+        // Verify token was stored correctly
+        final storedToken = await dioClient.tokenStorage.read();
+        if (storedToken?.accessToken == tokenPair.accessToken) {
+          logger.d('Token storage verification successful');
+        } else {
+          logger.e('Token storage verification failed');
+        }
 
         final user = UserMapper.toEntity(
           UserModel.fromJson(response.data['data']['user']),
