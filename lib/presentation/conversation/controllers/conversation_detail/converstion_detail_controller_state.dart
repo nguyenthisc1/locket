@@ -103,7 +103,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
   }
 
   void addMessage(MessageEntity message) {
-    _listMessages = [..._listMessages, message];
+    _listMessages = [message,..._listMessages];
     notifyListeners();
   }
 
