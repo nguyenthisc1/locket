@@ -17,7 +17,8 @@ class MessageMapper {
       forwardInfo: model.forwardInfo,
       threadInfo: model.threadInfo,
       reactions: List<Map<String, dynamic>>.from(model.reactions),
-      isRead: model.isRead,
+      messageStatus: model.messageStatus,
+      readBy: List<String>.from(model.readBy),
       isEdited: model.isEdited,
       isDeleted: model.isDeleted,
       isPinned: model.isPinned,
@@ -27,7 +28,6 @@ class MessageMapper {
       emote: model.emote,
       createdAt: model.createdAt,
       timestamp: model.timestamp,
-      isMe: model.isMe,
     );
   }
 
@@ -46,7 +46,8 @@ class MessageMapper {
       forwardInfo: entity.forwardInfo,
       threadInfo: entity.threadInfo,
       reactions: List<Map<String, dynamic>>.from(entity.reactions),
-      isRead: entity.isRead,
+      messageStatus: entity.messageStatus,
+      readBy: List<String>.from(entity.readBy),
       isEdited: entity.isEdited,
       isDeleted: entity.isDeleted,
       isPinned: entity.isPinned,
@@ -56,7 +57,6 @@ class MessageMapper {
       emote: entity.emote,
       createdAt: entity.createdAt,
       timestamp: entity.timestamp,
-      isMe: entity.isMe,
     );
   }
 

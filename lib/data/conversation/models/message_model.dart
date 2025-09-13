@@ -14,7 +14,8 @@ class MessageModel {
   final Map<String, dynamic>? forwardInfo;
   final Map<String, dynamic>? threadInfo;
   final List<Map<String, dynamic>> reactions;
-  final bool isRead;
+  final MessageStatus messageStatus;
+  final List<String> readBy;
   final bool isEdited;
   final bool isDeleted;
   final bool isPinned;
@@ -24,7 +25,6 @@ class MessageModel {
   final String? emote;
   final DateTime createdAt;
   final String timestamp;
-  final bool isMe;
 
   const MessageModel({
     required this.id,
@@ -40,7 +40,8 @@ class MessageModel {
     this.forwardInfo,
     this.threadInfo,
     required this.reactions,
-    required this.isRead,
+    this.messageStatus = MessageStatus.sent,
+    this.readBy = const [],
     required this.isEdited,
     required this.isDeleted,
     required this.isPinned,
@@ -50,7 +51,6 @@ class MessageModel {
     this.emote,
     required this.createdAt,
     required this.timestamp,
-    required this.isMe,
   });
 
   // Static helper methods for parsing
@@ -73,17 +73,20 @@ class MessageModel {
     return '';
   }
 
-  static String _extractSenderName(dynamic senderIdValue, dynamic senderNameValue) {
+  static String _extractSenderName(
+    dynamic senderIdValue,
+    dynamic senderNameValue,
+  ) {
     // First check if senderName is provided directly
     if (senderNameValue is String && senderNameValue.isNotEmpty) {
       return senderNameValue;
     }
-    
+
     // Extract from sender object if senderId is an object
     if (senderIdValue is Map<String, dynamic>) {
       return senderIdValue['username'] ?? '';
     }
-    
+
     return '';
   }
 
@@ -101,7 +104,6 @@ class MessageModel {
 
   /// Creates a [MessageModel] from a map (e.g., from JSON or database).
   factory MessageModel.fromMap(Map<String, dynamic> map) {
-
     return MessageModel(
       id: map['id'] ?? '',
       conversationId: map['conversationId'] ?? '',
@@ -109,40 +111,48 @@ class MessageModel {
       senderName: _extractSenderName(map['senderId'], map['senderName']),
       text: map['text'] ?? '',
       type: map['type'] ?? '',
-      attachments: map['attachments'] is List
-          ? List<Map<String, dynamic>>.from(map['attachments'])
-          : const [],
+      attachments:
+          map['attachments'] is List
+              ? List<Map<String, dynamic>>.from(map['attachments'])
+              : const [],
       replyTo: _extractStringOrNull(map['replyTo']),
-      replyInfo: map['replyInfo'] is Map<String, dynamic>
-          ? ReplyInfoEntity.fromJson(
-              Map<String, dynamic>.from(map['replyInfo']),
-            )
-          : null,
+      replyInfo:
+          map['replyInfo'] is Map<String, dynamic>
+              ? ReplyInfoEntity.fromJson(
+                Map<String, dynamic>.from(map['replyInfo']),
+              )
+              : null,
       forwardedFrom: _extractStringOrNull(map['forwardedFrom']),
-      forwardInfo: map['forwardInfo'] is Map
-          ? Map<String, dynamic>.from(map['forwardInfo'])
-          : null,
-      threadInfo: map['threadInfo'] is Map
-          ? Map<String, dynamic>.from(map['threadInfo'])
-          : null,
-      reactions: map['reactions'] is List
-          ? List<Map<String, dynamic>>.from(map['reactions'])
-          : const [],
-      isRead: map['isRead'] ?? false,
+      forwardInfo:
+          map['forwardInfo'] is Map
+              ? Map<String, dynamic>.from(map['forwardInfo'])
+              : null,
+      threadInfo:
+          map['threadInfo'] is Map
+              ? Map<String, dynamic>.from(map['threadInfo'])
+              : null,
+      reactions:
+          map['reactions'] is List
+              ? List<Map<String, dynamic>>.from(map['reactions'])
+              : const [],
+      messageStatus: map['messageStatus'] ?? MessageStatus.sent,
+      readBy:
+          map['readBy'] is List ? List<String>.from(map['readBy']) : const [],
       isEdited: map['isEdited'] ?? false,
       isDeleted: map['isDeleted'] ?? false,
       isPinned: map['isPinned'] ?? false,
-      editHistory: map['editHistory'] is List
-          ? List<Map<String, dynamic>>.from(map['editHistory'])
-          : const [],
-      metadata: map['metadata'] is Map
-          ? Map<String, dynamic>.from(map['metadata'])
-          : const {},
+      editHistory:
+          map['editHistory'] is List
+              ? List<Map<String, dynamic>>.from(map['editHistory'])
+              : const [],
+      metadata:
+          map['metadata'] is Map
+              ? Map<String, dynamic>.from(map['metadata'])
+              : const {},
       sticker: _extractStringOrNull(map['sticker']),
       emote: _extractStringOrNull(map['emote']),
       createdAt: _parseCreatedAt(map['createdAt']),
       timestamp: map['timestamp'] ?? '',
-      isMe: map['isMe'] ?? false,
     );
   }
 
@@ -150,52 +160,62 @@ class MessageModel {
   factory MessageModel.fromJson(Map<String, dynamic> json) {
     try {
       return MessageModel(
-      id: json['id'] ?? '',
-      conversationId: json['conversationId'] ?? '',
-      senderId: _extractSenderId(json['senderId']),
-      senderName: _extractSenderName(json['senderId'], json['senderName']),
-      text: json['text'] ?? '',
-      type: json['type'] ?? '',
-      attachments: json['attachments'] is List
-          ? List<Map<String, dynamic>>.from(json['attachments'])
-          : const [],
-      replyTo: _extractStringOrNull(json['replyTo']),
-      replyInfo: json['replyInfo'] is Map<String, dynamic>
-          ? ReplyInfoEntity.fromJson(
-              Map<String, dynamic>.from(json['replyInfo']),
-            )
-          : null,
-      forwardedFrom: _extractStringOrNull(json['forwardedFrom']),
-      forwardInfo: json['forwardInfo'] is Map
-          ? Map<String, dynamic>.from(json['forwardInfo'])
-          : null,
-      threadInfo: json['threadInfo'] is Map
-          ? Map<String, dynamic>.from(json['threadInfo'])
-          : null,
-      reactions: json['reactions'] is List
-          ? List<Map<String, dynamic>>.from(json['reactions'])
-          : const [],
-      isRead: json['isRead'] ?? false,
-      isEdited: json['isEdited'] ?? false,
-      isDeleted: json['isDeleted'] ?? false,
-      isPinned: json['isPinned'] ?? false,
-      editHistory: json['editHistory'] is List
-          ? List<Map<String, dynamic>>.from(json['editHistory'])
-          : const [],
-      metadata: json['metadata'] is Map
-          ? Map<String, dynamic>.from(json['metadata'])
-          : const {},
-      sticker: _extractStringOrNull(json['sticker']),
-      emote: _extractStringOrNull(json['emote']),
-      createdAt: _parseCreatedAt(json['createdAt']),
-      timestamp: json['timestamp'] ?? '',
-      isMe: json['isMe'] ?? false,
+        id: json['id'] ?? '',
+        conversationId: json['conversationId'] ?? '',
+        senderId: _extractSenderId(json['senderId']),
+        senderName: _extractSenderName(json['senderId'], json['senderName']),
+        text: json['text'] ?? '',
+        type: json['type'] ?? '',
+        attachments:
+            json['attachments'] is List
+                ? List<Map<String, dynamic>>.from(json['attachments'])
+                : const [],
+        replyTo: _extractStringOrNull(json['replyTo']),
+        replyInfo:
+            json['replyInfo'] is Map<String, dynamic>
+                ? ReplyInfoEntity.fromJson(
+                  Map<String, dynamic>.from(json['replyInfo']),
+                )
+                : null,
+        forwardedFrom: _extractStringOrNull(json['forwardedFrom']),
+        forwardInfo:
+            json['forwardInfo'] is Map
+                ? Map<String, dynamic>.from(json['forwardInfo'])
+                : null,
+        threadInfo:
+            json['threadInfo'] is Map
+                ? Map<String, dynamic>.from(json['threadInfo'])
+                : null,
+        reactions:
+            json['reactions'] is List
+                ? List<Map<String, dynamic>>.from(json['reactions'])
+                : const [],
+        messageStatus: json['messageStatus'] ?? MessageStatus.sent,
+        readBy:
+            json['readBy'] is List
+                ? List<String>.from(json['readBy'])
+                : const [],
+        isEdited: json['isEdited'] ?? false,
+        isDeleted: json['isDeleted'] ?? false,
+        isPinned: json['isPinned'] ?? false,
+        editHistory:
+            json['editHistory'] is List
+                ? List<Map<String, dynamic>>.from(json['editHistory'])
+                : const [],
+        metadata:
+            json['metadata'] is Map
+                ? Map<String, dynamic>.from(json['metadata'])
+                : const {},
+        sticker: _extractStringOrNull(json['sticker']),
+        emote: _extractStringOrNull(json['emote']),
+        createdAt: _parseCreatedAt(json['createdAt']),
+        timestamp: json['timestamp'] ?? '',
       );
     } catch (e) {
       // Log the error and the problematic JSON for debugging
       print('❌ Error parsing MessageModel from JSON: $e');
       print('📄 Problematic JSON: $json');
-      
+
       // Return a minimal valid MessageModel to prevent app crash
       return MessageModel(
         id: json['id']?.toString() ?? '',
@@ -211,7 +231,8 @@ class MessageModel {
         forwardInfo: null,
         threadInfo: null,
         reactions: const [],
-        isRead: false,
+        messageStatus: MessageStatus.failed,
+        readBy: const [],
         isEdited: false,
         isDeleted: false,
         isPinned: false,
@@ -221,7 +242,6 @@ class MessageModel {
         emote: null,
         createdAt: _parseCreatedAt(json['createdAt']),
         timestamp: json['timestamp']?.toString() ?? '',
-        isMe: false,
       );
     }
   }
@@ -242,7 +262,8 @@ class MessageModel {
       'forwardInfo': forwardInfo,
       'threadInfo': threadInfo,
       'reactions': reactions,
-      'isRead': isRead,
+      'messageStatus': messageStatus,
+      'readBy': readBy,
       'isEdited': isEdited,
       'isDeleted': isDeleted,
       'isPinned': isPinned,
@@ -252,7 +273,6 @@ class MessageModel {
       'emote': emote,
       'createdAt': createdAt.toIso8601String(),
       'timestamp': timestamp,
-      'isMe': isMe,
     };
   }
 
