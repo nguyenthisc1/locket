@@ -1,4 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:locket/core/services/user_service.dart';
+import 'package:locket/di.dart';
+
+enum MessageStatus { sent, delivered, read, failed }
 
 class MessageEntity extends Equatable {
   final String id;
@@ -14,7 +18,8 @@ class MessageEntity extends Equatable {
   final Map<String, dynamic>? forwardInfo;
   final Map<String, dynamic>? threadInfo;
   final List<Map<String, dynamic>> reactions;
-  final bool isRead;
+  final MessageStatus messageStatus;
+  final List<String> readBy;
   final bool isEdited;
   final bool isDeleted;
   final bool isPinned;
@@ -24,7 +29,6 @@ class MessageEntity extends Equatable {
   final String? emote;
   final DateTime createdAt;
   final String timestamp;
-  final bool isMe;
 
   const MessageEntity({
     required this.id,
@@ -40,7 +44,8 @@ class MessageEntity extends Equatable {
     this.forwardInfo,
     this.threadInfo,
     this.reactions = const [],
-    this.isRead = false,
+    this.messageStatus = MessageStatus.sent,
+    this.readBy = const [],
     this.isEdited = false,
     this.isDeleted = false,
     this.isPinned = false,
@@ -50,8 +55,13 @@ class MessageEntity extends Equatable {
     this.emote,
     required this.createdAt,
     required this.timestamp,
-    this.isMe = false,
   });
+
+  /// Returns true if this message was sent by the current user
+  bool get isMe {
+    final currentUser = getIt<UserService>().currentUser;
+    return currentUser != null && senderId == currentUser.id;
+  }
 
   /// Factory for an empty message entity
   factory MessageEntity.empty() => MessageEntity(
@@ -68,7 +78,8 @@ class MessageEntity extends Equatable {
     forwardInfo: null,
     threadInfo: null,
     reactions: const [],
-    isRead: false,
+    messageStatus: MessageStatus.sent,
+    readBy: [],
     isEdited: false,
     isDeleted: false,
     isPinned: false,
@@ -78,7 +89,6 @@ class MessageEntity extends Equatable {
     emote: null,
     createdAt: DateTime.now(),
     timestamp: '',
-    isMe: false,
   );
 
   /// Returns a copy of this message, with optional new values.
@@ -96,6 +106,8 @@ class MessageEntity extends Equatable {
     Map<String, dynamic>? forwardInfo,
     Map<String, dynamic>? threadInfo,
     List<Map<String, dynamic>>? reactions,
+    MessageStatus? messageStatus,
+    List<String>? readBy,
     bool? isRead,
     bool? isEdited,
     bool? isDeleted,
@@ -106,7 +118,6 @@ class MessageEntity extends Equatable {
     String? emote,
     DateTime? createdAt,
     String? timestamp,
-    bool? isMe,
   }) {
     return MessageEntity(
       id: id ?? this.id,
@@ -131,7 +142,8 @@ class MessageEntity extends Equatable {
               ? Map<String, dynamic>.from(this.threadInfo!)
               : null),
       reactions: reactions ?? List<Map<String, dynamic>>.from(this.reactions),
-      isRead: isRead ?? this.isRead,
+      messageStatus: messageStatus ?? this.messageStatus,
+      readBy: readBy ?? List<String>.from(this.readBy),
       isEdited: isEdited ?? this.isEdited,
       isDeleted: isDeleted ?? this.isDeleted,
       isPinned: isPinned ?? this.isPinned,
@@ -142,7 +154,6 @@ class MessageEntity extends Equatable {
       emote: emote ?? this.emote,
       createdAt: createdAt ?? this.createdAt,
       timestamp: timestamp ?? this.timestamp,
-      isMe: isMe ?? this.isMe,
     );
   }
 
@@ -161,7 +172,8 @@ class MessageEntity extends Equatable {
     forwardInfo,
     threadInfo,
     reactions,
-    isRead,
+    messageStatus,
+    readBy,
     isEdited,
     isDeleted,
     isPinned,
@@ -171,7 +183,6 @@ class MessageEntity extends Equatable {
     emote,
     createdAt,
     timestamp,
-    isMe,
   ];
 }
 

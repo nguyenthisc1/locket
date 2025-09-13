@@ -27,6 +27,7 @@ import 'package:locket/domain/conversation/repositories/conversation_repository.
 import 'package:locket/domain/conversation/repositories/message_repository.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
+import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
 import 'package:locket/domain/conversation/usecases/unread_count_conversations_usecase.dart';
 import 'package:locket/domain/feed/repositories/feed_repository.dart';
 import 'package:locket/domain/feed/usecases/get_feed_usecase.dart';
@@ -124,8 +125,13 @@ void setupDependencies() {
   getIt.registerFactory<UnreadCountConversationsUsecase>(
     () => UnreadCountConversationsUsecase(getIt<ConversationRepository>()),
   );
+
+  // Message use cases
   getIt.registerFactory<GetMessagesConversationUsecase>(
     () => GetMessagesConversationUsecase(getIt<MessageRepository>()),
+  );
+  getIt.registerFactory<SendMessageUsecase>(
+    () => SendMessageUsecase(getIt<MessageRepository>()),
   );
 
   // Feed use cases

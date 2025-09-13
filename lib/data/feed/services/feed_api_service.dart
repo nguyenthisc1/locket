@@ -16,7 +16,7 @@ abstract class FeedApiService {
     int? limit,
   });
   Future<Either<Failure, BaseResponse>> uploadFeed(
-    Map<String, dynamic> payload,
+    Map<String, dynamic> payload
   );
 }
 

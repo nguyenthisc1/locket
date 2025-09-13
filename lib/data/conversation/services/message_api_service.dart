@@ -15,6 +15,10 @@ abstract class MessageApiService {
     int? limit,
     DateTime? lastCreatedAt,
   });
+
+  Future<Either<Failure, BaseResponse>> sendMessage(
+    Map<String, dynamic> payload,
+  );
 }
 
 class MessageApiServiceImpl extends MessageApiService {
@@ -32,9 +36,10 @@ class MessageApiServiceImpl extends MessageApiService {
     DateTime? lastCreatedAt,
   }) async {
     try {
-        logger.d('🔍 Fetching messages for conversation: $conversationId');
+      logger.d('🔍 Fetching messages for conversation: $conversationId');
       final Map<String, dynamic> queryParameters = {};
-      queryParameters['limit'] = limit ?? RequestDefaults.messageListLimit.toString();
+      queryParameters['limit'] =
+          limit ?? RequestDefaults.messageListLimit.toString();
 
       final response = await dioClient.get(
         ApiUrl.getConversationMessages(conversationId),
@@ -91,6 +96,87 @@ class MessageApiServiceImpl extends MessageApiService {
       }
     } catch (e) {
       logger.e('❌ Get messages conversation failed: ${e.toString()}');
+
+      if (e is DioException) {
+        final statusCode = e.response?.statusCode;
+        final message = e.response?.data['message'] ?? 'Lỗi kết nối server';
+
+        // DioException will only occur for network issues or server errors (5xx)
+        if (statusCode != null && statusCode >= 500) {
+          return Left(ServerFailure(message: message, statusCode: statusCode));
+        } else {
+          return Left(NetworkFailure(message: message, statusCode: statusCode));
+        }
+      }
+
+      return Left(DataFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BaseResponse>> sendMessage(
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final data = {
+        'conversationId': payload['conversationId'],
+        'text': payload['text'],
+      };
+
+      final response = await dioClient.post(ApiUrl.sendMessage, data: data);
+      logger.d('response send message conversation: ${response.data}');
+
+      if (response.statusCode == 201 && response.data.isNotEmpty) {
+        final messageJson = response.data['data']['message'];
+        final messageModel = messageJson.map(
+          (json) => MessageModel.fromJson(json),
+        );
+        final message = MessageMapper.toEntity(messageModel);
+
+        final data = {'message': message};
+        logger.d('message $data');
+
+        final baseResponse = BaseResponse<Map<String, dynamic>>(
+          success: response.data['success'],
+          message: response.data['message'],
+          data: data,
+          errors: response.data['errors'],
+        );
+
+        return Right(baseResponse);
+      }
+
+      // Handle specific status codes (since they're not treated as exceptions)
+      final statusCode = response.statusCode;
+      final message = response.data['message'] ?? 'Unknown error';
+      final errors = response.data['errors'];
+
+      logger.e(
+        '❌ Send message conversation failed: $errors $message (Status: $statusCode)',
+      );
+
+      if (statusCode == 401) {
+        return Left(
+          UnauthorizedFailure(message: message, statusCode: statusCode),
+        );
+      } else if (statusCode == 403) {
+        return Left(AuthFailure(message: message, statusCode: statusCode));
+      } else if (statusCode == 404) {
+        return Left(
+          DataFailure(
+            message: 'conversation not found',
+            statusCode: statusCode,
+          ),
+        );
+      } else if (statusCode == 422) {
+        return Left(
+          ValidationFailure(message: message, statusCode: statusCode),
+        );
+      } else {
+        return Left(DataFailure(message: message, statusCode: statusCode));
+      }
+    } catch (e) {
+      logger.e('❌ Send message conversation failed: ${e.toString()}');
 
       if (e is DioException) {
         final statusCode = e.response?.statusCode;

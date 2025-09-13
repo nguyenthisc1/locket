@@ -40,4 +40,26 @@ class MessageRepositoryImpl extends MessageRepository {
       },
     );
   }
+
+  @override
+  Future<Either<Failure, BaseResponse>> sendMessage(
+    Map<String, dynamic> payload,
+  ) async {
+    final result = await _messageApiService.sendMessage(payload);
+
+    return result.fold(
+      (failure) {
+        logger.e(
+          'Repository Send Message Conversation failed: ${failure.toString()}',
+        );
+        return Left(failure);
+      },
+      (result) {
+        logger.d(
+          'Repository Send Message Conversation successful for: ${result.data}',
+        );
+        return Right(result);
+      },
+    );
+  }
 }

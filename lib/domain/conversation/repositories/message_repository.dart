@@ -8,4 +8,8 @@ abstract class MessageRepository {
     int? limit,
     DateTime? lastCreatedAt,
   });
+
+  Future<Either<Failure, BaseResponse>> sendMessage(
+    Map<String, dynamic> payload,
+  );
 }
