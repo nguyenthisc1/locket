@@ -16,6 +16,9 @@ class ConversationMapper {
                   username: p.username,
                   email: p.email,
                   avatarUrl: p.avatarUrl,
+                  lastReadMessageId: p.lastReadMessageId,
+                  lastReadAt: p.lastReadAt,
+                  joinedAt: p.joinedAt,
                 ),
               )
               .toList(),
@@ -58,6 +61,9 @@ class ConversationMapper {
                   username: p.username,
                   email: p.email,
                   avatarUrl: p.avatarUrl,
+                  lastReadMessageId: p.lastReadMessageId,
+                  lastReadAt: p.lastReadAt,
+                  joinedAt: p.joinedAt,
                 ),
               )
               .toList(),

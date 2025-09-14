@@ -6,34 +6,46 @@ class ConversationParticipantModel extends Equatable {
   final String? username;
   final String? email;
   final String? avatarUrl;
+  final String? lastReadMessageId;
+  final String? lastReadAt;
+  final String? joinedAt;
 
   const ConversationParticipantModel({
     required this.id,
     this.username,
     this.email,
     this.avatarUrl,
+    this.lastReadMessageId,
+    this.lastReadAt,
+    this.joinedAt,
   });
 
   factory ConversationParticipantModel.fromJson(Map<String, dynamic> json) {
     return ConversationParticipantModel(
-      id: (json['_id'] ?? json['id']) as String,
+      id: (json['userId'] ?? json['_id'] ?? json['id']) as String,
       username: json['username'] as String?,
       email: json['email'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
+      lastReadMessageId: json['lastReadMessageId'] as String?,
+      lastReadAt: json['lastReadAt'] as String?,
+      joinedAt: json['joinedAt'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
+      'userId': id,
       'username': username,
       'email': email,
       'avatarUrl': avatarUrl,
+      'lastReadMessageId': lastReadMessageId,
+      'lastReadAt': lastReadAt,
+      'joinedAt': joinedAt,
     };
   }
 
   @override
-  List<Object?> get props => [id, username, email, avatarUrl];
+  List<Object?> get props => [id, username, email, avatarUrl, lastReadMessageId, lastReadAt, joinedAt];
 }
 
 class GroupSettingsModel extends Equatable {
@@ -86,7 +98,7 @@ class GroupSettingsModel extends Equatable {
 
 class ConversationModel extends Equatable {
   final String id;
-  final String? name;
+  final String name;
   final List<ConversationParticipantModel> participants;
   final bool isGroup;
   final GroupSettingsModel? groupSettings;
@@ -100,7 +112,7 @@ class ConversationModel extends Equatable {
 
   const ConversationModel({
     required this.id,
-    this.name,
+    required this.name,
     required this.participants,
     required this.isGroup,
     required this.isActive,
@@ -113,41 +125,25 @@ class ConversationModel extends Equatable {
     this.updatedAt,
   });
 
-  /// Parses participants based on group type:
-  /// - For groups (isGroup = true): participants should be a List
-  /// - For single conversations (isGroup = false): participants should be a Map (single participant)
+  /// Parses participants from JSON array.
+  /// Participants now always come as an array for both group and single conversations.
   static List<ConversationParticipantModel> _parseParticipants(
     dynamic jsonValue,
-    bool isGroup,
   ) {
     if (jsonValue == null) return [];
 
-    if (isGroup) {
-      // For groups, expect a list of participants
-      if (jsonValue is List) {
-        return jsonValue
-            .map(
-              (e) => ConversationParticipantModel.fromJson(
-                e as Map<String, dynamic>,
-              ),
-            )
-            .toList();
-      } else if (jsonValue is Map<String, dynamic>) {
-        // Fallback: if single participant provided for group, wrap in list
-        return [ConversationParticipantModel.fromJson(jsonValue)];
-      }
-    } else {
-      // For single conversations, expect a single participant as Map
-      if (jsonValue is Map<String, dynamic>) {
-        return [ConversationParticipantModel.fromJson(jsonValue)];
-      } else if (jsonValue is List && jsonValue.isNotEmpty) {
-        // Fallback: if list provided for single conversation, take first participant
-        return [
-          ConversationParticipantModel.fromJson(
-            jsonValue.first as Map<String, dynamic>,
-          ),
-        ];
-      }
+    // Participants should always be a list now
+    if (jsonValue is List) {
+      return jsonValue
+          .map(
+            (e) => ConversationParticipantModel.fromJson(
+              e as Map<String, dynamic>,
+            ),
+          )
+          .toList();
+    } else if (jsonValue is Map<String, dynamic>) {
+      // Fallback: if single participant object provided, wrap in list
+      return [ConversationParticipantModel.fromJson(jsonValue)];
     }
 
     return [];
@@ -158,8 +154,8 @@ class ConversationModel extends Equatable {
 
     return ConversationModel(
       id: json['id'] as String,
-      name: json['name'] as String?,
-      participants: _parseParticipants(json['participants'], isGroup),
+      name: json['name'] as String,
+      participants: _parseParticipants(json['participants']),
       isGroup: isGroup,
       groupSettings:
           json['groupSettings'] != null

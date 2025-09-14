@@ -3,7 +3,7 @@ import 'package:locket/core/entities/last_message_entity.dart';
 
 class ConversationEntity extends Equatable {
   final String id;
-  final String? name;
+  final String name;
   final List<ConversationParticipantEntity> participants;
   final bool isGroup;
   final GroupSettingsEntity? groupSettings;
@@ -24,7 +24,7 @@ class ConversationEntity extends Equatable {
     required this.settings,
     required this.readReceipts,
     required this.createdAt,
-    this.name,
+    required this.name,
     this.groupSettings,
     this.lastMessage,
     this.updatedAt,
@@ -47,7 +47,9 @@ class ConversationEntity extends Equatable {
     return ConversationEntity(
       id: id ?? this.id,
       name: name ?? this.name,
-      participants: participants ?? List<ConversationParticipantEntity>.from(this.participants),
+      participants:
+          participants ??
+          List<ConversationParticipantEntity>.from(this.participants),
       isGroup: isGroup ?? this.isGroup,
       groupSettings: groupSettings ?? this.groupSettings,
       isActive: isActive ?? this.isActive,
@@ -82,12 +84,18 @@ class ConversationParticipantEntity extends Equatable {
   final String? username;
   final String? email;
   final String? avatarUrl;
+  final String? lastReadMessageId;
+  final String? lastReadAt;
+  final String? joinedAt;
 
   const ConversationParticipantEntity({
     required this.id,
     this.username,
     this.email,
     this.avatarUrl,
+    this.lastReadMessageId,
+    this.lastReadAt,
+    this.joinedAt
   });
 
   ConversationParticipantEntity copyWith({
@@ -95,17 +103,23 @@ class ConversationParticipantEntity extends Equatable {
     String? username,
     String? email,
     String? avatarUrl,
+    String? lastReadMessageId,
+    String? lastReadAt,
+    String? joinedAt,
   }) {
     return ConversationParticipantEntity(
       id: id ?? this.id,
       username: username ?? this.username,
       email: email ?? this.email,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      lastReadMessageId: lastReadMessageId ?? this.lastReadMessageId,
+      lastReadAt:  lastReadAt ?? this.lastReadAt,
+      joinedAt:  joinedAt ?? this.joinedAt
     );
   }
 
   @override
-  List<Object?> get props => [id, username, email, avatarUrl];
+  List<Object?> get props => [id, username, email, avatarUrl, lastReadMessageId, lastReadAt ,joinedAt];
 }
 
 class GroupSettingsEntity extends Equatable {

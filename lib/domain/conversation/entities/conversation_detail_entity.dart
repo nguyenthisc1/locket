@@ -50,62 +50,41 @@ class ConversationDetailEntity extends Equatable {
     this.updatedAt,
   });
 
-  /// Parses participants based on group type:
-  /// - For groups (isGroup = true): participants should be a List
-  /// - For single conversations (isGroup = false): participants should be a Map (single participant)
+  /// Parses participants from JSON array.
+  /// Participants now always come as an array for both group and single conversations.
   static List<ConversationParticipantEntity> _parseParticipants(
     dynamic jsonValue,
-    bool isGroup,
   ) {
     if (jsonValue == null) return [];
 
-    if (isGroup) {
-      // For groups, expect a list of participants
-      if (jsonValue is List) {
-        return jsonValue
-            .map<ConversationParticipantEntity>(
-              (e) => ConversationParticipantEntity(
-                id: (e['_id'] ?? e['id']) as String,
-                username: e['username'] as String?,
-                email: e['email'] as String?,
-                avatarUrl: e['avatarUrl'] as String?,
-              ),
-            )
-            .toList();
-      } else if (jsonValue is Map<String, dynamic>) {
-        // Fallback: if single participant provided for group, wrap in list
-        return [
-          ConversationParticipantEntity(
-            id: (jsonValue['_id'] ?? jsonValue['id']) as String,
-            username: jsonValue['username'] as String?,
-            email: jsonValue['email'] as String?,
-            avatarUrl: jsonValue['avatarUrl'] as String?,
-          ),
-        ];
-      }
-    } else {
-      // For single conversations, expect a single participant as Map
-      if (jsonValue is Map<String, dynamic>) {
-        return [
-          ConversationParticipantEntity(
-            id: (jsonValue['_id'] ?? jsonValue['id']) as String,
-            username: jsonValue['username'] as String?,
-            email: jsonValue['email'] as String?,
-            avatarUrl: jsonValue['avatarUrl'] as String?,
-          ),
-        ];
-      } else if (jsonValue is List && jsonValue.isNotEmpty) {
-        // Fallback: if list provided for single conversation, take first participant
-        final firstParticipant = jsonValue.first;
-        return [
-          ConversationParticipantEntity(
-            id: (firstParticipant['_id'] ?? firstParticipant['id']) as String,
-            username: firstParticipant['username'] as String?,
-            email: firstParticipant['email'] as String?,
-            avatarUrl: firstParticipant['avatarUrl'] as String?,
-          ),
-        ];
-      }
+    // Participants should always be a list now
+    if (jsonValue is List) {
+      return jsonValue
+          .map<ConversationParticipantEntity>(
+            (e) => ConversationParticipantEntity(
+              id: (e['userId'] ?? e['_id'] ?? e['id']) as String,
+              username: e['username'] as String?,
+              email: e['email'] as String?,
+              avatarUrl: e['avatarUrl'] as String?,
+              lastReadMessageId: e['lastReadMessageId'] as String?,
+              lastReadAt: e['lastReadAt'] as String?,
+              joinedAt: e['joinedAt'] as String?,
+            ),
+          )
+          .toList();
+    } else if (jsonValue is Map<String, dynamic>) {
+      // Fallback: if single participant object provided, wrap in list
+      return [
+        ConversationParticipantEntity(
+          id: (jsonValue['userId'] ?? jsonValue['_id'] ?? jsonValue['id']) as String,
+          username: jsonValue['username'] as String?,
+          email: jsonValue['email'] as String?,
+          avatarUrl: jsonValue['avatarUrl'] as String?,
+          lastReadMessageId: jsonValue['lastReadMessageId'] as String?,
+          lastReadAt: jsonValue['lastReadAt'] as String?,
+          joinedAt: jsonValue['joinedAt'] as String?,
+        ),
+      ];
     }
 
     return [];
@@ -117,7 +96,7 @@ class ConversationDetailEntity extends Equatable {
     return ConversationDetailEntity(
       id: json['id'] as String,
       name: json['name'] as String?,
-      participants: _parseParticipants(json['participants'], isGroup),
+      participants: _parseParticipants(json['participants']),
       isGroup: isGroup,
       groupSettings:
           json['groupSettings'] != null
@@ -181,10 +160,13 @@ class ConversationDetailEntity extends Equatable {
         participants
             .map(
               (e) => {
-                'id': e.id,
+                'userId': e.id,
                 'username': e.username,
                 'email': e.email,
                 'avatarUrl': e.avatarUrl,
+                'lastReadMessageId': e.lastReadMessageId,
+                'lastReadAt': e.lastReadAt,
+                'joinedAt': e.joinedAt,
               },
             )
             .toList(),
