@@ -5,12 +5,23 @@ import 'package:locket/common/helper/utils.dart';
 import 'package:locket/common/wigets/photo_preview.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/core/entities/last_message_entity.dart';
+import 'package:locket/core/services/user_service.dart';
+import 'package:locket/di.dart';
+import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
 
 class Message extends StatelessWidget {
   final MessageEntity data;
+  final LastMessageEntity? lastMessage;
+  final List<ConversationParticipantEntity>? participants;
 
-  const Message({super.key, required this.data});
+  const Message({
+    super.key,
+    required this.data,
+    this.lastMessage,
+    this.participants = const [],
+  });
 
   void showImagePreview(BuildContext context, String imageUrl) {
     showGeneralDialog(
@@ -29,12 +40,20 @@ class Message extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (data.replyTo != null && data.replyInfo != null) {
-      return _messageReply(context, data);
-    }
-    return data.attachments.isNotEmpty
-        ? _messageImage(context, data)
-        : _messageText(context, data);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      spacing: AppDimensions.xs,
+      children: [
+        if (data.replyTo != null && data.replyInfo != null)
+          _buildMessageReply(context, data)
+        else
+          data.attachments.isNotEmpty
+              ? _buildMessageImage(context, data)
+              : _messageText(context, data),
+
+        _buildIsReadReceipts(context, data, lastMessage, participants ?? []),
+      ],
+    );
   }
 
   Widget _messageText(BuildContext context, MessageEntity data) {
@@ -79,14 +98,16 @@ class Message extends StatelessWidget {
             ),
           ),
 
+          // if (data.isMe)
+          //  _buildIsReadReceipts(context);
           if (data.reactions.isNotEmpty)
-            _reaction(context, data.reactions, data.isMe),
+            _buildReaction(context, data.reactions, data.isMe),
         ],
       ),
     );
   }
 
-  Widget _messageImage(BuildContext context, MessageEntity data) {
+  Widget _buildMessageImage(BuildContext context, MessageEntity data) {
     final String imageUrl =
         data.attachments.isNotEmpty ? (data.attachments[0]['url'] ?? '') : '';
     return GestureDetector(
@@ -191,14 +212,14 @@ class Message extends StatelessWidget {
               ),
             ),
             if (data.reactions.isNotEmpty)
-              _reaction(context, data.reactions, data.isMe),
+              _buildReaction(context, data.reactions, data.isMe),
           ],
         ),
       ),
     );
   }
 
-  Widget _messageReply(BuildContext context, MessageEntity data) {
+  Widget _buildMessageReply(BuildContext context, MessageEntity data) {
     final bool hasImage = data.attachments.isNotEmpty;
     final String? replyText = data.replyInfo?.text;
     final String replySenderName = data.replyInfo?.senderName ?? '';
@@ -318,14 +339,14 @@ class Message extends StatelessWidget {
             if (!hasImage)
               _messageText(context, data)
             else
-              _messageImage(context, data),
+              _buildMessageImage(context, data),
           ],
         ),
       ),
     );
   }
 
-  Widget _reaction(BuildContext context, dynamic reactions, bool isMe) {
+  Widget _buildReaction(BuildContext context, dynamic reactions, bool isMe) {
     return Positioned(
       bottom: -AppDimensions.md,
       right: 0,
@@ -353,6 +374,51 @@ class Message extends StatelessWidget {
                   : [],
         ),
       ),
+    );
+  }
+
+  Widget _buildIsReadReceipts(
+    BuildContext context,
+    MessageEntity data,
+    LastMessageEntity? lastMessage,
+    List<ConversationParticipantEntity> participants,
+  ) {
+    final currentUserId = getIt<UserService>().currentUser?.id;
+
+    final isReadReceipts =
+        participants.where((participant) {
+          return participant.id != currentUserId &&
+              participant.lastReadMessageId == lastMessage?.messageId;
+        }).toList();
+
+    final int displayCount =
+        isReadReceipts.length > 3 ? 3 : isReadReceipts.length;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        ...List.generate(
+          displayCount,
+          (index) => Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: UserImage(
+              size: AppDimensions.avatarXs,
+              imageUrl: isReadReceipts[index].avatarUrl,
+            ),
+          ),
+        ),
+        if (isReadReceipts.length > 3)
+          Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: Text(
+              '...',
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
