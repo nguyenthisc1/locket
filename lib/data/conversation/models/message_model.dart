@@ -102,6 +102,40 @@ class MessageModel {
     return null;
   }
 
+  /// Helper method to convert MessageStatus enum to string
+  static String _messageStatusToString(MessageStatus status) {
+    switch (status) {
+      case MessageStatus.sent:
+        return 'sent';
+      case MessageStatus.delivered:
+        return 'delivered';
+      case MessageStatus.read:
+        return 'read';
+      case MessageStatus.failed:
+        return 'failed';
+    }
+  }
+
+  /// Helper method to parse MessageStatus from dynamic value
+  static MessageStatus _parseMessageStatus(dynamic value) {
+    if (value is MessageStatus) return value;
+    if (value is String) {
+      switch (value.toLowerCase()) {
+        case 'sent':
+          return MessageStatus.sent;
+        case 'delivered':
+          return MessageStatus.delivered;
+        case 'read':
+          return MessageStatus.read;
+        case 'failed':
+          return MessageStatus.failed;
+        default:
+          return MessageStatus.sent;
+      }
+    }
+    return MessageStatus.sent;
+  }
+
   /// Creates a [MessageModel] from a map (e.g., from JSON or database).
   factory MessageModel.fromMap(Map<String, dynamic> map) {
     return MessageModel(
@@ -135,7 +169,7 @@ class MessageModel {
           map['reactions'] is List
               ? List<Map<String, dynamic>>.from(map['reactions'])
               : const [],
-      messageStatus: map['messageStatus'] ?? MessageStatus.sent,
+      messageStatus: _parseMessageStatus(map['messageStatus']),
       readBy:
           map['readBy'] is List ? List<String>.from(map['readBy']) : const [],
       isEdited: map['isEdited'] ?? false,
@@ -190,7 +224,7 @@ class MessageModel {
             json['reactions'] is List
                 ? List<Map<String, dynamic>>.from(json['reactions'])
                 : const [],
-        messageStatus: json['messageStatus'] ?? MessageStatus.sent,
+        messageStatus: _parseMessageStatus(json['messageStatus']),
         readBy:
             json['readBy'] is List
                 ? List<String>.from(json['readBy'])
@@ -262,7 +296,7 @@ class MessageModel {
       'forwardInfo': forwardInfo,
       'threadInfo': threadInfo,
       'reactions': reactions,
-      'messageStatus': messageStatus,
+      'messageStatus': _messageStatusToString(messageStatus),
       'readBy': readBy,
       'isEdited': isEdited,
       'isDeleted': isDeleted,
