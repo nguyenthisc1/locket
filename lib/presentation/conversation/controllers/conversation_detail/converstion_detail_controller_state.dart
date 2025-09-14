@@ -17,6 +17,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
 
   // Conversation data
   ConversationEntity? _conversation;
+  List<ConversationParticipantEntity> _participant = []; 
 
   // Pagination state
   bool _isLoadingMore = false;
@@ -31,7 +32,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
   // UI state
   final ScrollController scrollController = ScrollController();
   final Set<int> visibleTimestamps = {};
-  
+
   // Background gradient state
   int _currentGradientIndex = 0;
 
@@ -45,6 +46,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
   List<MessageEntity> get listMessages => _listMessages;
   String get conversationId => _conversationId;
   ConversationEntity? get conversation => _conversation;
+  List<ConversationParticipantEntity> get participant =>  _participant;
   String? get errorMessage => _errorMessage;
   bool get hasInitialized => _hasInitialized;
   bool get isShowingCachedData => _isShowingCachedData;
@@ -71,6 +73,15 @@ class ConversationDetailControllerState extends ChangeNotifier {
       notifyListeners();
     }
   }
+  
+  void setParticipant(List<ConversationParticipantEntity> value) {
+    _participant = value;
+    notifyListeners();
+  }
+
+  void setReadParticipant() {
+    
+  }
 
   void setLoadingMessages(bool value) {
     if (_isLoadingMessages != value) {
@@ -93,17 +104,14 @@ class ConversationDetailControllerState extends ChangeNotifier {
     }
   }
 
-  void setMessages(
-    List<MessageEntity> messages, {
-    bool isFromCache = false,
-  }) {
+  void setMessages(List<MessageEntity> messages, {bool isFromCache = false}) {
     _listMessages = List.from(messages);
     _isShowingCachedData = isFromCache;
     notifyListeners();
   }
 
   void addMessage(MessageEntity message) {
-    _listMessages = [message,..._listMessages];
+    _listMessages = [message, ..._listMessages];
     notifyListeners();
   }
 
@@ -111,6 +119,14 @@ class ConversationDetailControllerState extends ChangeNotifier {
     final index = _listMessages.indexWhere((m) => m.id == updatedMessage.id);
     if (index != -1) {
       _listMessages[index] = updatedMessage;
+      notifyListeners();
+    }
+  }
+
+  void replaceMessage(String id, MessageEntity newMessage) {
+    final index = _listMessages.indexWhere((m) => m.id == id);
+    if (index != -1) {
+      _listMessages[index] = newMessage;
       notifyListeners();
     }
   }
@@ -210,11 +226,20 @@ class ConversationDetailControllerState extends ChangeNotifier {
   }
 
   bool shouldShowTimestamp(int index, List<MessageEntity> data) {
-    if (index == 0) return true;
-    final prev = data[index - 1];
+    if (data.isEmpty) return false;
+
     final curr = data[index];
-    final diff = curr.createdAt.difference(prev.createdAt).inMinutes.abs();
-    return diff > 20;
+
+    if (index == data.length - 1) return true;
+
+    final older = data[index + 1];
+
+    if (curr.isMe != older.isMe) return true;
+
+    final diff = curr.createdAt.difference(older.createdAt).inMinutes.abs();
+    if (diff > 20) return true;
+
+    return false;
   }
 
   void toggleTimestampVisibility(int index) {

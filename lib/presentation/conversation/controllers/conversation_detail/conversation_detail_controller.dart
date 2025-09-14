@@ -7,10 +7,13 @@ import 'package:locket/core/models/pagination_model.dart';
 import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
 import 'package:locket/core/services/socket_service.dart';
+import 'package:locket/core/services/user_service.dart';
+import 'package:locket/di.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
+import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:logger/logger.dart';
 
@@ -19,6 +22,7 @@ class ConversationDetailController {
   final MessageCacheService _cacheService;
   final ConversationDetailCacheService _conversationDetailCacheService;
   final GetMessagesConversationUsecase _getMessagesUsecase;
+  final SendMessageUsecase _sendMessageUsecase;
   final GetConversationDetailUsecase _getConversationDetailUsecase;
   final SocketService _socketService;
   final Logger _logger;
@@ -86,6 +90,7 @@ class ConversationDetailController {
     required MessageCacheService cacheService,
     required ConversationDetailCacheService conversationDetailCacheService,
     required GetMessagesConversationUsecase getMessagesUsecase,
+    required SendMessageUsecase sendMessageUsecase,
     required GetConversationDetailUsecase getConversationDetailUsecase,
     required SocketService socketService,
     Logger? logger,
@@ -93,6 +98,7 @@ class ConversationDetailController {
        _cacheService = cacheService,
        _conversationDetailCacheService = conversationDetailCacheService,
        _getMessagesUsecase = getMessagesUsecase,
+       _sendMessageUsecase = sendMessageUsecase,
        _getConversationDetailUsecase = getConversationDetailUsecase,
        _socketService = socketService,
        _logger =
@@ -142,6 +148,7 @@ class ConversationDetailController {
     await _socketService.joinConversation(conversationId);
 
     // Then fetch fresh message data in background
+    await fetchConversationDetail(conversationId);
     await fetchMessages();
     _state.setInitialized(true);
   }
@@ -305,7 +312,6 @@ class ConversationDetailController {
   Future<void> addMessage(MessageEntity message) async {
     _state.addMessage(message);
     await _cacheService.addMessageToCache(_state.conversationId, message);
-    _scrollToBottomDelayed();
   }
 
   Future<void> updateMessage(MessageEntity updatedMessage) async {
@@ -347,20 +353,19 @@ class ConversationDetailController {
           final conversationDetail = response.data['conversation'];
 
           if (conversationDetail != null) {
+            // Convert ConversationDetailEntity to ConversationEntity for caching
             final conversation = ConversationEntity(
               id: conversationDetail.id,
-              name: conversationDetail.name,
+              name: conversationDetail.name ?? '',
               participants: conversationDetail.participants,
               isGroup: conversationDetail.isGroup,
               groupSettings: conversationDetail.groupSettings,
               isActive: conversationDetail.isActive,
               pinnedMessages: conversationDetail.pinnedMessages,
-              settings:
-                  conversationDetail.settings ??
-                  const ConversationSettingsEntity(
-                    muteNotifications: false,
-                    theme: '',
-                  ),
+              settings: conversationDetail.settings ?? const ConversationSettingsEntity(
+                muteNotifications: false,
+                theme: 'default',
+              ),
               readReceipts: conversationDetail.readReceipts,
               lastMessage: conversationDetail.lastMessage,
               createdAt: conversationDetail.createdAt,
@@ -368,8 +373,9 @@ class ConversationDetailController {
             );
 
             _state.setConversation(conversation);
+            _state.setParticipant(conversationDetail.participants);
             _logger.d(
-              '💾 Conversation detail set in state: ${conversation.name ?? 'Unnamed'}',
+              '💾 Conversation detail set in state: ${conversation.name}',
             );
 
             _conversationDetailCacheService.cacheConversationDetail(
@@ -527,6 +533,45 @@ class ConversationDetailController {
     );
   }
 
+  // Future<void> sendMessage(String text) async {
+  //   try {
+
+  //     final payload = <String, dynamic>{
+  //       'conversationId': _state.conversationId,
+  //       'text': text,
+  //     };
+
+  //     final result = await _sendMessageUsecase(payload);
+
+  //     result.fold(
+  //       (failure) {
+  //         _logger.e('Failed to send message: ${failure.message}');
+  //       },
+  //       (response) {
+  //         _logger.d('send message successfully');
+  //         _state.clearError();
+
+  //         final messages = response.data['message'] as MessageEntity;
+
+  //         // _state.setMessages(messages, isFromCache: false);
+  //         // _cacheService.cacheMessages(
+  //         //   _state.conversationId,
+  //         //   _state.listMessages,
+  //         // );
+
+  //           await _socketService.sendMessage(
+  //       conversationId: _state.conversationId,
+  //       text: text,
+  //       replyTo: replyTo,
+  //       attachments: attachments,
+  //     );
+  //       },
+  //     );
+  //   } catch (e) {
+  //     _logger.e('Error send message: $e');
+  //   }
+  // }
+
   Future<void> sendMessage({
     required String text,
     String? replyTo,
@@ -542,6 +587,52 @@ class ConversationDetailController {
         text: text,
         replyTo: replyTo,
         attachments: attachments,
+      );
+
+      final payload = <String, dynamic>{
+        'conversationId': _state.conversationId,
+        'text': text,
+        'replyTo': replyTo,
+        'attachments': attachments,
+      };
+
+      final result = await _sendMessageUsecase(payload);
+      final userService = getIt<UserService>();
+
+      final now = DateTime.now();
+      final tempId = UniqueKey().toString();
+
+      final darftMessage = MessageEntity(
+        id: tempId,
+        conversationId: _state.conversationId,
+        senderId: userService.currentUser!.id,
+        senderName:
+            userService.currentUser?.username ??
+            userService.currentUser?.email ??
+            '',
+        text: text,
+        type: attachments != null && attachments.isNotEmpty ? "media" : "text",
+        attachments: attachments ?? [],
+        replyTo: replyTo,
+        createdAt: now,
+        timestamp: now.toIso8601String(),
+      );
+
+      _state.addMessage(darftMessage);
+
+      result.fold(
+        (failure) {
+          _logger.e('Failed to send message: ${failure.message}');
+
+        },
+        (response) {
+          _logger.d('send message successfully');
+          _state.clearError();
+
+          final newMessage = response.data['message'] as MessageEntity;
+
+          _state.replaceMessage(tempId, newMessage);
+        },
       );
 
       _logger.d('📤 Message sent via Socket.IO');
@@ -618,7 +709,8 @@ class ConversationDetailController {
         forwardInfo: message.forwardInfo,
         threadInfo: message.threadInfo,
         reactions: message.reactions,
-        isRead: true,
+        messageStatus: message.messageStatus,
+        readBy: message.readBy,
         isEdited: message.isEdited,
         isDeleted: message.isDeleted,
         isPinned: message.isPinned,
@@ -628,7 +720,6 @@ class ConversationDetailController {
         emote: message.emote,
         createdAt: message.createdAt,
         timestamp: message.timestamp,
-        isMe: message.isMe,
       );
 
       updateMessage(updatedMessage);

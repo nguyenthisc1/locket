@@ -10,6 +10,7 @@ import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/di.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
+import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/conversation_detail_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:locket/presentation/conversation/widgets/message.dart';
@@ -37,6 +38,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       cacheService: getIt<MessageCacheService>(),
       conversationDetailCacheService: getIt<ConversationDetailCacheService>(),
       getMessagesUsecase: getIt<GetMessagesConversationUsecase>(),
+      sendMessageUsecase: getIt<SendMessageUsecase>(),
       getConversationDetailUsecase: getIt<GetConversationDetailUsecase>(),
       socketService: getIt<SocketService>(),
     );
@@ -102,7 +104,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
           ),
           const SizedBox(width: AppDimensions.md),
           Text(
-            _state.conversation?.name ?? 'Tên',
+            _state.conversation?.name ?? '',
             style: AppTypography.headlineLarge.copyWith(
               fontWeight: FontWeight.w800,
             ),
@@ -206,7 +208,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                       right: AppDimensions.md,
                       bottom: AppDimensions.xl,
                     ),
-                    child: Message(data: messageData),
+                    child: Message(data: messageData, lastMessage: _state.conversation?.lastMessage, participants: _state.conversation?.participants),
                   ),
                 ],
               ),
