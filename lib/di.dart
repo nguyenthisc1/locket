@@ -168,6 +168,7 @@ void setupDependencies() {
       getConversationsUsecase: getIt<GetConversationsUsecase>(),
       getConversationDetailUsecase: getIt<GetConversationDetailUsecase>(),
       unreadCountConversationsUsecase: getIt<UnreadCountConversationsUsecase>(),
+      socketService: getIt<SocketService>(),
     ),
   );
 

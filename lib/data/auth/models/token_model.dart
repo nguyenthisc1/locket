@@ -11,8 +11,8 @@ class AuthTokenPair {
   /// Create an instance of AuthTokenPair from json.
   factory AuthTokenPair.fromJson(Map<String, dynamic> json) {
     return AuthTokenPair(
-      accessToken: json['accessToken'] ,
-      refreshToken: json['refreshToken'] ,
+      accessToken: json['accessToken'] as String? ?? '',
+      refreshToken: json['refreshToken'] as String? ?? '',
     );
   }
   /// Convert an instance of AuthTokenPair to json.

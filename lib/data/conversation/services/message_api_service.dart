@@ -128,9 +128,7 @@ class MessageApiServiceImpl extends MessageApiService {
 
       if (response.statusCode == 201 && response.data.isNotEmpty) {
         final messageJson = response.data['data']['message'];
-        final messageModel = messageJson.map(
-          (json) => MessageModel.fromJson(json),
-        );
+        final messageModel = MessageModel.fromJson(messageJson);
         final message = MessageMapper.toEntity(messageModel);
 
         final data = {'message': message};

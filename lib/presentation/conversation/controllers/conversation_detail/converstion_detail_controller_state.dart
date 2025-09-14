@@ -79,10 +79,6 @@ class ConversationDetailControllerState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setReadParticipant() {
-    
-  }
-
   void setLoadingMessages(bool value) {
     if (_isLoadingMessages != value) {
       _isLoadingMessages = value;

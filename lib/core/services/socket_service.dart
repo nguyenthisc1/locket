@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:locket/core/entities/last_message_entity.dart';
 import 'package:locket/core/mappers/message_mapper.dart';
 import 'package:locket/data/conversation/models/message_model.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
@@ -97,9 +98,9 @@ class SocketService {
       _connectionStatusController.add('error');
     });
 
-    // _socket!.onAny((event, data) {
-    //   _logger.d('📡 Event: $event - $data');
-    // });
+    _socket!.onAny((event, data) {
+      _logger.d('📡 Event: $event - $data');
+    });
 
     // Message events
     _socket!.on('new_message', (data) {
@@ -115,7 +116,7 @@ class SocketService {
       }
     });
 
-    _socket!.on('message_updated', (data) {
+    _socket!.on('message:updated', (data) {
       try {
         _logger.d('✏️ Message updated: $data');
         final message = _parseMessage(data);
@@ -127,7 +128,7 @@ class SocketService {
       }
     });
 
-    _socket!.on('message_deleted', (data) {
+    _socket!.on('message:deleted', (data) {
       try {
         _logger.d('🗑️ Message deleted: $data');
         // Handle message deletion
@@ -138,7 +139,7 @@ class SocketService {
     });
 
     // Conversation events
-    _socket!.on('conversation_updated', (data) {
+    _socket!.on('conversation:updated', (data) {
       try {
         _logger.d('💬 Conversation updated: $data');
         final conversation = _parseConversation(data);
@@ -323,14 +324,51 @@ class SocketService {
   ConversationEntity? _parseConversation(dynamic data) {
     try {
       if (data is Map<String, dynamic>) {
-        // This would need to be implemented based on your ConversationEntity structure
-        // For now, returning null as we need to see the full structure
-        _logger.d('📝 Conversation parsing not fully implemented yet');
-        return null;
+        // Extract conversation data from socket payload
+        final conversationId = data['conversationId'] as String;
+        final updateData = data['updateData'] as Map<String, dynamic>?;
+        
+        if (updateData == null) {
+          _logger.w('⚠️ No updateData found in conversation update');
+          return null;
+        }
+
+        // Parse last message from updateData
+        LastMessageEntity? lastMessage;
+        if (updateData['lastMessage'] != null) {
+          final lastMessageData = updateData['lastMessage'] as Map<String, dynamic>;
+          lastMessage = LastMessageEntity.fromJson(lastMessageData);
+        }
+
+        // Parse updatedAt
+        DateTime? updatedAt;
+        if (updateData['updatedAt'] != null) {
+          updatedAt = DateTime.parse(updateData['updatedAt'] as String);
+        }
+
+        // Create a minimal ConversationEntity for the update
+        // Note: This is just for the update - we don't have all conversation data
+        return ConversationEntity(
+          id: conversationId,
+          name: '', // We don't have name in the socket update
+          participants: const [], // We don't have participants in the socket update
+          isGroup: false, // We don't have group info in the socket update
+          isActive: true, // Assume active for socket updates
+          pinnedMessages: const [],
+          settings: const ConversationSettingsEntity(
+            muteNotifications: false,
+            theme: '',
+          ),
+          readReceipts: const [],
+          createdAt: DateTime.now(), // We don't have createdAt in the socket update
+          lastMessage: lastMessage,
+          updatedAt: updatedAt,
+        );
       }
       return null;
     } catch (e) {
       _logger.e('❌ Error parsing conversation: $e');
+      _logger.e('❌ Data: $data');
       return null;
     }
   }

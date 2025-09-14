@@ -74,6 +74,14 @@ class ConversationControllerState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void replaceConversation(String id, ConversationEntity newConversation) {
+    final index = _listConversation.indexWhere((m) => m.id == id);
+    if (index != -1) {
+      _listConversation[index] = newConversation;
+      notifyListeners();
+    }
+  }
+
   void setError(String? value) {
     if (_errorMessage != value) {
       _errorMessage = value;

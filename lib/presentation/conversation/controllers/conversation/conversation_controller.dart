@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:locket/core/mappers/pagination_mapper.dart';
 import 'package:locket/core/models/pagination_model.dart';
 import 'package:locket/core/services/conversation_cache_service.dart';
+import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
@@ -14,7 +17,10 @@ class ConversationController {
   final GetConversationsUsecase _getConversationsUsecase;
   final GetConversationDetailUsecase _getConversationDetailUsecase;
   final UnreadCountConversationsUsecase _unreadCountConversationsUsecase;
+  final SocketService _socketService;
   final Logger _logger;
+
+  StreamSubscription<ConversationEntity>? _conversationUpdateSubscription;
 
   ConversationController({
     required ConversationControllerState state,
@@ -22,15 +28,29 @@ class ConversationController {
     required GetConversationsUsecase getConversationsUsecase,
     required GetConversationDetailUsecase getConversationDetailUsecase,
     required UnreadCountConversationsUsecase unreadCountConversationsUsecase,
+    required SocketService socketService,
     Logger? logger,
   }) : _state = state,
        _cacheService = cacheService,
        _getConversationsUsecase = getConversationsUsecase,
        _getConversationDetailUsecase = getConversationDetailUsecase,
        _unreadCountConversationsUsecase = unreadCountConversationsUsecase,
+       _socketService = socketService,
        _logger =
            logger ??
-           Logger(printer: PrettyPrinter(colors: true, printEmojis: true));
+           Logger(printer: PrettyPrinter(colors: true, printEmojis: true)) {
+    _setupSocketListeners();
+  }
+
+  // -------------------- Getters --------------------
+
+  /// Check if we have cached conversations
+  bool get hasCachedConversations => _cacheService.hasCachedData;
+
+  /// Get cache info for debugging
+  Map<String, dynamic> get cacheInfo => _cacheService.getCacheInfo();
+
+  // -------------------- Initialization --------------------
 
   Future<void> init() async {
     // Only initialize once
@@ -43,25 +63,7 @@ class ConversationController {
     _state.setInitialized(true);
   }
 
-  /// Load cached conversations for instant UI display
-  Future<void> loadCachedConversations() async {
-    try {
-      final cachedConversations = await _cacheService.loadCachedConversations();
-
-      if (cachedConversations.isNotEmpty) {
-        _logger.d(
-          '📦 Loaded ${cachedConversations.length} cached conversations',
-        );
-        _state.setConversations(cachedConversations, isFromCache: true);
-      } else {
-        _logger.d('📦 No cached conversations found');
-      }
-    } catch (e) {
-      _logger.e('❌ Error loading cached conversations: $e');
-      // Don't show error for cache loading failures
-      // The fresh fetch will handle error display if needed
-    }
-  }
+  // -------------------- Fetching & Manipulation --------------------
 
   Future<void> fetchConversations({
     int? limit,
@@ -254,12 +256,27 @@ class ConversationController {
       }
     }
   }
+  // -------------------- Caching --------------------
 
-  /// Check if we have cached conversations
-  bool get hasCachedConversations => _cacheService.hasCachedData;
+  /// Load cached conversations for instant UI display
+  Future<void> loadCachedConversations() async {
+    try {
+      final cachedConversations = await _cacheService.loadCachedConversations();
 
-  /// Get cache info for debugging
-  Map<String, dynamic> get cacheInfo => _cacheService.getCacheInfo();
+      if (cachedConversations.isNotEmpty) {
+        _logger.d(
+          '📦 Loaded ${cachedConversations.length} cached conversations',
+        );
+        _state.setConversations(cachedConversations, isFromCache: true);
+      } else {
+        _logger.d('📦 No cached conversations found');
+      }
+    } catch (e) {
+      _logger.e('❌ Error loading cached conversations: $e');
+      // Don't show error for cache loading failures
+      // The fresh fetch will handle error display if needed
+    }
+  }
 
   /// Clear conversation cache
   Future<void> clearCache() async {
@@ -267,6 +284,49 @@ class ConversationController {
     _state.setConversations([]);
   }
 
+  // -------------------- Socket & Real-time --------------------
+  void _setupSocketListeners() {
+    // Listen for conversation updates
+    _conversationUpdateSubscription = _socketService.conversationUpdateStream.listen(
+      (conversationUpdate) {
+        _logger.d('💬 Received conversation update: ${conversationUpdate.id}');
+
+        // Find the index of the conversation to update
+        final index = _state.listConversation.indexWhere(
+          (c) => c.id == conversationUpdate.id,
+        );
+
+        if (index != -1) {
+          // Get the current conversation from state
+          final currentConversation = _state.listConversation[index];
+          
+          // Replace the conversation with updated data, preserving original data
+          final updatedConversation = currentConversation.copyWith(
+            lastMessage: conversationUpdate.lastMessage,
+            updatedAt: conversationUpdate.updatedAt ?? currentConversation.updatedAt,
+          );
+
+          _state.replaceConversation(conversationUpdate.id, updatedConversation);
+          _logger.d('🔄 Conversation ${conversationUpdate.id} updated with new last message');
+          
+          // Cache the updated conversations
+          _cacheService.cacheConversations(_state.listConversation);
+        } else {
+          _logger.d(
+            '➕ Conversation ${conversationUpdate.id} not found in current list, skipping update',
+          );
+        }
+      },
+      onError: (error) {
+        _logger.e('❌ Error in conversation update stream: $error');
+      },
+    );
+  }
+
+  // -------------------- Cleanup --------------------
+
   /// Dispose resources
-  void dispose() {}
+  void dispose() {
+    _conversationUpdateSubscription?.cancel();
+  }
 }

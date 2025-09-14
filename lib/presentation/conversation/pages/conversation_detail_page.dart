@@ -99,7 +99,10 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           UserImage(
-            imageUrl: _state.conversation?.participants[0].avatarUrl,
+            imageUrl:
+                (_state.conversation?.participants.isNotEmpty ?? false)
+                    ? _state.conversation!.participants.first.avatarUrl
+                    : null,
             size: AppDimensions.avatarMd,
           ),
           const SizedBox(width: AppDimensions.md),
@@ -208,7 +211,11 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                       right: AppDimensions.md,
                       bottom: AppDimensions.xl,
                     ),
-                    child: Message(data: messageData, lastMessage: _state.conversation?.lastMessage, participants: _state.conversation?.participants),
+                    child: Message(
+                      data: messageData,
+                      lastMessage: _state.conversation?.lastMessage,
+                      participants: _state.conversation?.participants,
+                    ),
                   ),
                 ],
               ),
