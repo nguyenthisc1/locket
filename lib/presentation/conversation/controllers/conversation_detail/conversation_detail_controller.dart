@@ -141,6 +141,26 @@ class ConversationDetailController {
       _state.setConversationId(conversationId);
     }
 
+    // Load cache message if have
+    final cachedMessages = await _cacheService.loadCachedMessages(
+      conversationId,
+    );
+    if (cachedMessages.isNotEmpty) {
+      _logger.d(
+        '💾 Loaded ${cachedMessages.length} cached messages for $conversationId',
+      );
+      _state.setMessages(cachedMessages, isFromCache: true);
+    }
+
+    // If have cache detail
+    final cachedDetail = await _conversationDetailCacheService
+        .loadCachedConversationDetail(conversationId);
+  
+      _logger.d('💾 Loaded cached conversation detail for $cachedDetail');
+    if (cachedDetail != null) {
+      _state.setConversation(cachedDetail);
+    }
+
     // Check socket status before joining
     _socketService.checkConnectionStatus();
 
@@ -164,6 +184,7 @@ class ConversationDetailController {
     int? limit,
     DateTime? lastCreatedAt,
     bool isRefresh = false,
+    bool useCase = true,
   }) async {
     if (isRefresh) {
       _state.setRefreshingMessages(true);
@@ -173,6 +194,17 @@ class ConversationDetailController {
     _state.clearError();
 
     try {
+      if (useCase && !isRefresh && lastCreatedAt == null) {
+        final cachedMessages = await _cacheService.loadCachedMessages(
+          _state.conversationId,
+        );
+
+        if (cachedMessages.isNotEmpty) {
+          _logger.d('💾 Loaded ${cachedMessages.length} cached messages');
+          _state.setMessages(cachedMessages, isFromCache: true);
+        }
+      }
+
       final result = await _getMessagesUsecase(
         conversationId: _state.conversationId,
         limit: limit,
@@ -215,7 +247,21 @@ class ConversationDetailController {
             }
           }
 
-          _state.setMessages(messages, isFromCache: false);
+          if (lastCreatedAt != null) {
+            // Merge new messages with existing ones, avoiding duplicates by message ID
+            final existingMessages = {for (final m in _state.listMessages) m.id: m};
+            for (final m in messages) {
+              existingMessages[m.id] = m;
+            }
+            final mergedMessages = existingMessages.values.toList()
+              ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+            _state.setMessages(mergedMessages);
+          } else {
+            _state.setMessages(messages, isFromCache: false);
+          }
+
+          // Cache the latest list of messages
           _cacheService.cacheMessages(
             _state.conversationId,
             _state.listMessages,
@@ -362,10 +408,12 @@ class ConversationDetailController {
               groupSettings: conversationDetail.groupSettings,
               isActive: conversationDetail.isActive,
               pinnedMessages: conversationDetail.pinnedMessages,
-              settings: conversationDetail.settings ?? const ConversationSettingsEntity(
-                muteNotifications: false,
-                theme: 'default',
-              ),
+              settings:
+                  conversationDetail.settings ??
+                  const ConversationSettingsEntity(
+                    muteNotifications: false,
+                    theme: 'default',
+                  ),
               readReceipts: conversationDetail.readReceipts,
               lastMessage: conversationDetail.lastMessage,
               createdAt: conversationDetail.createdAt,
@@ -623,7 +671,6 @@ class ConversationDetailController {
       result.fold(
         (failure) {
           _logger.e('Failed to send message: ${failure.message}');
-
         },
         (response) {
           _logger.d('send message successfully');
