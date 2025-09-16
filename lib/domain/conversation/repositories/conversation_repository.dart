@@ -6,4 +6,5 @@ abstract class ConversationRepository {
   Future<Either<Failure, BaseResponse>> getConversations({int? limit, DateTime? lastCreatedAt});
   Future<Either<Failure, BaseResponse>> getConversation(String conversationId);
   Future<Either<Failure, BaseResponse>> unreacdCountConversations();
+  Future<Either<Failure, BaseResponse>> markConversationAsRead(String conversationId);
 }

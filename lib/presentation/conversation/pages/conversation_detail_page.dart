@@ -10,6 +10,7 @@ import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/di.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
+import 'package:locket/domain/conversation/usecases/mark_conversation_as_read_usecase.dart';
 import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/conversation_detail_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
@@ -40,12 +41,10 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       getMessagesUsecase: getIt<GetMessagesConversationUsecase>(),
       sendMessageUsecase: getIt<SendMessageUsecase>(),
       getConversationDetailUsecase: getIt<GetConversationDetailUsecase>(),
+      markConversationAsReadUsecase: getIt<MarkConversationAsReadUsecase>(),
       socketService: getIt<SocketService>(),
     );
     _controller.init(widget.conversationId);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.initBefore(widget.conversationId);
-    });
   }
 
   @override
@@ -209,7 +208,8 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                     padding: const EdgeInsets.only(
                       left: AppDimensions.md,
                       right: AppDimensions.md,
-                      bottom: AppDimensions.xl,
+                      bottom: AppDimensions.md,
+                      top: AppDimensions.sm
                     ),
                     child: Message(
                       data: messageData,

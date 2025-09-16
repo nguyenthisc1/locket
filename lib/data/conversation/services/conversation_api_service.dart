@@ -14,6 +14,7 @@ abstract class ConversationApiService {
   Future<Either<Failure, BaseResponse>> getConversations({int? limit, DateTime? lastCreatedAt});
   Future<Either<Failure, BaseResponse>> getConversation(String conversationId);
   Future<Either<Failure, BaseResponse>> unreadCountConversations();
+  Future<Either<Failure, BaseResponse>> markConversationAsRead(String conversationId);
 }
 
 class ConversationApiServiceImpl extends ConversationApiService {
@@ -228,6 +229,65 @@ class ConversationApiServiceImpl extends ConversationApiService {
       }
     } catch (e) {
       logger.e('❌ Get Conversation failed: ${e.toString()}');
+
+      if (e is DioException) {
+        final statusCode = e.response?.statusCode;
+        final message = e.response?.data['message'] ?? 'Lỗi kết nối server';
+
+        // DioException will only occur for network issues or server errors (5xx)
+        if (statusCode != null && statusCode >= 500) {
+          return Left(ServerFailure(message: message, statusCode: statusCode));
+        } else {
+          return Left(NetworkFailure(message: message, statusCode: statusCode));
+        }
+      }
+
+      return Left(DataFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BaseResponse>> markConversationAsRead(String conversationId) async {
+    try {
+      final response = await dioClient.post(ApiUrl.markConversationAsRead(conversationId));
+      logger.d('response mark conversation read message: ${response.data}');
+
+      if (response.statusCode == 201) {
+        final baseResponse = BaseResponse<Map<String, dynamic>>(
+          success: response.data['success'],
+          message: response.data['message'],
+          errors: response.data['errors'],
+        );
+
+        return Right(baseResponse);
+      }
+
+      // Handle specific status codes (since they're not treated as exceptions)
+      final statusCode = response.statusCode;
+      final message = response.data['message'] ?? 'Unknown error';
+      final errors = response.data['errors'];
+
+      logger.e('❌ read message failed: $errors $message (Status: $statusCode)');
+
+      if (statusCode == 401) {
+        return Left(
+          UnauthorizedFailure(message: message, statusCode: statusCode),
+        );
+      } else if (statusCode == 403) {
+        return Left(AuthFailure(message: message, statusCode: statusCode));
+      } else if (statusCode == 404) {
+        return Left(
+          DataFailure(message: 'conversation not found', statusCode: statusCode),
+        );
+      } else if (statusCode == 422) {
+        return Left(
+          ValidationFailure(message: message, statusCode: statusCode),
+        );
+      } else {
+        return Left(DataFailure(message: message, statusCode: statusCode));
+      }
+    } catch (e) {
+      logger.e('❌ mark conversation as read failed: ${e.toString()}');
 
       if (e is DioException) {
         final statusCode = e.response?.statusCode;

@@ -19,6 +19,7 @@ abstract class MessageApiService {
   Future<Either<Failure, BaseResponse>> sendMessage(
     Map<String, dynamic> payload,
   );
+
 }
 
 class MessageApiServiceImpl extends MessageApiService {

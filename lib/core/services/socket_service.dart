@@ -171,7 +171,7 @@ class SocketService {
     });
 
     // Read receipt events
-    _socket!.on('message_read', (data) {
+    _socket!.on('message:read', (data) {
       try {
         _logger.d('👁️ Message read: $data');
         _readReceiptController.add(Map<String, dynamic>.from(data));

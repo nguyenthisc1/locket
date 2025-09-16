@@ -62,4 +62,20 @@ class ConversationRepositoryImpl extends ConversationRepository {
       },
     );
   }
+
+    @override
+  Future<Either<Failure, BaseResponse>> markConversationAsRead(String messageId) async {
+    final result = await _conversationApiService.markConversationAsRead(messageId);
+
+    return result.fold(
+      (failure) {
+        logger.e('Repository Read Message failed: ${failure.toString()}');
+        return Left(failure);
+      },
+      (result) {
+        logger.d('Repository Read Message successful for: ${result.data}');
+        return Right(result);
+      },
+    );
+  }
 }

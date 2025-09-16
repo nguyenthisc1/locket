@@ -13,6 +13,7 @@ import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
+import 'package:locket/domain/conversation/usecases/mark_conversation_as_read_usecase.dart';
 import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:logger/logger.dart';
@@ -24,15 +25,17 @@ class ConversationDetailController {
   final GetMessagesConversationUsecase _getMessagesUsecase;
   final SendMessageUsecase _sendMessageUsecase;
   final GetConversationDetailUsecase _getConversationDetailUsecase;
+  final MarkConversationAsReadUsecase _markConversationAsReadUsecase;
   final SocketService _socketService;
   final Logger _logger;
 
   // Socket.IO stream subscriptions
   StreamSubscription<MessageEntity>? _messageSubscription;
   StreamSubscription<ConversationEntity>? _conversationUpdateSubscription;
+  StreamSubscription<Map<String, dynamic>>? _markConversationAsReadSubscription;
   StreamSubscription<Map<String, dynamic>>? _typingSubscription;
   StreamSubscription<Map<String, dynamic>>? _readReceiptSubscription;
-
+  
   // Background gradient functionality
   final List<LinearGradient> _backgroundGradients = [
     const LinearGradient(
@@ -92,6 +95,7 @@ class ConversationDetailController {
     required GetMessagesConversationUsecase getMessagesUsecase,
     required SendMessageUsecase sendMessageUsecase,
     required GetConversationDetailUsecase getConversationDetailUsecase,
+    required MarkConversationAsReadUsecase markConversationAsReadUsecase, 
     required SocketService socketService,
     Logger? logger,
   }) : _state = state,
@@ -100,6 +104,7 @@ class ConversationDetailController {
        _getMessagesUsecase = getMessagesUsecase,
        _sendMessageUsecase = sendMessageUsecase,
        _getConversationDetailUsecase = getConversationDetailUsecase,
+       _markConversationAsReadUsecase = markConversationAsReadUsecase,
        _socketService = socketService,
        _logger =
            logger ??
@@ -170,12 +175,8 @@ class ConversationDetailController {
     // Then fetch fresh message data in background
     await fetchConversationDetail(conversationId);
     await fetchMessages();
+    // await _markConversationAsReadUsecase(conversationId);
     _state.setInitialized(true);
-  }
-
-  Future<void> initBefore(String conversationId) async {
-    await _loadCachedConversationDetail(conversationId);
-    await _loadCachedMessages();
   }
 
   // -------------------- Message Fetching & Manipulation --------------------
@@ -266,6 +267,8 @@ class ConversationDetailController {
             _state.conversationId,
             _state.listMessages,
           );
+
+          return _state.listMessages;
         },
       );
     } catch (e) {
@@ -570,9 +573,26 @@ class ConversationDetailController {
     _readReceiptSubscription = _socketService.readReceiptStream.listen(
       (readReceiptData) {
         _logger.d('👁️ Received read receipt: $readReceiptData');
-        final messageId = readReceiptData['messageId'] as String?;
-        if (messageId != null) {
-          _updateMessageReadStatus(messageId);
+        final conversationId = readReceiptData['conversationId'] as String?;
+        final userId = readReceiptData['userId'] as String?;
+
+        DateTime? timestamp;
+        final rawTimestamp = readReceiptData['timestamp'];
+        if (rawTimestamp is DateTime) {
+          timestamp = rawTimestamp;
+        } else if (rawTimestamp is String) {
+          try {
+            timestamp = DateTime.tryParse(rawTimestamp);
+          } catch (_) {
+            timestamp = null;
+          }
+        } else if (rawTimestamp is int) {
+          timestamp = DateTime.fromMillisecondsSinceEpoch(rawTimestamp);
+        }
+        timestamp ??= DateTime.now();
+
+        if (conversationId != null && userId != null) {
+          _updateMessageReadStatus(conversationId, userId, timestamp);
         }
       },
       onError: (error) {
@@ -735,7 +755,7 @@ class ConversationDetailController {
 
   // -------------------- Message Read Status --------------------
 
-  void _updateMessageReadStatus(String messageId) {
+  void _updateMessageReadStatus(String conversationId, String messageId, DateTime timestamp) {
     final messageIndex = _state.listMessages.indexWhere(
       (m) => m.id == messageId,
     );
