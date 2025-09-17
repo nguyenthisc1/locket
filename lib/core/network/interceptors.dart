@@ -3,7 +3,6 @@ import 'package:fresh_dio/fresh_dio.dart';
 import 'package:locket/core/constants/api_url.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 /// This interceptor is used to show request and response logs
 class LoggerInterceptor extends Interceptor {
@@ -47,25 +46,31 @@ class LoggerInterceptor extends Interceptor {
 /// Adds the Authorization header with the Bearer token to outgoing requests.
 /// Handles missing or empty tokens gracefully and logs issues for debugging.
 class AuthorizationInterceptor extends Interceptor {
+  final TokenStorage<AuthTokenPair> _tokenStorage;
+  final Logger _logger = Logger(
+    printer: PrettyPrinter(colors: true, printEmojis: true),
+  );
+
+  AuthorizationInterceptor(this._tokenStorage);
+
   @override
   void onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
     try {
-      final sharedPreferences = await SharedPreferences.getInstance();
-      final token = sharedPreferences.getString('token');
+      _logger.d('🔐 AuthorizationInterceptor: Checking for token...');
+      final tokenPair = await _tokenStorage.read();
 
-      if (token != null && token.isNotEmpty) {
-        options.headers['Authorization'] = 'Bearer $token';
+      if (tokenPair?.accessToken != null && tokenPair!.accessToken.isNotEmpty) {
+        options.headers['Authorization'] = 'Bearer ${tokenPair.accessToken}';
+        _logger.d('🔐 AuthorizationInterceptor: Added Authorization header');
       } else {
-        // Optionally log or handle missing token scenario
-        // For example: print('AuthorizationInterceptor: No token found.');
+        _logger.w('🔐 AuthorizationInterceptor: No token found in storage');
       }
       handler.next(options); // continue with the Request
     } catch (e) {
-      // Handle unexpected errors in token retrieval
-      // For example: print('AuthorizationInterceptor error: $e');
+      _logger.e('🔐 AuthorizationInterceptor error: $e');
       handler.next(options); // continue without Authorization header
     }
   }
@@ -83,22 +88,41 @@ class TokenRefreshInterceptor extends Interceptor {
   TokenRefreshInterceptor(this._tokenStorage);
 
   /// Returns a configured [Fresh] interceptor for token management.
-  Fresh<AuthTokenPair> get fresh => Fresh<AuthTokenPair>(
-    tokenStorage: _tokenStorage,
-    tokenHeader: (token) {
-      // Add the access token to the Authorization header for each request.
-      if (token.accessToken.isEmpty) {
-        // Defensive: Do not add header if token is missing.
-        return <String, String>{};
-      }
-      return {'Authorization': 'Bearer ${token.accessToken}'};
-    },
+  Fresh<AuthTokenPair> get fresh {
+    final Logger logger = Logger(
+      printer: PrettyPrinter(colors: true, printEmojis: true),
+    );
+    
+    logger.d('🔧 Creating Fresh interceptor instance');
+    
+    return Fresh<AuthTokenPair>(
+      tokenStorage: _tokenStorage,
+      tokenHeader: (token) {
+        // Add the access token to the Authorization header for each request.
+        logger.d('🔑 TokenHeader called with token: Token exists (${token.accessToken.length} chars)');
+        
+        if (token.accessToken.isEmpty) {
+          // Defensive: Do not add header if token is missing.
+          logger.w('⚠️ No access token available, skipping Authorization header');
+          return <String, String>{};
+        }
+        
+        logger.d('✅ Adding Authorization header with token');
+        return {'Authorization': 'Bearer ${token.accessToken}'};
+      },
     refreshToken: (token, client) async {
       // Attempt to refresh the token when a 401 is encountered.
+      final Logger logger = Logger(
+        printer: PrettyPrinter(colors: true, printEmojis: true),
+      );
+      
+      logger.d('🔄 Refresh token called');
+      
       if (token == null ||
           token.refreshToken.isEmpty ||
           token.accessToken.isEmpty) {
         // Defensive: If tokens are missing, trigger logout.
+        logger.e('❌ Token refresh failed: Missing tokens');
         throw RevokeTokenException();
       }
       try {
@@ -129,7 +153,10 @@ class TokenRefreshInterceptor extends Interceptor {
     },
     shouldRefresh: (response) {
       // Only attempt refresh on HTTP 401 Unauthorized.
-      return response?.statusCode == 401;
+      final shouldRefresh = response?.statusCode == 401;
+      logger.d('🔄 ShouldRefresh called: ${response?.statusCode} -> $shouldRefresh');
+      return shouldRefresh;
     },
   );
+  }
 }

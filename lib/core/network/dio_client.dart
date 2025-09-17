@@ -30,7 +30,7 @@ class DioClient {
           return status != null && status < 500;
         },
       ),
-    )..interceptors.addAll([fresh, LoggerInterceptor()]);
+    )..interceptors.addAll([fresh, AuthorizationInterceptor(tokenStorage), LoggerInterceptor()]);
   }
 
   // GET METHOD
