@@ -19,7 +19,6 @@ class MessageEntity extends Equatable {
   final Map<String, dynamic>? threadInfo;
   final List<Map<String, dynamic>> reactions;
   final MessageStatus messageStatus;
-  final List<String> readBy;
   final bool isEdited;
   final bool isDeleted;
   final bool isPinned;
@@ -27,6 +26,7 @@ class MessageEntity extends Equatable {
   final Map<String, dynamic> metadata;
   final String? sticker;
   final String? emote;
+  final DateTime? updatedAt;
   final DateTime createdAt;
   final String timestamp;
 
@@ -45,7 +45,6 @@ class MessageEntity extends Equatable {
     this.threadInfo,
     this.reactions = const [],
     this.messageStatus = MessageStatus.sent,
-    this.readBy = const [],
     this.isEdited = false,
     this.isDeleted = false,
     this.isPinned = false,
@@ -53,6 +52,7 @@ class MessageEntity extends Equatable {
     this.metadata = const {},
     this.sticker,
     this.emote,
+    this.updatedAt,
     required this.createdAt,
     required this.timestamp,
   });
@@ -79,7 +79,6 @@ class MessageEntity extends Equatable {
     threadInfo: null,
     reactions: const [],
     messageStatus: MessageStatus.sent,
-    readBy: [],
     isEdited: false,
     isDeleted: false,
     isPinned: false,
@@ -87,6 +86,7 @@ class MessageEntity extends Equatable {
     metadata: const {},
     sticker: null,
     emote: null,
+    updatedAt: DateTime.now(),
     createdAt: DateTime.now(),
     timestamp: '',
   );
@@ -117,6 +117,7 @@ class MessageEntity extends Equatable {
     String? sticker,
     String? emote,
     DateTime? createdAt,
+    DateTime? updatedAt,
     String? timestamp,
   }) {
     return MessageEntity(
@@ -143,7 +144,6 @@ class MessageEntity extends Equatable {
               : null),
       reactions: reactions ?? List<Map<String, dynamic>>.from(this.reactions),
       messageStatus: messageStatus ?? this.messageStatus,
-      readBy: readBy ?? List<String>.from(this.readBy),
       isEdited: isEdited ?? this.isEdited,
       isDeleted: isDeleted ?? this.isDeleted,
       isPinned: isPinned ?? this.isPinned,
@@ -152,6 +152,7 @@ class MessageEntity extends Equatable {
       metadata: metadata ?? Map<String, dynamic>.from(this.metadata),
       sticker: sticker ?? this.sticker,
       emote: emote ?? this.emote,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       timestamp: timestamp ?? this.timestamp,
     );
@@ -173,7 +174,6 @@ class MessageEntity extends Equatable {
     threadInfo,
     reactions,
     messageStatus,
-    readBy,
     isEdited,
     isDeleted,
     isPinned,
@@ -181,6 +181,7 @@ class MessageEntity extends Equatable {
     metadata,
     sticker,
     emote,
+    updatedAt,
     createdAt,
     timestamp,
   ];

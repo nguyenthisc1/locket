@@ -85,8 +85,8 @@ class ConversationParticipantEntity extends Equatable {
   final String? email;
   final String? avatarUrl;
   final String? lastReadMessageId;
-  final String? lastReadAt;
-  final String? joinedAt;
+  final DateTime? lastReadAt;
+  final DateTime? joinedAt;
 
   const ConversationParticipantEntity({
     required this.id,
@@ -104,8 +104,8 @@ class ConversationParticipantEntity extends Equatable {
     String? email,
     String? avatarUrl,
     String? lastReadMessageId,
-    String? lastReadAt,
-    String? joinedAt,
+    DateTime? lastReadAt,
+    DateTime? joinedAt,
   }) {
     return ConversationParticipantEntity(
       id: id ?? this.id,

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/entities/sender_entity.dart';
 
 class LastMessageEntity extends Equatable {
@@ -23,7 +24,7 @@ class LastMessageEntity extends Equatable {
       sender: json['sender'] is Map<String, dynamic>
           ? SenderEntity.fromJson(json['sender'] as Map<String, dynamic>)
           : throw ArgumentError('Invalid sender format in LastMessageEntity.fromJson'),
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      timestamp: DateTimeUtils.parseDateTime(json['timestamp']),
       isRead: json['isRead'] as bool,
     );
   }
@@ -48,7 +49,7 @@ class LastMessageEntity extends Equatable {
         'messageId': messageId,
         'text': text,
         'sender': sender,
-        'timestamp': timestamp.toIso8601String(),
+        'timestamp': DateTimeUtils.toIsoString(timestamp),
         'isRead': isRead,
       };
 

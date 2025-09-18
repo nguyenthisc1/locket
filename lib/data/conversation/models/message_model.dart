@@ -1,3 +1,4 @@
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
 
 class MessageModel {
@@ -15,7 +16,6 @@ class MessageModel {
   final Map<String, dynamic>? threadInfo;
   final List<Map<String, dynamic>> reactions;
   final MessageStatus messageStatus;
-  final List<String> readBy;
   final bool isEdited;
   final bool isDeleted;
   final bool isPinned;
@@ -23,6 +23,7 @@ class MessageModel {
   final Map<String, dynamic> metadata;
   final String? sticker;
   final String? emote;
+  final DateTime? updatedAt;
   final DateTime createdAt;
   final String timestamp;
 
@@ -41,7 +42,6 @@ class MessageModel {
     this.threadInfo,
     required this.reactions,
     this.messageStatus = MessageStatus.sent,
-    this.readBy = const [],
     required this.isEdited,
     required this.isDeleted,
     required this.isPinned,
@@ -49,18 +49,18 @@ class MessageModel {
     required this.metadata,
     this.sticker,
     this.emote,
+    this.updatedAt,
     required this.createdAt,
     required this.timestamp,
   });
 
-  // Static helper methods for parsing
+  // Static helper methods for parsing (deprecated - use DateTimeUtils instead)
   static DateTime _parseCreatedAt(dynamic value) {
-    if (value is DateTime) return value;
-    if (value is String) {
-      final parsed = DateTime.tryParse(value);
-      if (parsed != null) return parsed;
-    }
-    return DateTime.now();
+    return DateTimeUtils.parseDateTime(value);
+  }
+
+  static DateTime? _parseUpdatedAt(dynamic value) {
+    return DateTimeUtils.parseDateTimeNullable(value);
   }
 
   static String _extractSenderId(dynamic senderIdValue) {
@@ -170,8 +170,6 @@ class MessageModel {
               ? List<Map<String, dynamic>>.from(map['reactions'])
               : const [],
       messageStatus: _parseMessageStatus(map['messageStatus']),
-      readBy:
-          map['readBy'] is List ? List<String>.from(map['readBy']) : const [],
       isEdited: map['isEdited'] ?? false,
       isDeleted: map['isDeleted'] ?? false,
       isPinned: map['isPinned'] ?? false,
@@ -185,6 +183,7 @@ class MessageModel {
               : const {},
       sticker: _extractStringOrNull(map['sticker']),
       emote: _extractStringOrNull(map['emote']),
+      updatedAt: _parseUpdatedAt(map['updatedAt']),
       createdAt: _parseCreatedAt(map['createdAt']),
       timestamp: map['timestamp'] ?? '',
     );
@@ -225,10 +224,6 @@ class MessageModel {
                 ? List<Map<String, dynamic>>.from(json['reactions'])
                 : const [],
         messageStatus: _parseMessageStatus(json['messageStatus']),
-        readBy:
-            json['readBy'] is List
-                ? List<String>.from(json['readBy'])
-                : const [],
         isEdited: json['isEdited'] ?? false,
         isDeleted: json['isDeleted'] ?? false,
         isPinned: json['isPinned'] ?? false,
@@ -242,6 +237,7 @@ class MessageModel {
                 : const {},
         sticker: _extractStringOrNull(json['sticker']),
         emote: _extractStringOrNull(json['emote']),
+        updatedAt: _parseUpdatedAt(json['updatedAt']),
         createdAt: _parseCreatedAt(json['createdAt']),
         timestamp: json['timestamp'] ?? '',
       );
@@ -266,7 +262,6 @@ class MessageModel {
         threadInfo: null,
         reactions: const [],
         messageStatus: MessageStatus.failed,
-        readBy: const [],
         isEdited: false,
         isDeleted: false,
         isPinned: false,
@@ -274,6 +269,7 @@ class MessageModel {
         metadata: const {},
         sticker: null,
         emote: null,
+        updatedAt: _parseUpdatedAt(json['updatedAt']),
         createdAt: _parseCreatedAt(json['createdAt']),
         timestamp: json['timestamp']?.toString() ?? '',
       );
@@ -297,7 +293,6 @@ class MessageModel {
       'threadInfo': threadInfo,
       'reactions': reactions,
       'messageStatus': _messageStatusToString(messageStatus),
-      'readBy': readBy,
       'isEdited': isEdited,
       'isDeleted': isDeleted,
       'isPinned': isPinned,
@@ -305,6 +300,7 @@ class MessageModel {
       'metadata': metadata,
       'sticker': sticker,
       'emote': emote,
+      'updatedAt': updatedAt?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'timestamp': timestamp,
     };

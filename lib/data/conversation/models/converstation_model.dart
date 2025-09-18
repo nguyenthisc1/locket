@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/models/last_message_model.dart';
 
 class ConversationParticipantModel extends Equatable {
@@ -7,8 +8,8 @@ class ConversationParticipantModel extends Equatable {
   final String? email;
   final String? avatarUrl;
   final String? lastReadMessageId;
-  final String? lastReadAt;
-  final String? joinedAt;
+  final DateTime? lastReadAt;
+  final DateTime? joinedAt;
 
   const ConversationParticipantModel({
     required this.id,
@@ -27,8 +28,8 @@ class ConversationParticipantModel extends Equatable {
       email: json['email'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
       lastReadMessageId: json['lastReadMessageId'] as String?,
-      lastReadAt: json['lastReadAt'] as String?,
-      joinedAt: json['joinedAt'] as String?,
+      lastReadAt: DateTimeUtils.parseDateTimeNullable(json['lastReadAt']),
+      joinedAt: DateTimeUtils.parseDateTimeNullable(json['joinedAt']),
     );
   }
 
@@ -39,8 +40,8 @@ class ConversationParticipantModel extends Equatable {
       'email': email,
       'avatarUrl': avatarUrl,
       'lastReadMessageId': lastReadMessageId,
-      'lastReadAt': lastReadAt,
-      'joinedAt': joinedAt,
+      'lastReadAt': DateTimeUtils.toIsoString(lastReadAt),
+      'joinedAt': DateTimeUtils.toIsoString(joinedAt),
     };
   }
 
@@ -173,13 +174,8 @@ class ConversationModel extends Equatable {
                 json['lastMessage'] as Map<String, dynamic>,
               )
               : null,
-      createdAt:
-          DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
-          DateTime.now(),
-      updatedAt:
-          json['updatedAt'] != null
-              ? DateTime.tryParse(json['updatedAt'].toString())
-              : null,
+      createdAt: DateTimeUtils.parseDateTime(json['createdAt']),
+      updatedAt: DateTimeUtils.parseDateTimeNullable(json['updatedAt']),
     );
   }
 
@@ -195,8 +191,8 @@ class ConversationModel extends Equatable {
       'settings': settings.toJson(),
       'readReceipts': readReceipts,
       'lastMessage': lastMessage,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
+      'createdAt': DateTimeUtils.toIsoString(createdAt),
+      'updatedAt': DateTimeUtils.toIsoString(updatedAt),
     };
   }
 

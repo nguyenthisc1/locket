@@ -10,6 +10,99 @@ extension SafeOpacity on Color {
   }
 }
 
+/// Utility class for safe DateTime parsing operations
+class DateTimeUtils {
+  /// Safely parses a dynamic value to DateTime.
+  /// Returns the parsed DateTime if successful, otherwise returns the fallback.
+  /// 
+  /// Supports:
+  /// - DateTime objects (returned as-is)
+  /// - String values (parsed using DateTime.tryParse)
+  /// - int/double values (treated as milliseconds since epoch)
+  /// - null values (returns fallback)
+  static DateTime parseDateTime(dynamic value, {DateTime? fallback}) {
+    if (value == null) {
+      return fallback ?? DateTime.now();
+    }
+    
+    if (value is DateTime) {
+      return value;
+    }
+    
+    if (value is String) {
+      if (value.isEmpty) {
+        return fallback ?? DateTime.now();
+      }
+      final parsed = DateTime.tryParse(value);
+      if (parsed != null) {
+        return parsed;
+      }
+    }
+    
+    if (value is int) {
+      try {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      } catch (e) {
+        // Invalid timestamp
+      }
+    }
+    
+    if (value is double) {
+      try {
+        return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+      } catch (e) {
+        // Invalid timestamp
+      }
+    }
+    
+    // If all parsing attempts fail, return fallback
+    return fallback ?? DateTime.now();
+  }
+  
+  /// Safely parses a dynamic value to nullable DateTime.
+  /// Returns null if parsing fails or value is null/empty.
+  static DateTime? parseDateTimeNullable(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    
+    if (value is DateTime) {
+      return value;
+    }
+    
+    if (value is String) {
+      if (value.isEmpty) {
+        return null;
+      }
+      return DateTime.tryParse(value);
+    }
+    
+    if (value is int) {
+      try {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      } catch (e) {
+        return null;
+      }
+    }
+    
+    if (value is double) {
+      try {
+        return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+      } catch (e) {
+        return null;
+      }
+    }
+    
+    return null;
+  }
+  
+  /// Safely converts DateTime to ISO 8601 string.
+  /// Returns null if the DateTime is null.
+  static String? toIsoString(DateTime? dateTime) {
+    return dateTime?.toIso8601String();
+  }
+}
+
 /// Formats a [DateTime] into a Vietnamese-friendly timestamp string.
 /// - Today: returns "HH:mm"
 /// - Yesterday: returns "Hôm qua, HH:mm"

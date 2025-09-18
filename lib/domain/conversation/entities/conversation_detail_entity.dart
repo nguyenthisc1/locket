@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 
@@ -67,8 +68,8 @@ class ConversationDetailEntity extends Equatable {
               email: e['email'] as String?,
               avatarUrl: e['avatarUrl'] as String?,
               lastReadMessageId: e['lastReadMessageId'] as String?,
-              lastReadAt: e['lastReadAt'] as String?,
-              joinedAt: e['joinedAt'] as String?,
+              lastReadAt: DateTimeUtils.parseDateTimeNullable(e['lastReadAt']),
+              joinedAt: DateTimeUtils.parseDateTimeNullable(e['joinedAt']),
             ),
           )
           .toList();
@@ -81,8 +82,8 @@ class ConversationDetailEntity extends Equatable {
           email: jsonValue['email'] as String?,
           avatarUrl: jsonValue['avatarUrl'] as String?,
           lastReadMessageId: jsonValue['lastReadMessageId'] as String?,
-          lastReadAt: jsonValue['lastReadAt'] as String?,
-          joinedAt: jsonValue['joinedAt'] as String?,
+          lastReadAt: DateTimeUtils.parseDateTimeNullable(jsonValue['lastReadAt']),
+          joinedAt: DateTimeUtils.parseDateTimeNullable(jsonValue['joinedAt']),
         ),
       ];
     }
@@ -143,13 +144,10 @@ class ConversationDetailEntity extends Equatable {
                 json['settings'] as Map<String, dynamic>,
               )
               : null,
-      startedAt: DateTime.parse(json['startedAt'] as String),
+      startedAt: DateTimeUtils.parseDateTime(json['startedAt']),
       readReceipts: List<dynamic>.from(json['readReceipts'] ?? []),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt:
-          json['updatedAt'] != null
-              ? DateTime.tryParse(json['updatedAt'] as String)
-              : null,
+      createdAt: DateTimeUtils.parseDateTime(json['createdAt']),
+      updatedAt: DateTimeUtils.parseDateTimeNullable(json['updatedAt']),
     );
   }
 
@@ -165,8 +163,8 @@ class ConversationDetailEntity extends Equatable {
                 'email': e.email,
                 'avatarUrl': e.avatarUrl,
                 'lastReadMessageId': e.lastReadMessageId,
-                'lastReadAt': e.lastReadAt,
-                'joinedAt': e.joinedAt,
+                'lastReadAt': DateTimeUtils.toIsoString(e.lastReadAt),
+                'joinedAt': DateTimeUtils.toIsoString(e.joinedAt),
               },
             )
             .toList(),
@@ -185,10 +183,10 @@ class ConversationDetailEntity extends Equatable {
     'isActive': isActive,
     'pinnedMessages': pinnedMessages,
     'settings': settings?.toJson(),
-    'startedAt': startedAt.toIso8601String(),
+    'startedAt': DateTimeUtils.toIsoString(startedAt),
     'readReceipts': readReceipts,
-    'createdAt': createdAt.toIso8601String(),
-    'updatedAt': updatedAt?.toIso8601String(),
+    'createdAt': DateTimeUtils.toIsoString(createdAt),
+    'updatedAt': DateTimeUtils.toIsoString(updatedAt),
   };
 
   @override
