@@ -209,12 +209,21 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                       left: AppDimensions.md,
                       right: AppDimensions.md,
                       bottom: AppDimensions.md,
-                      top: AppDimensions.sm
+                      top: AppDimensions.sm,
                     ),
-                    child: Message(
-                      data: messageData,
-                      lastMessage: _state.conversation?.lastMessage,
-                      participants: _state.conversation?.participants,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      spacing: AppDimensions.sm,
+                      children: [
+                        Message(
+                          data: messageData,
+                          lastMessage: _state.conversation?.lastMessage,
+                          participants: _state.conversation?.participants,
+                        ),
+
+                        if (messageData.id == _state.conversation?.lastMessage?.messageId)
+                          _buildIsReadReceipts(),
+                      ],
                     ),
                   ),
                 ],
@@ -257,6 +266,49 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
           }
         },
       ),
+    );
+  }
+
+  Widget _buildIsReadReceipts() {
+    final currentUserId = getIt<UserService>().currentUser?.id;
+
+    final conversation = _state.conversation;
+    final lastMessage = _state.conversation?.lastMessage;
+
+    final isReadReceipts =
+        conversation?.participants.where((participant) {
+          return participant.id != currentUserId &&
+              participant.lastReadMessageId == lastMessage?.messageId;
+        }).toList();
+
+    final int displayCount =
+        isReadReceipts!.length > 3 ? 3 : isReadReceipts.length;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        ...List.generate(
+          displayCount,
+          (index) => Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: UserImage(
+              size: AppDimensions.avatarXs,
+              imageUrl: isReadReceipts[index].avatarUrl,
+            ),
+          ),
+        ),
+        if (isReadReceipts.length > 3)
+          Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: Text(
+              '...',
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -51,7 +51,7 @@ class Message extends StatelessWidget {
               ? _buildMessageImage(context, data)
               : _messageText(context, data),
 
-        _buildIsReadReceipts(context, data, lastMessage, participants ?? []),
+        // _buildIsReadReceipts(context, data, lastMessage, participants ?? []),
       ],
     );
   }
@@ -377,48 +377,4 @@ class Message extends StatelessWidget {
     );
   }
 
-  Widget _buildIsReadReceipts(
-    BuildContext context,
-    MessageEntity data,
-    LastMessageEntity? lastMessage,
-    List<ConversationParticipantEntity> participants,
-  ) {
-    final currentUserId = getIt<UserService>().currentUser?.id;
-
-    final isReadReceipts =
-        participants.where((participant) {
-          return participant.id != currentUserId &&
-              participant.lastReadMessageId == lastMessage?.messageId;
-        }).toList();
-
-    final int displayCount =
-        isReadReceipts.length > 3 ? 3 : isReadReceipts.length;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        ...List.generate(
-          displayCount,
-          (index) => Padding(
-            padding: const EdgeInsets.only(right: 4.0),
-            child: UserImage(
-              size: AppDimensions.avatarXs,
-              imageUrl: isReadReceipts[index].avatarUrl,
-            ),
-          ),
-        ),
-        if (isReadReceipts.length > 3)
-          Padding(
-            padding: const EdgeInsets.only(right: 4.0),
-            child: Text(
-              '...',
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
 }

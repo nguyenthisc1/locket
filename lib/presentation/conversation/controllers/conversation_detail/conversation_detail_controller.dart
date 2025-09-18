@@ -35,7 +35,7 @@ class ConversationDetailController {
   StreamSubscription<Map<String, dynamic>>? _markConversationAsReadSubscription;
   StreamSubscription<Map<String, dynamic>>? _typingSubscription;
   StreamSubscription<Map<String, dynamic>>? _readReceiptSubscription;
-  
+
   // Background gradient functionality
   final List<LinearGradient> _backgroundGradients = [
     const LinearGradient(
@@ -95,7 +95,7 @@ class ConversationDetailController {
     required GetMessagesConversationUsecase getMessagesUsecase,
     required SendMessageUsecase sendMessageUsecase,
     required GetConversationDetailUsecase getConversationDetailUsecase,
-    required MarkConversationAsReadUsecase markConversationAsReadUsecase, 
+    required MarkConversationAsReadUsecase markConversationAsReadUsecase,
     required SocketService socketService,
     Logger? logger,
   }) : _state = state,
@@ -160,8 +160,8 @@ class ConversationDetailController {
     // If have cache detail
     final cachedDetail = await _conversationDetailCacheService
         .loadCachedConversationDetail(conversationId);
-  
-      _logger.d('💾 Loaded cached conversation detail for $cachedDetail');
+
+    _logger.d('💾 Loaded cached conversation detail for $cachedDetail');
     if (cachedDetail != null) {
       _state.setConversation(cachedDetail);
     }
@@ -250,12 +250,15 @@ class ConversationDetailController {
 
           if (lastCreatedAt != null) {
             // Merge new messages with existing ones, avoiding duplicates by message ID
-            final existingMessages = {for (final m in _state.listMessages) m.id: m};
+            final existingMessages = {
+              for (final m in _state.listMessages) m.id: m,
+            };
             for (final m in messages) {
               existingMessages[m.id] = m;
             }
-            final mergedMessages = existingMessages.values.toList()
-              ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+            final mergedMessages =
+                existingMessages.values.toList()
+                  ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
             _state.setMessages(mergedMessages);
           } else {
@@ -573,8 +576,9 @@ class ConversationDetailController {
     _readReceiptSubscription = _socketService.readReceiptStream.listen(
       (readReceiptData) {
         _logger.d('👁️ Received read receipt: $readReceiptData');
-        final conversationId = readReceiptData['conversationId'] as String?;
-        final userId = readReceiptData['userId'] as String?;
+        final lastReadMessageId =
+            readReceiptData['lastReadMessageId'] as String;
+        final userId = readReceiptData['userId'] as String;
 
         DateTime? timestamp;
         final rawTimestamp = readReceiptData['timestamp'];
@@ -591,8 +595,8 @@ class ConversationDetailController {
         }
         timestamp ??= DateTime.now();
 
-        if (conversationId != null && userId != null) {
-          _updateMessageReadStatus(conversationId, userId, timestamp);
+        if (lastReadMessageId.isNotEmpty && userId.isNotEmpty) {
+          _updateMessageReadStatus(lastReadMessageId, userId, timestamp);
         }
       },
       onError: (error) {
@@ -755,42 +759,28 @@ class ConversationDetailController {
 
   // -------------------- Message Read Status --------------------
 
-  void _updateMessageReadStatus(String conversationId, String messageId, DateTime timestamp) {
-    final messageIndex = _state.listMessages.indexWhere(
-      (m) => m.id == messageId,
+  void _updateMessageReadStatus(
+    String lastReadMessageId,
+    String userId,
+    DateTime timestamp,
+  ) {
+    final conversation = _state.conversation;
+    if (conversation == null) return;
+
+    final updatedParticipants =
+        conversation.participants.map((p) {
+          if (p.id != userId) return p;
+          return p.copyWith(
+            lastReadMessageId: lastReadMessageId,
+            lastReadAt: timestamp,
+          );
+        }).toList();
+
+    final updatedConversation = conversation.copyWith(
+      participants: updatedParticipants,
     );
 
-    if (messageIndex != -1) {
-      final message = _state.listMessages[messageIndex];
-      final updatedMessage = MessageEntity(
-        id: message.id,
-        conversationId: message.conversationId,
-        senderId: message.senderId,
-        senderName: message.senderName,
-        text: message.text,
-        type: message.type,
-        attachments: message.attachments,
-        replyTo: message.replyTo,
-        replyInfo: message.replyInfo,
-        forwardedFrom: message.forwardedFrom,
-        forwardInfo: message.forwardInfo,
-        threadInfo: message.threadInfo,
-        reactions: message.reactions,
-        messageStatus: message.messageStatus,
-        readBy: message.readBy,
-        isEdited: message.isEdited,
-        isDeleted: message.isDeleted,
-        isPinned: message.isPinned,
-        editHistory: message.editHistory,
-        metadata: message.metadata,
-        sticker: message.sticker,
-        emote: message.emote,
-        createdAt: message.createdAt,
-        timestamp: message.timestamp,
-      );
-
-      updateMessage(updatedMessage);
-    }
+    _state.setConversation(updatedConversation);
   }
 
   // -------------------- Cleanup --------------------
