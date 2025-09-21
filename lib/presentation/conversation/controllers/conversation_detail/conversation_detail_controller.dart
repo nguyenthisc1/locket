@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -154,7 +155,7 @@ class ConversationDetailController {
       _logger.d(
         '💾 Loaded ${cachedMessages.length} cached messages for $conversationId',
       );
-      _state.setMessages(cachedMessages, isFromCache: true);
+      _state.setListMessages(cachedMessages, isFromCache: true);
     }
 
     // If have cache detail
@@ -175,7 +176,7 @@ class ConversationDetailController {
     // Then fetch fresh message data in background
     await fetchConversationDetail(conversationId);
     await fetchMessages();
-    // await _markConversationAsReadUsecase(conversationId);
+    await seenMessage();
     _state.setInitialized(true);
   }
 
@@ -202,7 +203,7 @@ class ConversationDetailController {
 
         if (cachedMessages.isNotEmpty) {
           _logger.d('💾 Loaded ${cachedMessages.length} cached messages');
-          _state.setMessages(cachedMessages, isFromCache: true);
+          _state.setListMessages(cachedMessages, isFromCache: true);
         }
       }
 
@@ -218,7 +219,7 @@ class ConversationDetailController {
           _state.setError(failure.message);
 
           if (!isRefresh && _state.listMessages.isEmpty) {
-            _state.setMessages([]);
+            _state.setListMessages([]);
           }
         },
         (response) {
@@ -260,9 +261,9 @@ class ConversationDetailController {
                 existingMessages.values.toList()
                   ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-            _state.setMessages(mergedMessages);
+            _state.setListMessages(mergedMessages);
           } else {
-            _state.setMessages(messages, isFromCache: false);
+            _state.setListMessages(messages, isFromCache: false);
           }
 
           // Cache the latest list of messages
@@ -279,7 +280,7 @@ class ConversationDetailController {
       _state.setError('An unexpected error occurred');
 
       if (!isRefresh && _state.listMessages.isEmpty) {
-        _state.setMessages([]);
+        _state.setListMessages([]);
       }
     } finally {
       _state.setLoadingMessages(false);
@@ -344,7 +345,7 @@ class ConversationDetailController {
               ...newMessages.where((m) => !existingIds.contains(m.id)),
               ...existing,
             ];
-            _state.setMessages(merged);
+            _state.setListMessages(merged);
           }
 
           _cacheService.cacheMessages(
@@ -479,7 +480,7 @@ class ConversationDetailController {
         _logger.d(
           '📦 Loaded ${cachedMessages.length} cached messages for conversation ${_state.conversationId}',
         );
-        _state.setMessages(cachedMessages, isFromCache: true);
+        _state.setListMessages(cachedMessages, isFromCache: true);
       } else {
         _logger.d(
           '📦 No cached messages found for conversation ${_state.conversationId}',
@@ -496,7 +497,7 @@ class ConversationDetailController {
 
   Future<void> clearMessageCache() async {
     await _cacheService.clearCache(_state.conversationId);
-    _state.setMessages([]);
+    _state.setListMessages([]);
   }
 
   Future<void> clearConversationDetailCache() async {
@@ -535,14 +536,19 @@ class ConversationDetailController {
     // Listen for conversation updates
     _conversationUpdateSubscription = _socketService.conversationUpdateStream
         .listen(
-          (conversation) {
-            _logger.d('💬 Received conversation update: ${conversation.id}');
+          (conversationData) {
+            _logger.d('💬 Received conversation update: ${conversationData}');
 
-            if (conversation.id == _state.conversationId) {
-              _state.setConversation(conversation);
+            if (conversationData.id == _state.conversationId) {
+              final updatedConversation = _state.conversation!.copyWith(
+                lastMessage: conversationData.lastMessage,
+                updatedAt: conversationData.updatedAt,
+              );
+
+              _state.setConversation(updatedConversation);
               _conversationDetailCacheService.cacheConversationDetail(
                 _state.conversationId,
-                conversation,
+                updatedConversation,
               );
             }
           },
@@ -577,7 +583,7 @@ class ConversationDetailController {
       (readReceiptData) {
         _logger.d('👁️ Received read receipt: $readReceiptData');
         final lastReadMessageId =
-            readReceiptData['lastReadMessageId'] as String;
+            readReceiptData['lastReadMessageId'] as String?;
         final userId = readReceiptData['userId'] as String;
 
         DateTime? timestamp;
@@ -595,54 +601,13 @@ class ConversationDetailController {
         }
         timestamp ??= DateTime.now();
 
-        if (lastReadMessageId.isNotEmpty && userId.isNotEmpty) {
-          _updateMessageReadStatus(lastReadMessageId, userId, timestamp);
-        }
+        _updateMessageReadStatus(lastReadMessageId, userId, timestamp);
       },
       onError: (error) {
         _logger.e('❌ Error in read receipt stream: $error');
       },
     );
   }
-
-  // Future<void> sendMessage(String text) async {
-  //   try {
-
-  //     final payload = <String, dynamic>{
-  //       'conversationId': _state.conversationId,
-  //       'text': text,
-  //     };
-
-  //     final result = await _sendMessageUsecase(payload);
-
-  //     result.fold(
-  //       (failure) {
-  //         _logger.e('Failed to send message: ${failure.message}');
-  //       },
-  //       (response) {
-  //         _logger.d('send message successfully');
-  //         _state.clearError();
-
-  //         final messages = response.data['message'] as MessageEntity;
-
-  //         // _state.setMessages(messages, isFromCache: false);
-  //         // _cacheService.cacheMessages(
-  //         //   _state.conversationId,
-  //         //   _state.listMessages,
-  //         // );
-
-  //           await _socketService.sendMessage(
-  //       conversationId: _state.conversationId,
-  //       text: text,
-  //       replyTo: replyTo,
-  //       attachments: attachments,
-  //     );
-  //       },
-  //     );
-  //   } catch (e) {
-  //     _logger.e('Error send message: $e');
-  //   }
-  // }
 
   Future<void> sendMessage({
     required String text,
@@ -715,6 +680,23 @@ class ConversationDetailController {
     }
   }
 
+  Future<void> seenMessage() async {
+    try {
+      final userService = getIt<UserService>();
+
+      await _socketService.sendReadReceipt(
+        conversationId: _state.conversationId,
+        lastReadMessageId: _state.conversation?.lastMessage?.messageId,
+        userId: userService.currentUser!.id,
+      );
+
+      await _markConversationAsReadUsecase(_state.conversationId);
+    } catch (e) {
+      _logger.e('❌ Error Seen message: $e');
+      _state.setError('Failed to Seen message');
+    }
+  }
+
   Future<void> sendTypingIndicator() async {
     await _socketService.sendTyping(_state.conversationId);
   }
@@ -724,7 +706,13 @@ class ConversationDetailController {
   }
 
   Future<void> sendReadReceipt(String messageId) async {
-    await _socketService.sendReadReceipt(_state.conversationId, messageId);
+    final userService = getIt<UserService>();
+
+    await _socketService.sendReadReceipt(
+      conversationId: _state.conversationId,
+      lastReadMessageId: _state.conversation?.lastMessage?.messageId,
+      userId: userService.currentUser!.id,
+    );
   }
 
   // -------------------- UI & Scroll --------------------
@@ -760,17 +748,26 @@ class ConversationDetailController {
   // -------------------- Message Read Status --------------------
 
   void _updateMessageReadStatus(
-    String lastReadMessageId,
+    String? lastReadMessageId,
     String userId,
     DateTime timestamp,
   ) {
     final conversation = _state.conversation;
+    final listMessages = _state.listMessages;
     if (conversation == null) return;
 
+    final updatedMessages =
+        listMessages.map((message) {
+          if (message.id == lastReadMessageId) {
+            return message.copyWith(messageStatus: MessageStatus.read);
+          }
+          return message;
+        }).toList();
+
+    // Find the participant to update
     final updatedParticipants =
-        conversation.participants.map((p) {
-          if (p.id != userId) return p;
-          return p.copyWith(
+        conversation.participants.map((participant) {
+          return participant.copyWith(
             lastReadMessageId: lastReadMessageId,
             lastReadAt: timestamp,
           );
@@ -781,6 +778,9 @@ class ConversationDetailController {
     );
 
     _state.setConversation(updatedConversation);
+    _state.setListMessages(updatedMessages);
+
+    print('Updated participant read status: ${_state.conversation}');
   }
 
   // -------------------- Cleanup --------------------

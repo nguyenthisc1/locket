@@ -1,5 +1,6 @@
 # Uncomment this line to define a global platform for your project
 # platform :ios, '14.0'
+platform :ios, '14.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -29,6 +30,7 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
+  use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
@@ -36,8 +38,16 @@ target 'Runner' do
   end
 end
 
+# --- BEGIN: Custom Post-Install for Xcode 15 Compatibility ---
+# This block fixes build issues with Xcode 15 and CocoaPods by setting the
+# 'IPHONEOS_DEPLOYMENT_TARGET' for all pods to match the global platform version.
+# Reference: https://github.com/flutter/flutter/issues/127591
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+    end
   end
 end
+# --- END: Custom Post-Install for Xcode 15 Compatibility ---

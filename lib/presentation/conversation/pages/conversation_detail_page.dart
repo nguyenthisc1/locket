@@ -211,21 +211,15 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                       bottom: AppDimensions.md,
                       top: AppDimensions.sm,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      spacing: AppDimensions.sm,
-                      children: [
-                        Message(
-                          data: messageData,
-                          lastMessage: _state.conversation?.lastMessage,
-                          participants: _state.conversation?.participants,
-                        ),
-
-                        if (messageData.id == _state.conversation?.lastMessage?.messageId)
-                          _buildIsReadReceipts(),
-                      ],
+                    child: Message(
+                      data: messageData,
+                      lastMessage: _state.conversation?.lastMessage,
+                      participants: _state.conversation?.participants,
                     ),
                   ),
+                  if (messageData.id ==
+                      _state.conversation?.lastMessage?.messageId)
+                    _buildIsReadReceipts(),
                 ],
               ),
             );
@@ -281,34 +275,38 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
               participant.lastReadMessageId == lastMessage?.messageId;
         }).toList();
 
+    print('updated participants: $isReadReceipts');
+
     final int displayCount =
         isReadReceipts!.length > 3 ? 3 : isReadReceipts.length;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        ...List.generate(
-          displayCount,
-          (index) => Padding(
-            padding: const EdgeInsets.only(right: 4.0),
-            child: UserImage(
+    return Padding(
+      padding: const EdgeInsets.only(
+        right: AppDimensions.md,
+        bottom: AppDimensions.md,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          ...List.generate(
+            displayCount,
+            (index) => UserImage(
               size: AppDimensions.avatarXs,
               imageUrl: isReadReceipts[index].avatarUrl,
             ),
           ),
-        ),
-        if (isReadReceipts.length > 3)
-          Padding(
-            padding: const EdgeInsets.only(right: 4.0),
-            child: Text(
-              '...',
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.bold,
+          if (isReadReceipts.length > 3)
+            Padding(
+              padding: const EdgeInsets.only(right: AppDimensions.sm),
+              child: Text(
+                '...',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -8,14 +8,12 @@ class LastMessageModel extends Equatable {
   final String text;
   final SenderModel sender;
   final DateTime timestamp;
-  final bool isRead;
 
   const LastMessageModel({
     required this.messageId,
     required this.text,
     required this.sender,
     required this.timestamp,
-    required this.isRead,
   });
 
   factory LastMessageModel.fromJson(Map<String, dynamic> json) {
@@ -26,7 +24,6 @@ class LastMessageModel extends Equatable {
           ? SenderModel.fromJson(json['sender'] as Map<String, dynamic>)
           : throw ArgumentError('Invalid sender format in LastMessageModel.fromJson'),
       timestamp: DateTimeUtils.parseDateTime(json['timestamp']),
-      isRead: json['isRead'] as bool,
     );
   }
 
@@ -36,7 +33,6 @@ class LastMessageModel extends Equatable {
       'text': text,
       'sender': sender.toJson(),
       'timestamp': DateTimeUtils.toIsoString(timestamp),
-      'isRead': isRead,
     };
   }
 
@@ -47,7 +43,6 @@ class LastMessageModel extends Equatable {
       text: entity.text,
       sender: SenderModel.fromEntity(entity.sender),
       timestamp: entity.timestamp,
-      isRead: entity.isRead,
     );
   }
 
@@ -58,10 +53,9 @@ class LastMessageModel extends Equatable {
       text: model.text,
       sender: model.sender,
       timestamp: model.timestamp,
-      isRead: model.isRead,
     );
   }
 
   @override
-  List<Object?> get props => [messageId, text, sender, timestamp, isRead];
+  List<Object?> get props => [messageId, text, sender, timestamp];
 }

@@ -80,7 +80,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
 
     if (tokenPair?.accessToken != null) {
       // Wait for auth initialization to complete before navigating
-      await _authController.init();
+       _authController.init();
       AppNavigator.pushReplacement(context, '/home');
     } else {
       AppNavigator.pushReplacement(context, '/onboarding');

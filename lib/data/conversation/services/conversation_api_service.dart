@@ -252,7 +252,7 @@ class ConversationApiServiceImpl extends ConversationApiService {
       final response = await dioClient.post(ApiUrl.markConversationAsRead(conversationId));
       logger.d('response mark conversation read message: ${response.data}');
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         final baseResponse = BaseResponse<Map<String, dynamic>>(
           success: response.data['success'],
           message: response.data['message'],

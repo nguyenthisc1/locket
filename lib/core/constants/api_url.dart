@@ -1,7 +1,7 @@
 
 class  ApiUrl {
   // static const String baseUrl = 'https://locket-backend.onrender.com/api/v1';
-  static const String baseIp = '192.168.1.212';
+  static const String baseIp = '172.16.16.84';
   static const String baseUrl = 'http://$baseIp:8000/api/v1';
   static const String socketUrl = 'http://$baseIp:8000';
 
@@ -18,7 +18,7 @@ class  ApiUrl {
   static String getConversationById(String conversationId) =>
       '/conversation/$conversationId';
     static String markConversationAsRead(String conversationId) =>
-      '/conversation/$conversationId/read';
+      '/message/$conversationId/read';
   static String updateConversation(String conversationId) =>
       '/conversation/$conversationId';
   static String addParticipants(String conversationId) =>

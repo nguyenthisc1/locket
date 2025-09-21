@@ -47,16 +47,14 @@ class ConversationEntity extends Equatable {
     return ConversationEntity(
       id: id ?? this.id,
       name: name ?? this.name,
-      participants:
-          participants ??
-          List<ConversationParticipantEntity>.from(this.participants),
+      participants: participants ?? List<ConversationParticipantEntity>.from(this.participants),
       isGroup: isGroup ?? this.isGroup,
       groupSettings: groupSettings ?? this.groupSettings,
       isActive: isActive ?? this.isActive,
       pinnedMessages: pinnedMessages ?? List<dynamic>.from(this.pinnedMessages),
       settings: settings ?? this.settings,
       readReceipts: readReceipts ?? List<dynamic>.from(this.readReceipts),
-      lastMessage: lastMessage ?? this.lastMessage,
+      lastMessage: lastMessage ?? (this.lastMessage != null ? LastMessageEntity.fromEntity(this.lastMessage!) : null),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -95,7 +93,7 @@ class ConversationParticipantEntity extends Equatable {
     this.avatarUrl,
     this.lastReadMessageId,
     this.lastReadAt,
-    this.joinedAt
+    this.joinedAt,
   });
 
   ConversationParticipantEntity copyWith({
@@ -113,13 +111,21 @@ class ConversationParticipantEntity extends Equatable {
       email: email ?? this.email,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       lastReadMessageId: lastReadMessageId ?? this.lastReadMessageId,
-      lastReadAt:  lastReadAt ?? this.lastReadAt,
-      joinedAt:  joinedAt ?? this.joinedAt
+      lastReadAt: lastReadAt ?? this.lastReadAt,
+      joinedAt: joinedAt ?? this.joinedAt,
     );
   }
 
   @override
-  List<Object?> get props => [id, username, email, avatarUrl, lastReadMessageId, lastReadAt ,joinedAt];
+  List<Object?> get props => [
+    id,
+    username,
+    email,
+    avatarUrl,
+    lastReadMessageId,
+    lastReadAt,
+    joinedAt,
+  ];
 }
 
 class GroupSettingsEntity extends Equatable {

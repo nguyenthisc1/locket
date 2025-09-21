@@ -17,7 +17,6 @@ class ConversationItem extends StatelessWidget {
     final lastMessage = data.lastMessage;
     final String lastMessageText = lastMessage?.text ?? '';
     final DateTime? timestamp = lastMessage?.timestamp;
-    final bool isRead = lastMessage?.isRead ?? true;
     final String nameText = data.name;
     final String? imageUrl =
         data.participants.isNotEmpty ? data.participants[0].avatarUrl : null;
@@ -38,7 +37,7 @@ class ConversationItem extends StatelessWidget {
       return Stack(
         clipBehavior: Clip.none,
         children: [
-          if (!isMine && !isRead)
+          if (!isMine)
             Positioned(
               top: -8,
               left: -8,
@@ -79,7 +78,7 @@ class ConversationItem extends StatelessWidget {
                   style: AppTypography.headlineLarge.copyWith(
                     fontWeight: FontWeight.w800,
                     color:
-                        isMine || isRead
+                        isMine 
                             ? AppColors.textSecondary
                             : Colors.white,
                   ),

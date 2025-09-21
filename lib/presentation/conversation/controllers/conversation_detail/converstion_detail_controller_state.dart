@@ -69,6 +69,10 @@ class ConversationDetailControllerState extends ChangeNotifier {
 
   void setConversation(ConversationEntity? value) {
     if (_conversation != value) {
+      print('🔄 Setting conversation: ${value?.id}, participants count: ${value?.participants.length ?? 0}');
+      if (value != null) {
+        print('🔄 Participants: ${value.participants.map((p) => '${p.id}(${p.username})').toList()}');
+      }
       _conversation = value;
       notifyListeners();
     }
@@ -100,7 +104,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
     }
   }
 
-  void setMessages(List<MessageEntity> messages, {bool isFromCache = false}) {
+  void setListMessages(List<MessageEntity> messages, {bool isFromCache = false}) {
     _listMessages = List.from(messages);
     _isShowingCachedData = isFromCache;
     notifyListeners();
@@ -260,6 +264,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
   void reset() {
     _listMessages.clear();
     _conversation = null;
+    _participant.clear(); 
     _isLoadingMessages = false;
     _isRefreshingMessages = false;
     _isLoadingMoreMessages = false;

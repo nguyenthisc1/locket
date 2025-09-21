@@ -100,6 +100,12 @@ class SocketService {
 
     _socket!.onAny((event, data) {
       _logger.d('📡 Event: $event - $data');
+      
+      // Enhanced debugging for read receipt events
+      if (event.toString().toLowerCase().contains('read') || 
+          event.toString().toLowerCase().contains('receipt')) {
+        _logger.d('🔍 POTENTIAL READ RECEIPT EVENT: $event with data: $data');
+      }
     });
 
     // Message events
@@ -293,15 +299,21 @@ class SocketService {
   }
 
   /// Send read receipt
-  Future<void> sendReadReceipt(String conversationId, String messageId) async {
+  Future<void> sendReadReceipt({
+    required String conversationId,
+    String? lastReadMessageId,
+    required String userId,
+  }) async {
     if (_socket == null || !_isConnected) return;
 
     try {
-      _socket!.emit('mark_message_read', {
+      final data = {
         'conversationId': conversationId,
-        'messageId': messageId,
-        'userId': _currentUserId,
-      });
+        'lastReadMessageId': lastReadMessageId,
+        'userId': userId,
+      };
+
+      _socket!.emit('message:read', data);
     } catch (e) {
       _logger.e('❌ Error sending read receipt: $e');
     }
@@ -327,7 +339,7 @@ class SocketService {
         // Extract conversation data from socket payload
         final conversationId = data['conversationId'] as String;
         final updateData = data['updateData'] as Map<String, dynamic>?;
-        
+
         if (updateData == null) {
           _logger.w('⚠️ No updateData found in conversation update');
           return null;
@@ -336,7 +348,8 @@ class SocketService {
         // Parse last message from updateData
         LastMessageEntity? lastMessage;
         if (updateData['lastMessage'] != null) {
-          final lastMessageData = updateData['lastMessage'] as Map<String, dynamic>;
+          final lastMessageData =
+              updateData['lastMessage'] as Map<String, dynamic>;
           lastMessage = LastMessageEntity.fromJson(lastMessageData);
         }
 
@@ -351,7 +364,8 @@ class SocketService {
         return ConversationEntity(
           id: conversationId,
           name: '', // We don't have name in the socket update
-          participants: const [], // We don't have participants in the socket update
+          participants:
+              const [], // We don't have participants in the socket update
           isGroup: false, // We don't have group info in the socket update
           isActive: true, // Assume active for socket updates
           pinnedMessages: const [],
@@ -360,7 +374,8 @@ class SocketService {
             theme: '',
           ),
           readReceipts: const [],
-          createdAt: DateTime.now(), // We don't have createdAt in the socket update
+          createdAt:
+              DateTime.now(), // We don't have createdAt in the socket update
           lastMessage: lastMessage,
           updatedAt: updatedAt,
         );
