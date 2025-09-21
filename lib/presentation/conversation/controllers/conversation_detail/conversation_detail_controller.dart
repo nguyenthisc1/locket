@@ -1,9 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:locket/core/entities/last_message_entity.dart';
+import 'package:locket/core/mappers/last_message_mapper.dart';
 import 'package:locket/core/mappers/pagination_mapper.dart';
+import 'package:locket/core/models/last_message_model.dart';
 import 'package:locket/core/models/pagination_model.dart';
 import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
@@ -16,6 +18,7 @@ import 'package:locket/domain/conversation/usecases/get_conversation_detail_usec
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
 import 'package:locket/domain/conversation/usecases/mark_conversation_as_read_usecase.dart';
 import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
+import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:logger/logger.dart';
 
@@ -540,16 +543,37 @@ class ConversationDetailController {
             _logger.d('💬 Received conversation update: ${conversationData}');
 
             if (conversationData.id == _state.conversationId) {
-              final updatedConversation = _state.conversation!.copyWith(
-                lastMessage: conversationData.lastMessage,
-                updatedAt: conversationData.updatedAt,
-              );
+              if (conversationData.lastMessage != null) {
+                // Update List conversations
+                final conversationState = getIt<ConversationControllerState>();
 
-              _state.setConversation(updatedConversation);
-              _conversationDetailCacheService.cacheConversationDetail(
-                _state.conversationId,
-                updatedConversation,
-              );
+                final updatedListConversation =
+                    conversationState.listConversation.map((c) {
+                      if (c.id == conversationData.id) {
+                        return c.copyWith(
+                          lastMessage: conversationData.lastMessage,
+                          updatedAt: conversationData.updatedAt,
+                        );
+                      }
+                      return c;
+                    }).toList();
+
+                print('updated List conversations: $updatedListConversation');
+
+                conversationState.setListConversations(updatedListConversation);
+
+                // Update detail conversations
+                final updatedConversation = _state.conversation!.copyWith(
+                  lastMessage: conversationData.lastMessage,
+                  updatedAt: conversationData.updatedAt,
+                );
+                _state.setConversation(updatedConversation);
+
+                _conversationDetailCacheService.cacheConversationDetail(
+                  _state.conversationId,
+                  updatedConversation,
+                );
+              }
             }
           },
           onError: (error) {
@@ -582,8 +606,16 @@ class ConversationDetailController {
     _readReceiptSubscription = _socketService.readReceiptStream.listen(
       (readReceiptData) {
         _logger.d('👁️ Received read receipt: $readReceiptData');
-        final lastReadMessageId =
-            readReceiptData['lastReadMessageId'] as String?;
+
+        final lastReadMessageJson = readReceiptData['lastReadMessage'];
+        LastMessageEntity? lastReadMessage;
+        if (lastReadMessageJson != null) {
+          final lastReadMesseModel = LastMessageModel.fromJson(
+            lastReadMessageJson,
+          );
+          lastReadMessage = LastMessageMapper.toEntity(lastReadMesseModel);
+        }
+
         final userId = readReceiptData['userId'] as String;
 
         DateTime? timestamp;
@@ -601,7 +633,7 @@ class ConversationDetailController {
         }
         timestamp ??= DateTime.now();
 
-        _updateMessageReadStatus(lastReadMessageId, userId, timestamp);
+        _updateMessageReadStatus(lastReadMessage, userId, timestamp);
       },
       onError: (error) {
         _logger.e('❌ Error in read receipt stream: $error');
@@ -748,38 +780,60 @@ class ConversationDetailController {
   // -------------------- Message Read Status --------------------
 
   void _updateMessageReadStatus(
-    String? lastReadMessageId,
+    LastMessageEntity? lastReadMessage,
     String userId,
     DateTime timestamp,
   ) {
     final conversation = _state.conversation;
     final listMessages = _state.listMessages;
-    if (conversation == null) return;
 
+    if (conversation == null || lastReadMessage == null) return;
+
+    // Update message status to 'read' for the matching message
     final updatedMessages =
         listMessages.map((message) {
-          if (message.id == lastReadMessageId) {
-            return message.copyWith(messageStatus: MessageStatus.read);
-          }
-          return message;
+          return message.id == lastReadMessage.messageId
+              ? message.copyWith(messageStatus: MessageStatus.read)
+              : message;
         }).toList();
 
-    // Find the participant to update
+    // Update only the participant matching the userId
     final updatedParticipants =
         conversation.participants.map((participant) {
-          return participant.copyWith(
-            lastReadMessageId: lastReadMessageId,
-            lastReadAt: timestamp,
-          );
+          if (participant.id == userId) {
+            return participant.copyWith(
+              lastReadMessageId: lastReadMessage.messageId,
+              lastReadAt: timestamp,
+            );
+          }
+          return participant;
         }).toList();
 
     final updatedConversation = conversation.copyWith(
       participants: updatedParticipants,
     );
 
+    final conversationState = getIt<ConversationControllerState>();
+
+    // Update the conversation in the list with new participants
+    final updatedListConversation =
+        conversationState.listConversation.map((c) {
+          if (c.id == conversation.id) {
+            return c.copyWith(
+              participants: updatedParticipants,
+              lastMessage: conversation.lastMessage,
+              updatedAt: conversation.updatedAt,
+            );
+          }
+          return c;
+        }).toList();
+
+    conversationState.setListConversations(updatedListConversation);
     _state.setConversation(updatedConversation);
     _state.setListMessages(updatedMessages);
 
+    // Debug logs
+    print('Updated conversations list: $updatedListConversation');
     print('Updated participant read status: ${_state.conversation}');
   }
 

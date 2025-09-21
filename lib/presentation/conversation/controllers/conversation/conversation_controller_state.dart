@@ -65,7 +65,7 @@ class ConversationControllerState extends ChangeNotifier {
     }
   }
 
-  void setConversations(
+  void setListConversations(
     List<ConversationEntity> conversations, {
     bool isFromCache = false,
   }) {

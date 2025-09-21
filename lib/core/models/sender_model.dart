@@ -37,6 +37,14 @@ class SenderModel extends Equatable {
     );
   }
 
+  SenderEntity toEntity() {
+    return SenderEntity(
+      id: id,
+      username: username,
+      avatarUrl: avatarUrl,
+    );
+  }
+
   @override
   List<Object?> get props => [id, username, avatarUrl];
 }

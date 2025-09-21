@@ -100,9 +100,9 @@ class SocketService {
 
     _socket!.onAny((event, data) {
       _logger.d('📡 Event: $event - $data');
-      
+
       // Enhanced debugging for read receipt events
-      if (event.toString().toLowerCase().contains('read') || 
+      if (event.toString().toLowerCase().contains('read') ||
           event.toString().toLowerCase().contains('receipt')) {
         _logger.d('🔍 POTENTIAL READ RECEIPT EVENT: $event with data: $data');
       }

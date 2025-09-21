@@ -89,7 +89,7 @@ class ConversationController {
 
           // If it's a fresh fetch (not refresh) and we have no cached data, clear the list
           if (!isRefresh && _state.listConversation.isEmpty) {
-            _state.setConversations([]);
+            _state.setListConversations([]);
           }
         },
         (response) {
@@ -123,7 +123,7 @@ class ConversationController {
             }
           }
 
-          _state.setConversations(conversations, isFromCache: false);
+          _state.setListConversations(conversations, isFromCache: false);
           _cacheService.cacheConversations(_state.listConversation);
         },
       );
@@ -132,7 +132,7 @@ class ConversationController {
       _state.setError('An unexpected error occurred');
 
       if (!isRefresh && _state.listConversation.isEmpty) {
-        _state.setConversations([]);
+        _state.setListConversations([]);
       }
     } finally {
       _state.setLoadingConversations(false);
@@ -207,7 +207,7 @@ class ConversationController {
               ...existing,
               ...newConversations.where((c) => !existingIds.contains(c.id)),
             ];
-            _state.setConversations(merged);
+            _state.setListConversations(merged);
           }
 
           // Cache only server feeds (not drafts)
@@ -267,7 +267,7 @@ class ConversationController {
         _logger.d(
           '📦 Loaded ${cachedConversations.length} cached conversations',
         );
-        _state.setConversations(cachedConversations, isFromCache: true);
+        _state.setListConversations(cachedConversations, isFromCache: true);
       } else {
         _logger.d('📦 No cached conversations found');
       }
@@ -281,7 +281,7 @@ class ConversationController {
   /// Clear conversation cache
   Future<void> clearCache() async {
     await _cacheService.clearCache();
-    _state.setConversations([]);
+    _state.setListConversations([]);
   }
 
   // -------------------- Socket & Real-time --------------------
