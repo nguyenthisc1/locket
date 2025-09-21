@@ -8,6 +8,7 @@ import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
 import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/di.dart';
+import 'package:locket/domain/conversation/entities/message_entity.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
 import 'package:locket/domain/conversation/usecases/mark_conversation_as_read_usecase.dart';
@@ -177,6 +178,14 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                 _state.shouldShowTimestamp(index, _state.listMessages) ||
                 _state.visibleTimestamps.contains(index);
 
+            final currentUserId = getIt<UserService>().currentUser?.id;
+
+            final isReader = _state.conversation?.participants.any(
+              (p) =>
+                  p.id != currentUserId &&
+                  p.lastReadMessageId == messageData.id,
+            ) ?? false;
+
             return GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () => _state.toggleTimestampVisibility(index),
@@ -217,9 +226,16 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                       participants: _state.conversation?.participants,
                     ),
                   ),
-                  if (messageData.id ==
-                      _state.conversation?.lastMessage?.messageId)
-                    _buildIsReadReceipts(),
+
+                  if (messageData.isMe && isReader)
+                    if (messageData.messageStatus == MessageStatus.read)
+                      _buildIsReadReceipts(messageData),
+
+                  if (messageData.isMe &&
+                      messageData.id ==
+                          _state.conversation?.lastMessage?.messageId &&
+                      messageData.messageStatus != MessageStatus.read)
+                    _buildMessageStatus(messageData.messageStatus),
                 ],
               ),
             );
@@ -263,22 +279,21 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
     );
   }
 
-  Widget _buildIsReadReceipts() {
+  Widget _buildIsReadReceipts(MessageEntity messageData) {
     final currentUserId = getIt<UserService>().currentUser?.id;
 
     final conversation = _state.conversation;
-    final lastMessage = _state.conversation?.lastMessage;
+    final participants = conversation?.participants ?? [];
 
-    final isReadReceipts =
-        conversation?.participants.where((participant) {
+    final readers =
+        participants.where((participant) {
           return participant.id != currentUserId &&
-              participant.lastReadMessageId == lastMessage?.messageId;
+              participant.lastReadMessageId == messageData.id;
         }).toList();
 
-    print('updated participants: $isReadReceipts');
+    if (readers.isEmpty) return const SizedBox.shrink();
 
-    final int displayCount =
-        isReadReceipts!.length > 3 ? 3 : isReadReceipts.length;
+    final int displayCount = readers.length > 3 ? 3 : readers.length;
     return Padding(
       padding: const EdgeInsets.only(
         right: AppDimensions.md,
@@ -291,10 +306,10 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
             displayCount,
             (index) => UserImage(
               size: AppDimensions.avatarXs,
-              imageUrl: isReadReceipts[index].avatarUrl,
+              imageUrl: readers[index].avatarUrl,
             ),
           ),
-          if (isReadReceipts.length > 3)
+          if (readers.length > 3)
             Padding(
               padding: const EdgeInsets.only(right: AppDimensions.sm),
               child: Text(
@@ -306,6 +321,22 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMessageStatus(MessageStatus status) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        right: AppDimensions.md,
+        bottom: AppDimensions.md,
+      ),
+      child: Text(
+        status == MessageStatus.sent
+            ? 'Đang gửi'
+            : status == MessageStatus.delivered
+            ? 'Đã gửi'
+            : '',
       ),
     );
   }

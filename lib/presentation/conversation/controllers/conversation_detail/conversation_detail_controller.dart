@@ -36,7 +36,6 @@ class ConversationDetailController {
   // Socket.IO stream subscriptions
   StreamSubscription<MessageEntity>? _messageSubscription;
   StreamSubscription<ConversationEntity>? _conversationUpdateSubscription;
-  StreamSubscription<Map<String, dynamic>>? _markConversationAsReadSubscription;
   StreamSubscription<Map<String, dynamic>>? _typingSubscription;
   StreamSubscription<Map<String, dynamic>>? _readReceiptSubscription;
 
@@ -519,15 +518,25 @@ class ConversationDetailController {
   void _setupSocketListeners() {
     // Listen for new messages
     _messageSubscription = _socketService.messageStream.listen(
-      (message) {
-        _logger.d('📨 Received real-time message: ${message.id}');
+      (messageData) {
+        _logger.d('📨 Received real-time message: ${messageData}');
 
-        if (message.conversationId == _state.conversationId) {
+        if (messageData.conversationId == _state.conversationId) {
           final existingMessage =
-              _state.listMessages.where((m) => m.id == message.id).isNotEmpty;
+              _state.listMessages
+                  .where((m) => m.id == messageData.id)
+                  .isNotEmpty;
+          // _logger.d('📨 existingMessage: ${existingMessage}');
 
-          if (!existingMessage) {
-            addMessage(message);
+          if (existingMessage) {
+            // _state.addMessage(messageData);
+            // _cacheService.addMessageToCache(_state.conversationId, messageData);
+            _logger.d('📨 Update message: ${messageData}');
+            // _state.updateMessage(messageData);
+            // _cacheService.updateMessageInCache(
+            //   _state.conversationId,
+            //   messageData,
+            // );
           }
         }
       },
@@ -535,7 +544,6 @@ class ConversationDetailController {
         _logger.e('❌ Error in message stream: $error');
       },
     );
-
     // Listen for conversation updates
     _conversationUpdateSubscription = _socketService.conversationUpdateStream
         .listen(
@@ -679,6 +687,7 @@ class ConversationDetailController {
             userService.currentUser?.username ??
             userService.currentUser?.email ??
             '',
+        messageStatus: MessageStatus.sent,
         text: text,
         type: attachments != null && attachments.isNotEmpty ? "media" : "text",
         attachments: attachments ?? [],
@@ -692,12 +701,21 @@ class ConversationDetailController {
       result.fold(
         (failure) {
           _logger.e('Failed to send message: ${failure.message}');
+
+          final failedMessage = darftMessage.copyWith(
+            messageStatus: MessageStatus.failed,
+          );
+
+          _state.replaceMessage(tempId, failedMessage);
         },
         (response) {
           _logger.d('send message successfully');
           _state.clearError();
 
-          final newMessage = response.data['message'] as MessageEntity;
+          final messageData = response.data['message'] as MessageEntity;
+          final newMessage = messageData.copyWith(
+            messageStatus: MessageStatus.delivered,
+          );
 
           _state.replaceMessage(tempId, newMessage);
         },
@@ -716,13 +734,13 @@ class ConversationDetailController {
     try {
       final userService = getIt<UserService>();
 
-      await _socketService.sendReadReceipt(
-        conversationId: _state.conversationId,
-        lastReadMessageId: _state.conversation?.lastMessage?.messageId,
-        userId: userService.currentUser!.id,
-      );
+      // await _socketService.sendReadReceipt(
+      //   conversationId: _state.conversationId,
+      //   lastReadMessageId: _state.conversation?.lastMessage?.messageId,
+      //   userId: userService.currentUser!.id,
+      // );
 
-      await _markConversationAsReadUsecase(_state.conversationId);
+      // await _markConversationAsReadUsecase(_state.conversationId);
     } catch (e) {
       _logger.e('❌ Error Seen message: $e');
       _state.setError('Failed to Seen message');
@@ -771,30 +789,27 @@ class ConversationDetailController {
     _state.setCurrentGradientIndex(newIndex);
   }
 
-  void _scrollToBottomDelayed() {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _state.scrollToBottom();
-    });
-  }
-
   // -------------------- Message Read Status --------------------
 
   void _updateMessageReadStatus(
     LastMessageEntity? lastReadMessage,
     String userId,
     DateTime timestamp,
-  ) {
+  ) async {
     final conversation = _state.conversation;
     final listMessages = _state.listMessages;
+    final currentUserId = getIt<UserService>().currentUser?.id;
 
     if (conversation == null || lastReadMessage == null) return;
 
     // Update message status to 'read' for the matching message
     final updatedMessages =
         listMessages.map((message) {
-          return message.id == lastReadMessage.messageId
-              ? message.copyWith(messageStatus: MessageStatus.read)
-              : message;
+          if (message.id == lastReadMessage.messageId &&
+              message.senderId == currentUserId) {
+            return message.copyWith(messageStatus: MessageStatus.read);
+          }
+          return message;
         }).toList();
 
     // Update only the participant matching the userId
@@ -847,12 +862,10 @@ class ConversationDetailController {
 
   void dispose() {
     _state.scrollController.removeListener(_onScroll);
-
     _messageSubscription?.cancel();
     _conversationUpdateSubscription?.cancel();
     _typingSubscription?.cancel();
     _readReceiptSubscription?.cancel();
-
     _leaveConversation();
   }
 }

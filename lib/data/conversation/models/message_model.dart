@@ -169,7 +169,7 @@ class MessageModel {
           map['reactions'] is List
               ? List<Map<String, dynamic>>.from(map['reactions'])
               : const [],
-      messageStatus: _parseMessageStatus(map['messageStatus']),
+      messageStatus: _parseMessageStatus(map['messageStatus'] ?? map['status']),
       isEdited: map['isEdited'] ?? false,
       isDeleted: map['isDeleted'] ?? false,
       isPinned: map['isPinned'] ?? false,
@@ -223,7 +223,7 @@ class MessageModel {
             json['reactions'] is List
                 ? List<Map<String, dynamic>>.from(json['reactions'])
                 : const [],
-        messageStatus: _parseMessageStatus(json['messageStatus']),
+        messageStatus: _parseMessageStatus(json['messageStatus'] ?? json['status']),
         isEdited: json['isEdited'] ?? false,
         isDeleted: json['isDeleted'] ?? false,
         isPinned: json['isPinned'] ?? false,

@@ -109,11 +109,10 @@ class SocketService {
     });
 
     // Message events
-    _socket!.on('new_message', (data) {
+    _socket!.on('message:send', (data) {
       try {
-        _logger.d('📨 Received new message: $data');
+        _logger.d('📨 message send: $data');
         final message = _parseMessage(data);
-        _logger.d('Parsed message: $message');
         if (message != null) {
           _messageController.add(message);
         }
@@ -124,8 +123,10 @@ class SocketService {
 
     _socket!.on('message:updated', (data) {
       try {
-        _logger.d('✏️ Message updated: $data');
+        _logger.d('✏️ Message updated: ${data['data']['message']}');
+
         final message = _parseMessage(data);
+        _logger.d('✏️ Message updated: $message');
         if (message != null) {
           _messageController.add(message);
         }
@@ -321,9 +322,14 @@ class SocketService {
 
   /// Parse message from socket data
   MessageEntity? _parseMessage(dynamic data) {
+    _logger.d('✏️ _parseMessage: $data');
+
     try {
       if (data is Map<String, dynamic>) {
-        return MessageMapper.toEntity(MessageModel.fromJson(data['message']));
+        final messageJson = data['data']['message'];
+        final messageModel = MessageModel.fromJson(messageJson);
+        print('_parseMessage ${MessageMapper.toEntity(messageModel)}');
+        return MessageMapper.toEntity(messageModel);
       }
       return null;
     } catch (e) {

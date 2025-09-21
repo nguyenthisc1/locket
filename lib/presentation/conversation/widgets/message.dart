@@ -51,7 +51,6 @@ class Message extends StatelessWidget {
               ? _buildMessageImage(context, data)
               : _messageText(context, data),
 
-        // _buildIsReadReceipts(context, data, lastMessage, participants ?? []),
       ],
     );
   }
