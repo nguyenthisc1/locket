@@ -734,13 +734,13 @@ class ConversationDetailController {
     try {
       final userService = getIt<UserService>();
 
-      // await _socketService.sendReadReceipt(
-      //   conversationId: _state.conversationId,
-      //   lastReadMessageId: _state.conversation?.lastMessage?.messageId,
-      //   userId: userService.currentUser!.id,
-      // );
+      await _socketService.sendReadReceipt(
+        conversationId: _state.conversationId,
+        lastReadMessageId: _state.conversation?.lastMessage?.messageId,
+        userId: userService.currentUser!.id,
+      );
 
-      // await _markConversationAsReadUsecase(_state.conversationId);
+      await _markConversationAsReadUsecase(_state.conversationId);
     } catch (e) {
       _logger.e('❌ Error Seen message: $e');
       _state.setError('Failed to Seen message');
@@ -796,9 +796,12 @@ class ConversationDetailController {
     String userId,
     DateTime timestamp,
   ) async {
+    final currentUserId = getIt<UserService>().currentUser?.id;
+
+    if(userId == currentUserId) return;
+
     final conversation = _state.conversation;
     final listMessages = _state.listMessages;
-    final currentUserId = getIt<UserService>().currentUser?.id;
 
     if (conversation == null || lastReadMessage == null) return;
 
