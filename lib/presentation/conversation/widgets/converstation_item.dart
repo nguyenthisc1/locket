@@ -20,7 +20,7 @@ class ConversationItem extends StatelessWidget {
     final String nameText = data.name;
     final String? imageUrl =
         data.participants.isNotEmpty ? data.participants[0].avatarUrl : null;
-    final String senderId = lastMessage?.sender.id ?? '';
+    final String senderId = lastMessage?.senderId ?? '';
     final bool isMine = senderId == currentUserId;
 
     // Filter out current user from participants
