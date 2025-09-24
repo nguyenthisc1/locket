@@ -88,7 +88,7 @@ class ConversationController {
           _state.setError(failure.message);
 
           // If it's a fresh fetch (not refresh) and we have no cached data, clear the list
-          if (!isRefresh && _state.listConversation.isEmpty) {
+          if (!isRefresh && _state.listConversations.isEmpty) {
             _state.setListConversations([]);
           }
         },
@@ -124,14 +124,14 @@ class ConversationController {
           }
 
           _state.setListConversations(conversations, isFromCache: false);
-          _cacheService.cacheConversations(_state.listConversation);
+          _cacheService.cacheConversations(_state.listConversations);
         },
       );
     } catch (e) {
       _logger.e('Error fetching Conversations: $e');
       _state.setError('An unexpected error occurred');
 
-      if (!isRefresh && _state.listConversation.isEmpty) {
+      if (!isRefresh && _state.listConversations.isEmpty) {
         _state.setListConversations([]);
       }
     } finally {
@@ -201,7 +201,7 @@ class ConversationController {
           // Append new feeds while preserving drafts and avoiding duplicates
           if (newConversations.isNotEmpty) {
             // Fix: Merge newConversations into the existing list, preserving drafts and avoiding duplicates
-            final existing = _state.listConversation;
+            final existing = _state.listConversations;
             final existingIds = existing.map((c) => c.id).toSet();
             final merged = [
               ...existing,
@@ -211,7 +211,7 @@ class ConversationController {
           }
 
           // Cache only server feeds (not drafts)
-          _cacheService.cacheConversations(_state.listConversation);
+          _cacheService.cacheConversations(_state.listConversations);
         },
       );
     } catch (e) {
@@ -286,31 +286,37 @@ class ConversationController {
 
   // -------------------- Socket & Real-time --------------------
   void _setupSocketListeners() {
-    // Listen for conversation updates
+    // Listen for update conversation
     _conversationUpdateSubscription = _socketService.conversationUpdateStream.listen(
       (conversationUpdate) {
         _logger.d('💬 Received conversation update: ${conversationUpdate.id}');
 
         // Find the index of the conversation to update
-        final index = _state.listConversation.indexWhere(
+        final index = _state.listConversations.indexWhere(
           (c) => c.id == conversationUpdate.id,
         );
 
         if (index != -1) {
           // Get the current conversation from state
-          final currentConversation = _state.listConversation[index];
-          
+          final currentConversation = _state.listConversations[index];
+
           // Replace the conversation with updated data, preserving original data
           final updatedConversation = currentConversation.copyWith(
             lastMessage: conversationUpdate.lastMessage,
-            updatedAt: conversationUpdate.updatedAt ?? currentConversation.updatedAt,
+            updatedAt:
+                conversationUpdate.updatedAt ?? currentConversation.updatedAt,
           );
 
-          _state.replaceConversation(conversationUpdate.id, updatedConversation);
-          _logger.d('🔄 Conversation ${conversationUpdate.id} updated with new last message');
-          
+          _state.replaceConversation(
+            conversationUpdate.id,
+            updatedConversation,
+          );
+          _logger.d(
+            '🔄 Conversation ${conversationUpdate.id} updated with new last message',
+          );
+
           // Cache the updated conversations
-          _cacheService.cacheConversations(_state.listConversation);
+          _cacheService.cacheConversations(_state.listConversations);
         } else {
           _logger.d(
             '➕ Conversation ${conversationUpdate.id} not found in current list, skipping update',
@@ -322,6 +328,9 @@ class ConversationController {
       },
     );
   }
+
+  // -------------------- Socket function --------------------
+
 
   // -------------------- Cleanup --------------------
 

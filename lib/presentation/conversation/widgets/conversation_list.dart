@@ -53,7 +53,7 @@ class _ConversationListState extends State<ConversationList> {
     final conversationState = context.watch<ConversationControllerState>();
 
     if (conversationState.errorMessage != null &&
-        conversationState.listConversation.isEmpty) {
+        conversationState.listConversations.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -83,11 +83,11 @@ class _ConversationListState extends State<ConversationList> {
           child: ListView.separated(
             controller: _scrollController,
             physics: const ScrollPhysics(),
-            itemCount: conversationState.listConversation.length,
+            itemCount: conversationState.listConversations.length,
             separatorBuilder:
                 (context, index) => const SizedBox(height: AppDimensions.xxl),
             itemBuilder: (context, index) {
-              final conversation = conversationState.listConversation[index];
+              final conversation = conversationState.listConversations[index];
               return GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap:

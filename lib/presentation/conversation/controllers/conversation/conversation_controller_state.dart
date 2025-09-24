@@ -11,7 +11,7 @@ class ConversationControllerState extends ChangeNotifier {
   bool _isShowingCachedData = false;
 
   // Conversation data
-  List<ConversationEntity> _listConversation = [];
+  List<ConversationEntity> _listConversations = [];
   int _unreadCountConversations = 0;
 
   // Pagination state
@@ -32,7 +32,7 @@ class ConversationControllerState extends ChangeNotifier {
   bool get isLoadingConversations => _isLoadingConversations;
   bool get isRefreshingConversations => _isRefreshingConversations;
   bool get isloadingMoreConversations => _isloadingMoreConversations;
-  List<ConversationEntity> get listConversation => _listConversation;
+  List<ConversationEntity> get listConversations => _listConversations;
   String? get errorMessage => _errorMessage;
   bool get hasInitialized => _hasInitialized;
   int get unreadCountConversations => _unreadCountConversations;
@@ -69,15 +69,15 @@ class ConversationControllerState extends ChangeNotifier {
     List<ConversationEntity> conversations, {
     bool isFromCache = false,
   }) {
-    _listConversation = List.from(conversations);
+    _listConversations = List.from(conversations);
     _isShowingCachedData = isFromCache;
     notifyListeners();
   }
 
   void replaceConversation(String id, ConversationEntity newConversation) {
-    final index = _listConversation.indexWhere((m) => m.id == id);
+    final index = _listConversations.indexWhere((m) => m.id == id);
     if (index != -1) {
-      _listConversation[index] = newConversation;
+      _listConversations[index] = newConversation;
       notifyListeners();
     }
   }
@@ -182,7 +182,7 @@ class ConversationControllerState extends ChangeNotifier {
   }
 
   void reset() {
-    _listConversation.clear();
+    _listConversations.clear();
     _isLoadingConversations = false;
     _isRefreshingConversations = false;
     _isShowingCachedData = false;
