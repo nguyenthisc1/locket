@@ -1,17 +1,16 @@
 import 'package:equatable/equatable.dart';
 import 'package:locket/common/helper/utils.dart';
-import 'package:locket/core/entities/sender_entity.dart';
 
 class LastMessageEntity extends Equatable {
   final String messageId;
   final String text;
-  final SenderEntity sender;
+  final String senderId;
   final DateTime timestamp;
 
   const LastMessageEntity({
     required this.messageId,
     required this.text,
-    required this.sender,
+    required this.senderId,
     required this.timestamp,
   });
 
@@ -19,9 +18,7 @@ class LastMessageEntity extends Equatable {
     return LastMessageEntity(
       messageId: json['messageId'] as String,
       text: json['text'] as String,
-      sender: json['sender'] is Map<String, dynamic>
-          ? SenderEntity.fromJson(json['sender'] as Map<String, dynamic>)
-          : throw ArgumentError('Invalid sender format in LastMessageEntity.fromJson'),
+      senderId: json['sender'] as String,
       timestamp: DateTimeUtils.parseDateTime(json['timestamp']),
     );
   }
@@ -32,11 +29,7 @@ class LastMessageEntity extends Equatable {
     return LastMessageEntity(
       messageId: model.messageId,
       text: model.text,
-      sender: SenderEntity(
-        id: model.sender.id,
-        username: model.sender.username,
-        avatarUrl: model.sender.avatarUrl,
-      ),
+      senderId: model.senderId,
       timestamp: model.timestamp,
     );
   }
@@ -46,11 +39,7 @@ class LastMessageEntity extends Equatable {
     return LastMessageEntity(
       messageId: entity.messageId,
       text: entity.text,
-      sender: SenderEntity(
-        id: entity.sender.id,
-        username: entity.sender.username,
-        avatarUrl: entity.sender.avatarUrl,
-      ),
+      senderId: entity.senderId,
       timestamp: entity.timestamp,
     );
   }
@@ -58,10 +47,10 @@ class LastMessageEntity extends Equatable {
   Map<String, dynamic> toJson() => {
         'messageId': messageId,
         'text': text,
-        'sender': sender,
+        'senderId': senderId,
         'timestamp': DateTimeUtils.toIsoString(timestamp),
       };
 
   @override
-  List<Object?> get props => [messageId, text, sender, timestamp];
+  List<Object?> get props => [messageId, text, senderId, timestamp];
 }

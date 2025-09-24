@@ -6,13 +6,13 @@ import 'package:locket/core/models/sender_model.dart';
 class LastMessageModel extends Equatable {
   final String messageId;
   final String text;
-  final SenderModel sender;
+  final String senderId;
   final DateTime timestamp;
 
   const LastMessageModel({
     required this.messageId,
     required this.text,
-    required this.sender,
+    required this.senderId,
     required this.timestamp,
   });
 
@@ -20,9 +20,7 @@ class LastMessageModel extends Equatable {
     return LastMessageModel(
       messageId: json['messageId'] as String,
       text: json['text'] as String,
-      sender: json['sender'] is Map<String, dynamic>
-          ? SenderModel.fromJson(json['sender'] as Map<String, dynamic>)
-          : throw ArgumentError('Invalid sender format in LastMessageModel.fromJson'),
+      senderId: json['senderId'] as String,
       timestamp: DateTimeUtils.parseDateTime(json['timestamp']),
     );
   }
@@ -31,7 +29,7 @@ class LastMessageModel extends Equatable {
     return {
       'messageId': messageId,
       'text': text,
-      'sender': sender.toJson(),
+      'senderId': senderId,
       'timestamp': DateTimeUtils.toIsoString(timestamp),
     };
   }
@@ -41,7 +39,7 @@ class LastMessageModel extends Equatable {
     return LastMessageModel(
       messageId: entity.messageId,
       text: entity.text,
-      sender: SenderModel.fromEntity(entity.sender),
+      senderId: entity.senderId,
       timestamp: entity.timestamp,
     );
   }
@@ -51,11 +49,11 @@ class LastMessageModel extends Equatable {
     return LastMessageModel(
       messageId: model.messageId,
       text: model.text,
-      sender: model.sender,
+      senderId: model.senderId,
       timestamp: model.timestamp,
     );
   }
 
   @override
-  List<Object?> get props => [messageId, text, sender, timestamp];
+  List<Object?> get props => [messageId, text, senderId, timestamp];
 }

@@ -111,8 +111,8 @@ class SocketService {
     // Message events
     _socket!.on('message:send', (data) {
       try {
-        _logger.d('📨 message send: $data');
         final message = _parseMessage(data);
+        _logger.d('📨 message send: $message');
         if (message != null) {
           _messageController.add(message);
         }
@@ -242,30 +242,17 @@ class SocketService {
   }
 
   /// Send a message
-  Future<void> sendMessage({
-    required String conversationId,
-    required String text,
-    String? replyTo,
-    List<Map<String, dynamic>>? attachments,
-  }) async {
+  Future<void> sendMessage(MessageModel data) async {
     if (_socket == null || !_isConnected) {
       _logger.w('⚠️ Socket not connected, cannot send message');
       return;
     }
 
     try {
-      final messageData = {
-        'conversationId': conversationId,
-        'text': text,
-        'senderId': _currentUserId,
-        'type': 'text',
-        'replyTo': replyTo,
-        'attachments': attachments ?? [],
-        'timestamp': DateTime.now().toIso8601String(),
-      };
+      final messageData = data.toMap();
 
       _logger.d('📤 Sending message: $messageData');
-      _socket!.emit('send_message', messageData);
+      _socket!.emit('message:send', messageData);
     } catch (e) {
       _logger.e('❌ Error sending message: $e');
     }

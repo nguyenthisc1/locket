@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
 import 'package:locket/core/mappers/last_message_mapper.dart';
+import 'package:locket/core/mappers/message_mapper.dart';
 import 'package:locket/core/mappers/pagination_mapper.dart';
 import 'package:locket/core/models/last_message_model.dart';
 import 'package:locket/core/models/pagination_model.dart';
@@ -374,12 +375,8 @@ class ConversationDetailController {
     _state.setSendingMessage(true);
 
     try {
-      await _socketService.sendMessage(
-        conversationId: _state.conversationId,
-        text: text,
-        replyTo: replyTo,
-        attachments: attachments,
-      );
+      final now = DateTime.now();
+      final tempId = UniqueKey().toString();
 
       final payload = <String, dynamic>{
         'conversationId': _state.conversationId,
@@ -391,17 +388,10 @@ class ConversationDetailController {
       final result = await _sendMessageUsecase(payload);
       final userService = getIt<UserService>();
 
-      final now = DateTime.now();
-      final tempId = UniqueKey().toString();
-
-      final darftMessage = MessageEntity(
+      final daftMessage = MessageEntity(
         id: tempId,
         conversationId: _state.conversationId,
         senderId: userService.currentUser!.id,
-        senderName:
-            userService.currentUser?.username ??
-            userService.currentUser?.email ??
-            '',
         messageStatus: MessageStatus.sent,
         text: text,
         type: attachments != null && attachments.isNotEmpty ? "media" : "text",
@@ -411,13 +401,15 @@ class ConversationDetailController {
         timestamp: now.toIso8601String(),
       );
 
-      _state.addMessage(darftMessage);
+      await _socketService.sendMessage(MessageMapper.toModel(daftMessage));
+
+      _state.addMessage(daftMessage);
 
       result.fold(
         (failure) {
           _logger.e('Failed to send message: ${failure.message}');
 
-          final failedMessage = darftMessage.copyWith(
+          final failedMessage = daftMessage.copyWith(
             messageStatus: MessageStatus.failed,
           );
 
@@ -527,69 +519,6 @@ class ConversationDetailController {
     }
   }
 
-  // -------------------- Caching --------------------
-
-  Future<void> _loadCachedConversationDetail(String conversationId) async {
-    try {
-      final cachedConversation = await _conversationDetailCacheService
-          .loadCachedConversationDetail(conversationId);
-
-      if (cachedConversation != null) {
-        _logger.d(
-          '📦 Loaded cached conversation detail for ID: $conversationId',
-        );
-        _state.setConversation(cachedConversation);
-      } else {
-        _logger.d(
-          '📦 No cached conversation detail found for ID: $conversationId',
-        );
-      }
-    } catch (e) {
-      _logger.e('❌ Error loading cached conversation detail: $e');
-    }
-  }
-
-  Future<void> _loadCachedMessages() async {
-    try {
-      final cachedMessages = await _cacheService.loadCachedMessages(
-        _state.conversationId,
-      );
-
-      if (cachedMessages.isNotEmpty) {
-        _logger.d(
-          '📦 Loaded ${cachedMessages.length} cached messages for conversation ${_state.conversationId}',
-        );
-        _state.setListMessages(cachedMessages, isFromCache: true);
-      } else {
-        _logger.d(
-          '📦 No cached messages found for conversation ${_state.conversationId}',
-        );
-      }
-    } catch (e) {
-      _logger.e('❌ Error loading cached messages: $e');
-    }
-  }
-
-  Future<void> loadCachedMessagesOnly() async {
-    await _loadCachedMessages();
-  }
-
-  Future<void> clearMessageCache() async {
-    await _cacheService.clearCache(_state.conversationId);
-    _state.setListMessages([]);
-  }
-
-  Future<void> clearConversationDetailCache() async {
-    await _conversationDetailCacheService.clearConversationDetailCache(
-      _state.conversationId,
-    );
-    _state.setConversation(null);
-  }
-
-  Future<void> clearAllCaches() async {
-    await Future.wait([clearMessageCache(), clearConversationDetailCache()]);
-  }
-
   // -------------------- Socket & Real-time --------------------
 
   void _setupSocketListeners() {
@@ -605,15 +534,18 @@ class ConversationDetailController {
                   .isNotEmpty;
           // _logger.d('📨 existingMessage: ${existingMessage}');
 
-          if (!existingMessage) {
-            // _state.addMessage(messageData);
-            // _cacheService.addMessageToCache(_state.conversationId, messageData);
-            // _logger.d('📨 Update message: ${messageData}');
-            // _state.updateMessage(messageData);
-            // _cacheService.updateMessageInCache(
-            //   _state.conversationId,
-            //   messageData,
-            // );
+          if (existingMessage) {
+            _logger.d('📨 Update message: ${messageData}');
+            _state.updateMessage(messageData);
+            _cacheService.updateMessageInCache(
+              _state.conversationId,
+              messageData,
+            );
+          } else {
+            _logger.d('📨 Add message: ${messageData}');
+
+            _state.addMessage(messageData);
+            _cacheService.addMessageToCache(_state.conversationId, messageData);
           }
         }
       },
@@ -827,6 +759,69 @@ class ConversationDetailController {
 
     _currentBackgroundGradient = _backgroundGradients[newIndex];
     _state.setCurrentGradientIndex(newIndex);
+  }
+
+  // -------------------- Caching --------------------
+
+  Future<void> _loadCachedConversationDetail(String conversationId) async {
+    try {
+      final cachedConversation = await _conversationDetailCacheService
+          .loadCachedConversationDetail(conversationId);
+
+      if (cachedConversation != null) {
+        _logger.d(
+          '📦 Loaded cached conversation detail for ID: $conversationId',
+        );
+        _state.setConversation(cachedConversation);
+      } else {
+        _logger.d(
+          '📦 No cached conversation detail found for ID: $conversationId',
+        );
+      }
+    } catch (e) {
+      _logger.e('❌ Error loading cached conversation detail: $e');
+    }
+  }
+
+  Future<void> _loadCachedMessages() async {
+    try {
+      final cachedMessages = await _cacheService.loadCachedMessages(
+        _state.conversationId,
+      );
+
+      if (cachedMessages.isNotEmpty) {
+        _logger.d(
+          '📦 Loaded ${cachedMessages.length} cached messages for conversation ${_state.conversationId}',
+        );
+        _state.setListMessages(cachedMessages, isFromCache: true);
+      } else {
+        _logger.d(
+          '📦 No cached messages found for conversation ${_state.conversationId}',
+        );
+      }
+    } catch (e) {
+      _logger.e('❌ Error loading cached messages: $e');
+    }
+  }
+
+  Future<void> loadCachedMessagesOnly() async {
+    await _loadCachedMessages();
+  }
+
+  Future<void> clearMessageCache() async {
+    await _cacheService.clearCache(_state.conversationId);
+    _state.setListMessages([]);
+  }
+
+  Future<void> clearConversationDetailCache() async {
+    await _conversationDetailCacheService.clearConversationDetailCache(
+      _state.conversationId,
+    );
+    _state.setConversation(null);
+  }
+
+  Future<void> clearAllCaches() async {
+    await Future.wait([clearMessageCache(), clearConversationDetailCache()]);
   }
 
   // -------------------- Utils function --------------------

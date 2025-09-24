@@ -8,7 +8,6 @@ class MessageEntity extends Equatable {
   final String id;
   final String conversationId;
   final String senderId;
-  final String senderName;
   final String text;
   final String type;
   final List<Map<String, dynamic>> attachments;
@@ -34,7 +33,6 @@ class MessageEntity extends Equatable {
     required this.id,
     required this.conversationId,
     required this.senderId,
-    required this.senderName,
     required this.text,
     required this.type,
     this.attachments = const [],
@@ -68,7 +66,6 @@ class MessageEntity extends Equatable {
     id: '',
     conversationId: '',
     senderId: '',
-    senderName: '',
     text: '',
     type: '',
     attachments: const [],
@@ -96,7 +93,6 @@ class MessageEntity extends Equatable {
     String? id,
     String? conversationId,
     String? senderId,
-    String? senderName,
     String? text,
     String? type,
     List<Map<String, dynamic>>? attachments,
@@ -124,7 +120,6 @@ class MessageEntity extends Equatable {
       id: id ?? this.id,
       conversationId: conversationId ?? this.conversationId,
       senderId: senderId ?? this.senderId,
-      senderName: senderName ?? this.senderName,
       text: text ?? this.text,
       type: type ?? this.type,
       attachments:
@@ -163,7 +158,6 @@ class MessageEntity extends Equatable {
     id,
     conversationId,
     senderId,
-    senderName,
     text,
     type,
     attachments,

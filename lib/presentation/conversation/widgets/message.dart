@@ -159,7 +159,8 @@ class Message extends StatelessWidget {
                         ),
                         const SizedBox(width: AppDimensions.sm),
                         Text(
-                          data.senderName,
+                          // data.senderName, 
+                          '',
                           style: AppTypography.bodyMedium.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,

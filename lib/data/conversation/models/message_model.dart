@@ -5,7 +5,6 @@ class MessageModel {
   final String id;
   final String conversationId;
   final String senderId;
-  final String senderName;
   final String text;
   final String type;
   final List<Map<String, dynamic>> attachments;
@@ -31,7 +30,6 @@ class MessageModel {
     required this.id,
     required this.conversationId,
     required this.senderId,
-    required this.senderName,
     required this.text,
     required this.type,
     required this.attachments,
@@ -70,23 +68,6 @@ class MessageModel {
       // Extract ID from sender object: {"_id": "...", "username": "...", "avatarUrl": "..."}
       return senderIdValue['_id'] ?? senderIdValue['id'] ?? '';
     }
-    return '';
-  }
-
-  static String _extractSenderName(
-    dynamic senderIdValue,
-    dynamic senderNameValue,
-  ) {
-    // First check if senderName is provided directly
-    if (senderNameValue is String && senderNameValue.isNotEmpty) {
-      return senderNameValue;
-    }
-
-    // Extract from sender object if senderId is an object
-    if (senderIdValue is Map<String, dynamic>) {
-      return senderIdValue['username'] ?? '';
-    }
-
     return '';
   }
 
@@ -142,7 +123,6 @@ class MessageModel {
       id: map['id'] ?? '',
       conversationId: map['conversationId'] ?? '',
       senderId: _extractSenderId(map['senderId']),
-      senderName: _extractSenderName(map['senderId'], map['senderName']),
       text: map['text'] ?? '',
       type: map['type'] ?? '',
       attachments:
@@ -196,7 +176,6 @@ class MessageModel {
         id: json['id'] ?? '',
         conversationId: json['conversationId'] ?? '',
         senderId: _extractSenderId(json['senderId']),
-        senderName: _extractSenderName(json['senderId'], json['senderName']),
         text: json['text'] ?? '',
         type: json['type'] ?? '',
         attachments:
@@ -223,7 +202,9 @@ class MessageModel {
             json['reactions'] is List
                 ? List<Map<String, dynamic>>.from(json['reactions'])
                 : const [],
-        messageStatus: _parseMessageStatus(json['messageStatus'] ?? json['status']),
+        messageStatus: _parseMessageStatus(
+          json['messageStatus'] ?? json['status'],
+        ),
         isEdited: json['isEdited'] ?? false,
         isDeleted: json['isDeleted'] ?? false,
         isPinned: json['isPinned'] ?? false,
@@ -251,7 +232,6 @@ class MessageModel {
         id: json['id']?.toString() ?? '',
         conversationId: json['conversationId']?.toString() ?? '',
         senderId: _extractSenderId(json['senderId']),
-        senderName: _extractSenderName(json['senderId'], json['senderName']),
         text: json['text']?.toString() ?? '',
         type: json['type']?.toString() ?? 'text',
         attachments: const [],
@@ -282,7 +262,6 @@ class MessageModel {
       'id': id,
       'conversationId': conversationId,
       'senderId': senderId,
-      'senderName': senderName,
       'text': text,
       'type': type,
       'attachments': attachments,
