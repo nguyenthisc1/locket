@@ -178,44 +178,35 @@ class MessageModel {
         senderId: _extractSenderId(json['senderId']),
         text: json['text'] ?? '',
         type: json['type'] ?? '',
-        attachments:
-            json['attachments'] is List
-                ? List<Map<String, dynamic>>.from(json['attachments'])
-                : const [],
+        attachments: json['attachments'] is List
+            ? List<Map<String, dynamic>>.from(json['attachments'])
+            : const [],
         replyTo: _extractStringOrNull(json['replyTo']),
-        replyInfo:
-            json['replyInfo'] is Map<String, dynamic>
-                ? ReplyInfoEntity.fromJson(
-                  Map<String, dynamic>.from(json['replyInfo']),
-                )
-                : null,
+        replyInfo: (json['replyInfo'] != null && json['replyInfo'] is Map<String, dynamic>)
+            ? ReplyInfoEntity.fromJson(Map<String, dynamic>.from(json['replyInfo']))
+            : null,
         forwardedFrom: _extractStringOrNull(json['forwardedFrom']),
-        forwardInfo:
-            json['forwardInfo'] is Map
-                ? Map<String, dynamic>.from(json['forwardInfo'])
-                : null,
-        threadInfo:
-            json['threadInfo'] is Map
-                ? Map<String, dynamic>.from(json['threadInfo'])
-                : null,
-        reactions:
-            json['reactions'] is List
-                ? List<Map<String, dynamic>>.from(json['reactions'])
-                : const [],
+        forwardInfo: (json['forwardInfo'] != null && json['forwardInfo'] is Map)
+            ? Map<String, dynamic>.from(json['forwardInfo'])
+            : null,
+        threadInfo: (json['threadInfo'] != null && json['threadInfo'] is Map)
+            ? Map<String, dynamic>.from(json['threadInfo'])
+            : null,
+        reactions: json['reactions'] is List
+            ? List<Map<String, dynamic>>.from(json['reactions'])
+            : const [],
         messageStatus: _parseMessageStatus(
           json['messageStatus'] ?? json['status'],
         ),
         isEdited: json['isEdited'] ?? false,
         isDeleted: json['isDeleted'] ?? false,
         isPinned: json['isPinned'] ?? false,
-        editHistory:
-            json['editHistory'] is List
-                ? List<Map<String, dynamic>>.from(json['editHistory'])
-                : const [],
-        metadata:
-            json['metadata'] is Map
-                ? Map<String, dynamic>.from(json['metadata'])
-                : const {},
+        editHistory: json['editHistory'] is List
+            ? List<Map<String, dynamic>>.from(json['editHistory'])
+            : const [],
+        metadata: (json['metadata'] != null && json['metadata'] is Map)
+            ? Map<String, dynamic>.from(json['metadata'])
+            : const {},
         sticker: _extractStringOrNull(json['sticker']),
         emote: _extractStringOrNull(json['emote']),
         updatedAt: _parseUpdatedAt(json['updatedAt']),

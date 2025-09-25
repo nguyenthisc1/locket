@@ -123,7 +123,7 @@ class SocketService {
 
     _socket!.on('message:updated', (data) {
       try {
-        _logger.d('✏️ Message updated: ${data['data']['message']}');
+        _logger.d('✏️ Message updated: $data');
 
         final message = _parseMessage(data);
         _logger.d('✏️ Message updated: $message');
@@ -162,7 +162,9 @@ class SocketService {
     _socket!.on('user_typing', (data) {
       try {
         _logger.d('⌨️ User typing: $data');
-        _typingController.add(Map<String, dynamic>.from(data));
+        if (data is Map<String, dynamic>) {
+          _typingController.add(Map<String, dynamic>.from(data));
+        }
       } catch (e) {
         _logger.e('❌ Error parsing typing event: $e');
       }
@@ -171,7 +173,9 @@ class SocketService {
     _socket!.on('user_stopped_typing', (data) {
       try {
         _logger.d('⌨️ User stopped typing: $data');
-        _typingController.add(Map<String, dynamic>.from(data));
+        if (data is Map<String, dynamic>) {
+          _typingController.add(Map<String, dynamic>.from(data));
+        }
       } catch (e) {
         _logger.e('❌ Error parsing stop typing event: $e');
       }
@@ -181,7 +185,9 @@ class SocketService {
     _socket!.on('message:read', (data) {
       try {
         _logger.d('👁️ Message read: $data');
-        _readReceiptController.add(Map<String, dynamic>.from(data));
+        if (data is Map<String, dynamic>) {
+          _readReceiptController.add(Map<String, dynamic>.from(data));
+        }
       } catch (e) {
         _logger.e('❌ Error parsing read receipt: $e');
       }
@@ -313,10 +319,14 @@ class SocketService {
 
     try {
       if (data is Map<String, dynamic>) {
+        // Check if message data is nested under 'message' key or directly in 'data'
         final messageJson = data['data']['message'];
-        final messageModel = MessageModel.fromJson(messageJson);
-        print('_parseMessage ${MessageMapper.toEntity(messageModel)}');
-        return MessageMapper.toEntity(messageModel);
+            
+        if (messageJson is Map<String, dynamic>) {
+          final messageModel = MessageModel.fromJson(messageJson);
+          print('_parseMessage ${MessageMapper.toEntity(messageModel)}');
+          return MessageMapper.toEntity(messageModel);
+        }
       }
       return null;
     } catch (e) {
@@ -330,7 +340,7 @@ class SocketService {
     try {
       if (data is Map<String, dynamic>) {
         // Extract conversation data from socket payload
-        final conversationId = data['conversationId'] as String;
+        final conversationId = data['conversationId'] as String? ?? '';
         final updateData = data['updateData'] as Map<String, dynamic>?;
 
         if (updateData == null) {
@@ -342,14 +352,17 @@ class SocketService {
         LastMessageEntity? lastMessage;
         if (updateData['lastMessage'] != null) {
           final lastMessageData =
-              updateData['lastMessage'] as Map<String, dynamic>;
-          lastMessage = LastMessageEntity.fromJson(lastMessageData);
+              updateData['lastMessage'] as Map<String, dynamic>?;
+          if (lastMessageData != null) {
+            lastMessage = LastMessageEntity.fromJson(lastMessageData);
+          }
         }
 
         // Parse updatedAt
         DateTime? updatedAt;
-        if (updateData['updatedAt'] != null) {
-          updatedAt = DateTime.parse(updateData['updatedAt'] as String);
+        final updatedAtStr = updateData['updatedAt'] as String?;
+        if (updatedAtStr != null) {
+          updatedAt = DateTime.tryParse(updatedAtStr);
         }
 
         // Create a minimal ConversationEntity for the update

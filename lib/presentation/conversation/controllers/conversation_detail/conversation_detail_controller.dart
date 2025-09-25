@@ -21,6 +21,8 @@ import 'package:locket/domain/conversation/usecases/mark_conversation_as_read_us
 import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
+import 'package:collection/collection.dart';
+
 import 'package:logger/logger.dart';
 
 class ConversationDetailController {
@@ -382,34 +384,37 @@ class ConversationDetailController {
         'conversationId': _state.conversationId,
         'text': text,
         'replyTo': replyTo,
+        'metadata': {'clientMessageId': tempId},
         'attachments': attachments,
       };
 
       final result = await _sendMessageUsecase(payload);
       final userService = getIt<UserService>();
 
-      final daftMessage = MessageEntity(
+      final draftMessage = MessageEntity(
         id: tempId,
         conversationId: _state.conversationId,
         senderId: userService.currentUser!.id,
         messageStatus: MessageStatus.sent,
         text: text,
-        type: attachments != null && attachments.isNotEmpty ? "media" : "text",
+        type:
+            (attachments != null && attachments.isNotEmpty) ? "media" : "text",
         attachments: attachments ?? [],
+        metadata: {'clientMessageId': tempId},
         replyTo: replyTo,
         createdAt: now,
         timestamp: now.toIso8601String(),
       );
 
-      await _socketService.sendMessage(MessageMapper.toModel(daftMessage));
+      await _socketService.sendMessage(MessageMapper.toModel(draftMessage));
 
-      _state.addMessage(daftMessage);
+      // _state.addMessage(draftMessage);
 
       result.fold(
         (failure) {
           _logger.e('Failed to send message: ${failure.message}');
 
-          final failedMessage = daftMessage.copyWith(
+          final failedMessage = draftMessage.copyWith(
             messageStatus: MessageStatus.failed,
           );
 
@@ -528,11 +533,39 @@ class ConversationDetailController {
         _logger.d('📨 Received real-time message: ${messageData}');
 
         if (messageData.conversationId == _state.conversationId) {
+          final clientMessageId = messageData.metadata?['clientMessageId'];
+
+          if (clientMessageId != null) {
+            
+            _logger.d('✅ Replace draft message ${_state.listMessages}');
+
+            final draftMessage = _state.listMessages.firstWhereOrNull(
+              (m) => m.metadata?['clientMessageId'] == clientMessageId,
+            );
+
+            _logger.d('✅ Replace draft message $draftMessage');
+
+            if (draftMessage != null) {
+              // replace draft message response api
+              final newMessage = messageData.copyWith(
+                messageStatus: MessageStatus.delivered,
+              );
+
+              _logger.d('✅ Replace draft message $clientMessageId');
+
+              _state.replaceMessage(draftMessage.id, newMessage);
+              _cacheService.updateMessageInCache(
+                _state.conversationId,
+                newMessage,
+              );
+              return;
+            }
+          }
+
           final existingMessage =
               _state.listMessages
                   .where((m) => m.id == messageData.id)
                   .isNotEmpty;
-          // _logger.d('📨 existingMessage: ${existingMessage}');
 
           if (existingMessage) {
             _logger.d('📨 Update message: ${messageData}');

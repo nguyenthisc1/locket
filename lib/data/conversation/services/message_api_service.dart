@@ -122,6 +122,7 @@ class MessageApiServiceImpl extends MessageApiService {
       final data = {
         'conversationId': payload['conversationId'],
         'text': payload['text'],
+        'metadata': payload['metadata'],
       };
 
       final response = await dioClient.post(ApiUrl.sendMessage, data: data);

@@ -49,7 +49,7 @@ class MessageMapper {
       isDeleted: entity.isDeleted,
       isPinned: entity.isPinned,
       editHistory: List<Map<String, dynamic>>.from(entity.editHistory),
-      metadata: Map<String, dynamic>.from(entity.metadata),
+      metadata: entity.metadata == null ? {} : Map<String, dynamic>.from(entity.metadata!),
       sticker: entity.sticker,
       emote: entity.emote,
       updatedAt: entity.updatedAt,

@@ -22,7 +22,7 @@ class MessageEntity extends Equatable {
   final bool isDeleted;
   final bool isPinned;
   final List<Map<String, dynamic>> editHistory;
-  final Map<String, dynamic> metadata;
+  final Map<String, dynamic>? metadata;
   final String? sticker;
   final String? emote;
   final DateTime? updatedAt;
@@ -144,7 +144,11 @@ class MessageEntity extends Equatable {
       isPinned: isPinned ?? this.isPinned,
       editHistory:
           editHistory ?? List<Map<String, dynamic>>.from(this.editHistory),
-      metadata: metadata ?? Map<String, dynamic>.from(this.metadata),
+      metadata:
+          metadata ??
+          (this.metadata != null
+              ? Map<String, dynamic>.from(this.metadata!)
+              : {}),
       sticker: sticker ?? this.sticker,
       emote: emote ?? this.emote,
       updatedAt: updatedAt ?? this.updatedAt,

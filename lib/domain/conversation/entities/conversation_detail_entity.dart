@@ -9,7 +9,7 @@ class ThreadInfoEntity extends Equatable {
   const ThreadInfoEntity({required this.threadCount});
 
   factory ThreadInfoEntity.fromJson(Map<String, dynamic> json) {
-    return ThreadInfoEntity(threadCount: json['threadCount'] as int);
+    return ThreadInfoEntity(threadCount: json['threadCount'] as int? ?? 0);
   }
 
   Map<String, dynamic> toJson() => {'threadCount': threadCount};
@@ -63,7 +63,7 @@ class ConversationDetailEntity extends Equatable {
       return jsonValue
           .map<ConversationParticipantEntity>(
             (e) => ConversationParticipantEntity(
-              id: (e['userId'] ?? e['_id'] ?? e['id']) as String,
+              id: (e['userId'] ?? e['_id'] ?? e['id']) as String? ?? '',
               username: e['username'] as String?,
               email: e['email'] as String?,
               avatarUrl: e['avatarUrl'] as String?,
@@ -77,7 +77,7 @@ class ConversationDetailEntity extends Equatable {
       // Fallback: if single participant object provided, wrap in list
       return [
         ConversationParticipantEntity(
-          id: (jsonValue['userId'] ?? jsonValue['_id'] ?? jsonValue['id']) as String,
+          id: (jsonValue['userId'] ?? jsonValue['_id'] ?? jsonValue['id']) as String? ?? '',
           username: jsonValue['username'] as String?,
           email: jsonValue['email'] as String?,
           avatarUrl: jsonValue['avatarUrl'] as String?,
@@ -95,7 +95,7 @@ class ConversationDetailEntity extends Equatable {
     final isGroup = json['isGroup'] as bool? ?? false;
 
     return ConversationDetailEntity(
-      id: json['id'] as String,
+      id: json['id'] as String? ?? '',
       name: json['name'] as String?,
       participants: _parseParticipants(json['participants']),
       isGroup: isGroup,

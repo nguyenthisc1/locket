@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
-import 'package:locket/core/models/sender_model.dart';
 
 class LastMessageModel extends Equatable {
   final String messageId;
@@ -18,9 +17,9 @@ class LastMessageModel extends Equatable {
 
   factory LastMessageModel.fromJson(Map<String, dynamic> json) {
     return LastMessageModel(
-      messageId: json['messageId'] as String,
-      text: json['text'] as String,
-      senderId: json['senderId'] as String,
+      messageId: json['messageId'] as String? ?? '',
+      text: json['text'] as String? ?? '',
+      senderId: json['senderId'] as String? ?? '',
       timestamp: DateTimeUtils.parseDateTime(json['timestamp']),
     );
   }
