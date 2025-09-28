@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/constants/request_defaults.dart';
 import 'package:locket/core/mappers/message_mapper.dart';
 import 'package:locket/data/conversation/models/message_model.dart';
@@ -92,7 +93,7 @@ class MessageCacheService {
       // Check cache expiration
       final timestampStr = cacheData['timestamp'] as String?;
       if (timestampStr != null) {
-        final cacheTime = DateTime.tryParse(timestampStr);
+        final cacheTime = DateTimeUtils.parseTimestampNullable(timestampStr);
         if (cacheTime != null) {
           _lastCacheTimes[conversationId] = cacheTime;
           if (!isCacheValid(conversationId)) {

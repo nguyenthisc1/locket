@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
 import 'package:locket/core/mappers/message_mapper.dart';
 import 'package:locket/data/conversation/models/message_model.dart';
@@ -373,7 +374,7 @@ class SocketService {
         DateTime? updatedAt;
         final updatedAtStr = updateData['updatedAt'] as String?;
         if (updatedAtStr != null) {
-          updatedAt = DateTime.tryParse(updatedAtStr);
+          updatedAt = DateTimeUtils.parseTimestampNullable(updatedAtStr);
         }
 
         // Create a minimal ConversationEntity for the update
@@ -438,7 +439,7 @@ class SocketService {
         // Parse timestamp
         DateTime? updatedAt;
         if (timestampStr != null) {
-          updatedAt = DateTime.tryParse(timestampStr);
+          updatedAt = DateTimeUtils.parseTimestampNullable(timestampStr);
         }
 
         // Create a minimal ConversationEntity for the list update

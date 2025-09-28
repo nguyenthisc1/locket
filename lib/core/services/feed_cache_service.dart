@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/mappers/feed_mapper.dart';
 import 'package:locket/data/feed/models/feed_model.dart';
 import 'package:locket/domain/feed/entities/feed_entity.dart';
@@ -83,7 +84,7 @@ class FeedCacheService {
       // Check cache expiration
       final timestampStr = cacheData['timestamp'] as String?;
       if (timestampStr != null) {
-        _lastCacheTime = DateTime.parse(timestampStr);
+        _lastCacheTime = DateTimeUtils.parseTimestamp(timestampStr);
         if (!isCacheValid) {
           _logger.d('📦 Cache expired, returning empty list');
           return [];

@@ -12,13 +12,13 @@ extension SafeOpacity on Color {
 
 /// Utility class for safe DateTime parsing operations
 class DateTimeUtils {
-  /// Safely parses a dynamic value to DateTime.
+  /// Safely parses a dynamic value to DateTime and converts to local time.
   /// Returns the parsed DateTime if successful, otherwise returns the fallback.
   /// 
   /// Supports:
-  /// - DateTime objects (returned as-is)
-  /// - String values (parsed using DateTime.tryParse)
-  /// - int/double values (treated as milliseconds since epoch)
+  /// - DateTime objects (converted to local time)
+  /// - String values (parsed using DateTime.tryParse and converted to local)
+  /// - int/double values (treated as milliseconds since epoch, converted to local)
   /// - null values (returns fallback)
   static DateTime parseDateTime(dynamic value, {DateTime? fallback}) {
     if (value == null) {
@@ -26,7 +26,7 @@ class DateTimeUtils {
     }
     
     if (value is DateTime) {
-      return value;
+      return value.toLocal();
     }
     
     if (value is String) {
@@ -35,13 +35,13 @@ class DateTimeUtils {
       }
       final parsed = DateTime.tryParse(value);
       if (parsed != null) {
-        return parsed;
+        return parsed.toLocal();
       }
     }
     
     if (value is int) {
       try {
-        return DateTime.fromMillisecondsSinceEpoch(value);
+        return DateTime.fromMillisecondsSinceEpoch(value).toLocal();
       } catch (e) {
         // Invalid timestamp
       }
@@ -49,7 +49,7 @@ class DateTimeUtils {
     
     if (value is double) {
       try {
-        return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+        return DateTime.fromMillisecondsSinceEpoch(value.toInt()).toLocal();
       } catch (e) {
         // Invalid timestamp
       }
@@ -59,7 +59,7 @@ class DateTimeUtils {
     return fallback ?? DateTime.now();
   }
   
-  /// Safely parses a dynamic value to nullable DateTime.
+  /// Safely parses a dynamic value to nullable DateTime and converts to local time.
   /// Returns null if parsing fails or value is null/empty.
   static DateTime? parseDateTimeNullable(dynamic value) {
     if (value == null) {
@@ -67,19 +67,20 @@ class DateTimeUtils {
     }
     
     if (value is DateTime) {
-      return value;
+      return value.toLocal();
     }
     
     if (value is String) {
       if (value.isEmpty) {
         return null;
       }
-      return DateTime.tryParse(value);
+      final parsed = DateTime.tryParse(value);
+      return parsed?.toLocal();
     }
     
     if (value is int) {
       try {
-        return DateTime.fromMillisecondsSinceEpoch(value);
+        return DateTime.fromMillisecondsSinceEpoch(value).toLocal();
       } catch (e) {
         return null;
       }
@@ -87,7 +88,7 @@ class DateTimeUtils {
     
     if (value is double) {
       try {
-        return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+        return DateTime.fromMillisecondsSinceEpoch(value.toInt()).toLocal();
       } catch (e) {
         return null;
       }
@@ -101,17 +102,52 @@ class DateTimeUtils {
   static String? toIsoString(DateTime? dateTime) {
     return dateTime?.toIso8601String();
   }
+
+  /// Parses timestamp string and converts to local time
+  /// Specifically for handling server timestamps that need local conversion
+  static DateTime parseTimestamp(String timestamp) {
+    return DateTime.parse(timestamp).toLocal();
+  }
+
+  /// Parses nullable timestamp string and converts to local time
+  static DateTime? parseTimestampNullable(String? timestamp) {
+    if (timestamp == null || timestamp.isEmpty) {
+      return null;
+    }
+    return DateTime.tryParse(timestamp)?.toLocal();
+  }
+
+  /// Synchronizes a DateTime to current local timezone
+  /// Useful for ensuring all times are displayed in user's local time
+  static DateTime syncToLocal(DateTime dateTime) {
+    return dateTime.toLocal();
+  }
+
+  /// Gets current local time
+  static DateTime nowLocal() {
+    return DateTime.now().toLocal();
+  }
+
+  /// Converts DateTime to local time and formats for display
+  static String formatLocalTime(DateTime dateTime) {
+    final localTime = dateTime.toLocal();
+    return '${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}';
+  }
 }
 
 /// Formats a [DateTime] into a Vietnamese-friendly timestamp string.
 /// - Today: returns "HH:mm"
 /// - Yesterday: returns "Hôm qua, HH:mm"
 /// - Other: returns "dd thg x, HH:mm"
+/// 
+/// Automatically converts to local time for proper display
 String formatVietnameseTimestamp(DateTime dateTime) {
-  final now = DateTime.now();
+  // Ensure we're working with local time
+  final localDateTime = dateTime.toLocal();
+  final now = DateTime.now().toLocal();
   final today = DateTime(now.year, now.month, now.day);
   final yesterday = today.subtract(const Duration(days: 1));
-  final messageDay = DateTime(dateTime.year, dateTime.month, dateTime.day);
+  final messageDay = DateTime(localDateTime.year, localDateTime.month, localDateTime.day);
 
   const vietnameseMonths = [
     '', // 0 index not used
@@ -120,15 +156,15 @@ String formatVietnameseTimestamp(DateTime dateTime) {
   ];
 
   final hourMinute =
-      '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+      '${localDateTime.hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')}';
 
   if (messageDay == today) {
     return hourMinute;
   } else if (messageDay == yesterday) {
     return '$hourMinute Hôm qua';
   } else {
-    final day = dateTime.day.toString();
-    final month = vietnameseMonths[dateTime.month];
+    final day = localDateTime.day.toString();
+    final month = vietnameseMonths[localDateTime.month];
     return '$hourMinute $day $month';
   }
 }

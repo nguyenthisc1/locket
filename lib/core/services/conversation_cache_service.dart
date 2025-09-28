@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/constants/request_defaults.dart';
 import 'package:locket/core/mappers/conversation_mapper.dart';
 import 'package:locket/data/conversation/models/converstation_model.dart';
@@ -82,7 +83,7 @@ class ConversationCacheService {
       // Parse timestamp (for info only)
       final timestampStr = cacheData['timestamp'] as String?;
       if (timestampStr != null) {
-        _lastCacheTime = DateTime.tryParse(timestampStr);
+        _lastCacheTime = DateTimeUtils.parseTimestampNullable(timestampStr);
       }
 
       // Parse conversations

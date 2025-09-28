@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/models/location_model.dart';
 import 'package:locket/core/models/reaction_model.dart';
 import 'package:locket/core/models/share_with_user_model.dart';
@@ -112,9 +113,9 @@ class FeedModel extends Equatable {
               ?.map((e) => ReactionModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      createdAt: DateTime.parse(photoData['createdAt'] as String),
+      createdAt: DateTimeUtils.parseTimestamp(photoData['createdAt'] as String),
       updatedAt: photoData['updatedAt'] != null
-          ? DateTime.tryParse(photoData['updatedAt'] as String)
+          ? DateTimeUtils.parseTimestampNullable(photoData['updatedAt'] as String)
           : null,
       format: photoData['format'] as String? ??  'jpg',
       mediaType: parseMediaType(photoData['mediaType'] as String?, photoData['format'] as String?),

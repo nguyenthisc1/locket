@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/mappers/conversation_mapper.dart';
 import 'package:locket/data/conversation/models/converstation_model.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
@@ -90,7 +91,7 @@ class ConversationDetailCacheService {
       // Check if cache is expired
       final timestampStr = cacheData['timestamp'] as String?;
       if (timestampStr != null) {
-        final cacheTime = DateTime.tryParse(timestampStr);
+        final cacheTime = DateTimeUtils.parseTimestampNullable(timestampStr);
         if (cacheTime != null && _isCacheExpired(cacheTime)) {
           _logger.d('📦 Cache expired for conversation $conversationId, clearing cache');
           await clearConversationDetailCache(conversationId);

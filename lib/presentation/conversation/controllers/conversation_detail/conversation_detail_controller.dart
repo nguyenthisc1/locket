@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
 import 'package:locket/core/mappers/last_message_mapper.dart';
 import 'package:locket/core/mappers/message_mapper.dart';
@@ -727,7 +728,7 @@ class ConversationDetailController {
           if (participant.id == enemyUserId) {
             return participant.copyWith(
               lastReadMessageId: lastReadMessage.messageId,
-              lastReadAt: DateTime.tryParse(timestamp),
+              lastReadAt: DateTimeUtils.parseTimestampNullable(timestamp),
             );
           }
           return participant;

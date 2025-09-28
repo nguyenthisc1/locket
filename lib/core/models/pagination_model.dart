@@ -1,3 +1,5 @@
+import 'package:locket/common/helper/utils.dart';
+
 class PaginationModel {
   final int limit;
   final bool hasNextPage;
@@ -14,7 +16,7 @@ class PaginationModel {
       limit: json['limit'],
       hasNextPage: json['hasNextPage'],
       nextCursor: json['nextCursor'] != null
-          ? DateTime.parse(json['nextCursor'])
+          ? DateTimeUtils.parseTimestamp(json['nextCursor'])
           : null,
     );
   }

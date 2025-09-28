@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:locket/common/helper/utils.dart';
 
 class ReactionModel extends Equatable {
   final String userId;
@@ -15,7 +16,7 @@ class ReactionModel extends Equatable {
     return ReactionModel(
       userId: json['userId'] as String,
       type: json['type'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTimeUtils.parseTimestamp(json['createdAt'] as String),
     );
   }
 
