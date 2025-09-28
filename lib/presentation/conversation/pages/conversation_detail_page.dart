@@ -46,6 +46,21 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       socketService: getIt<SocketService>(),
     );
     _controller.init(widget.conversationId);
+    _state.scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_state.scrollController.hasClients) return;
+
+    final maxScrollExtent = _state.scrollController.position.maxScrollExtent;
+    final currentPosition = _state.scrollController.position.pixels;
+    final triggerOffset = maxScrollExtent * 1;
+
+    if (currentPosition >= triggerOffset &&
+        _state.hasMoreData &&
+        !_state.isLoadingMore) {
+      _controller.loadMoreMessages();
+    }
   }
 
   @override
@@ -142,106 +157,91 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
   }
 
   Widget _buildMessageList() {
-    return RefreshIndicator(
-      onRefresh: _controller.refreshMessages,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (scrollInfo) {
-          if (scrollInfo.metrics.pixels >=
-              scrollInfo.metrics.maxScrollExtent - 100) {
-            if (_state.hasMoreData && !_state.isLoadingMore) {
-              _controller.loadMoreMessages();
-            }
-          }
-          return false;
-        },
-        child: ListView.builder(
-          reverse: true,
-          controller: _state.scrollController,
-          itemCount:
-              _state.listMessages.length + (_state.isLoadingMore ? 1 : 0),
-          padding: const EdgeInsets.only(
-            top: AppDimensions.lg,
-            bottom: AppDimensions.xxl * 2,
-          ),
-          itemBuilder: (context, index) {
-            if (index == _state.listMessages.length) {
-              return const Padding(
-                padding: EdgeInsets.all(AppDimensions.md),
-                child: Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
-              );
-            }
+    return ListView.builder(
+      reverse: true,
+      controller: _state.scrollController,
+      itemCount: _state.listMessages.length + (_state.isLoadingMore ? 1 : 0),
+      padding: const EdgeInsets.only(
+        top: AppDimensions.lg,
+        bottom: AppDimensions.xxl * 2,
+      ),
+      itemBuilder: (context, index) {
+        if (index == _state.listMessages.length) {
+          return const Padding(
+            padding: EdgeInsets.all(AppDimensions.md),
+            child: Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+          );
+        }
 
-            final messageData = _state.listMessages[index];
-            final showTimestamp =
-                _state.shouldShowTimestamp(index, _state.listMessages) ||
-                _state.visibleTimestamps.contains(index);
+        final messageData = _state.listMessages[index];
+        final showTimestamp =
+            _state.shouldShowTimestamp(index, _state.listMessages) ||
+            _state.visibleTimestamps.contains(index);
 
-            final currentUserId = getIt<UserService>().currentUser?.id;
+        final currentUserId = getIt<UserService>().currentUser?.id;
 
-            final isReader = _state.conversation?.participants.any(
+        final isReader =
+            _state.conversation?.participants.any(
               (p) =>
                   p.id != currentUserId &&
                   p.lastReadMessageId == messageData.id,
-            ) ?? false;
+            ) ??
+            false;
 
-            return GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => _state.toggleTimestampVisibility(index),
-              child: Column(
-                crossAxisAlignment:
-                    messageData.isMe
-                        ? CrossAxisAlignment.end
-                        : CrossAxisAlignment.start,
-                children: [
-                  if (showTimestamp)
-                    Align(
-                      alignment: Alignment.center,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppDimensions.sm,
-                        ),
-                        child: Text(
-                          utils.formatVietnameseTimestamp(
-                            messageData.createdAt,
-                          ),
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: Colors.grey[400],
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => _state.toggleTimestampVisibility(index),
+          child: Column(
+            crossAxisAlignment:
+                messageData.isMe
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+            children: [
+              if (showTimestamp)
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppDimensions.sm,
+                    ),
+                    child: Text(
+                      utils.formatVietnameseTimestamp(messageData.createdAt),
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: Colors.grey[400],
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: AppDimensions.md,
-                      right: AppDimensions.md,
-                      bottom: AppDimensions.md,
-                      top: AppDimensions.sm,
-                    ),
-                    child: Message(
-                      data: messageData,
-                      lastMessage: _state.conversation?.lastMessage,
-                      participants: _state.conversation?.participants,
-                    ),
                   ),
-
-                  if (messageData.isMe && isReader)
-                    if (messageData.messageStatus == MessageStatus.read)
-                      _buildIsReadReceipts(messageData),
-
-                  if (messageData.isMe &&
-                      messageData.id ==
-                          _state.conversation?.lastMessage?.messageId &&
-                      messageData.messageStatus != MessageStatus.read)
-                    _buildMessageStatus(messageData.messageStatus),
-                ],
+                ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: AppDimensions.md,
+                  right: AppDimensions.md,
+                  bottom: AppDimensions.md,
+                  top: AppDimensions.sm,
+                ),
+                child: Message(
+                  data: messageData,
+                  lastMessage: _state.conversation?.lastMessage,
+                  participants: _state.conversation?.participants,
+                ),
               ),
-            );
-          },
-        ),
-      ),
+
+              if (messageData.isMe && isReader)
+                if (messageData.messageStatus == MessageStatus.read)
+                  _buildIsReadReceipts(messageData),
+
+              if (messageData.isMe &&
+                  messageData.id ==
+                      _state.conversation?.lastMessage?.messageId &&
+                  messageData.messageStatus != MessageStatus.read)
+                _buildMessageStatus(messageData.messageStatus),
+            ],
+          ),
+        );
+      },
     );
   }
 

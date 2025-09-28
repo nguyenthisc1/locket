@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
 import 'package:locket/core/mappers/last_message_mapper.dart';
 import 'package:locket/core/mappers/message_mapper.dart';
-import 'package:locket/core/mappers/pagination_mapper.dart';
 import 'package:locket/core/models/last_message_model.dart';
-import 'package:locket/core/models/pagination_model.dart';
 import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
 import 'package:locket/core/services/socket_service.dart';
@@ -22,8 +21,6 @@ import 'package:locket/domain/conversation/usecases/mark_conversation_as_read_us
 import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
-import 'package:collection/collection.dart';
-
 import 'package:logger/logger.dart';
 
 class ConversationDetailController {
@@ -233,11 +230,9 @@ class ConversationDetailController {
           _state.clearError();
 
           final messages = response.data['messages'] as List<MessageEntity>;
-          final paginationData = response.data['pagination'];
+          final pagination = response.data['pagination'];
 
-          if (paginationData != null) {
-            final paginationModel = PaginationModel.fromJson(paginationData);
-            final pagination = PaginationMapper.toEntity(paginationModel);
+          if (pagination != null) {
             _logger.d(
               'Pagination info: hasNextPage=${pagination.hasNextPage}, nextCursor=${pagination.nextCursor}',
             );
@@ -255,22 +250,21 @@ class ConversationDetailController {
             }
           }
 
-          if (lastCreatedAt != null) {
-            // Merge new messages with existing ones, avoiding duplicates by message ID
-            final existingMessages = {
-              for (final m in _state.listMessages) m.id: m,
-            };
-            for (final m in messages) {
-              existingMessages[m.id] = m;
-            }
-            final mergedMessages =
-                existingMessages.values.toList()
-                  ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          // if (lastCreatedAt != null) {
+          //   // This is load more - merge new messages with existing ones
+          //   final messageList = List<MessageEntity>.from(_state.listMessages);
+          //   final existingIds = messageList.map((m) => m.id).toSet();
+          //   final newMessages =
+          //       messages.where((m) => !existingIds.contains(m.id)).toList();
 
-            _state.setListMessages(mergedMessages);
-          } else {
-            _state.setListMessages(messages, isFromCache: false);
-          }
+          //   messageList.addAll(newMessages);
+
+          //   _state.setListMessages(messages);
+          // } else {
+          //   // This is initial load - just set the messages
+          //   _state.setListMessages(messages, isFromCache: false);
+          //   _logger.d('📝 Initial fetch: Set ${messages.length} messages');
+          // }
 
           // Cache the latest list of messages
           _cacheService.cacheMessages(
@@ -295,13 +289,21 @@ class ConversationDetailController {
   }
 
   Future<void> refreshMessages() async {
+    _logger.d('isRefresh');
     await fetchMessages(isRefresh: true);
   }
 
   Future<void> loadMoreMessages() async {
     if (_state.isLoadingMore || !_state.hasMoreData) {
+      _logger.d(
+        '🚫 Load more blocked: isLoadingMore=${_state.isLoadingMore}, hasMoreData=${_state.hasMoreData}',
+      );
       return;
     }
+
+    _logger.d(
+      '📥 Loading more messages. Current count: ${_state.listMessages.length}, lastCreatedAt: ${_state.lastCreatedAt}',
+    );
 
     _state.setLoadingMore(true);
     _state.clearError();
@@ -322,12 +324,10 @@ class ConversationDetailController {
           _state.clearError();
 
           final newMessages = response.data['messages'] as List<MessageEntity>;
-          final paginationData = response.data['pagination'];
+          final pagination = response.data['pagination'];
           _logger.d('New load more messages $newMessages');
 
-          if (paginationData != null) {
-            final paginationModel = PaginationModel.fromJson(paginationData);
-            final pagination = PaginationMapper.toEntity(paginationModel);
+          if (pagination != null) {
             _logger.d(
               'Load more pagination: hasNextPage=${pagination.hasNextPage}, nextCursor=${pagination.nextCursor}',
             );
@@ -347,11 +347,17 @@ class ConversationDetailController {
           if (newMessages.isNotEmpty) {
             final existing = _state.listMessages;
             final existingIds = existing.map((m) => m.id).toSet();
-            final merged = [
-              ...newMessages.where((m) => !existingIds.contains(m.id)),
-              ...existing,
-            ];
+
+            // Filter out duplicates and add older messages at the end (bottom of chat)
+            final filteredNewMessages =
+                newMessages.where((m) => !existingIds.contains(m.id)).toList();
+
+            final merged = [...existing, ...filteredNewMessages];
+
             _state.setListMessages(merged);
+            _logger.d(
+              '📝 Merged ${filteredNewMessages.length} new messages with ${existing.length} existing messages',
+            );
           }
 
           _cacheService.cacheMessages(
@@ -534,10 +540,10 @@ class ConversationDetailController {
         _logger.d('📨 Socket Received real-time message: ${socketMessageData}');
 
         if (socketMessageData.conversationId == _state.conversationId) {
-          final clientMessageId = socketMessageData.metadata?['clientMessageId'];
+          final clientMessageId =
+              socketMessageData.metadata?['clientMessageId'];
 
           if (clientMessageId != null) {
-            
             _logger.d('✅ Socket Replace draft message ${_state.listMessages}');
 
             final draftMessage = _state.listMessages.firstWhereOrNull(
@@ -579,7 +585,10 @@ class ConversationDetailController {
             _logger.d('📨 Socket Add message: ${socketMessageData}');
 
             _state.addMessage(socketMessageData);
-            _cacheService.addMessageToCache(_state.conversationId, socketMessageData);
+            _cacheService.addMessageToCache(
+              _state.conversationId,
+              socketMessageData,
+            );
           }
         }
       },
@@ -591,7 +600,9 @@ class ConversationDetailController {
     _conversationUpdateSubscription = _socketService.conversationUpdateStream
         .listen(
           (socketConversationData) {
-            _logger.d('💬 Socket Received conversation update: ${socketConversationData}');
+            _logger.d(
+              '💬 Socket Received conversation update: ${socketConversationData}',
+            );
 
             if (socketConversationData.id == _state.conversationId) {
               if (socketConversationData.lastMessage != null) {

@@ -11,10 +11,15 @@ import 'package:locket/domain/conversation/entities/conversation_detail_entity.d
 import 'package:logger/logger.dart';
 
 abstract class ConversationApiService {
-  Future<Either<Failure, BaseResponse>> getConversations({int? limit, DateTime? lastCreatedAt});
+  Future<Either<Failure, BaseResponse>> getConversations({
+    int? limit,
+    DateTime? lastCreatedAt,
+  });
   Future<Either<Failure, BaseResponse>> getConversation(String conversationId);
   Future<Either<Failure, BaseResponse>> unreadCountConversations();
-  Future<Either<Failure, BaseResponse>> markConversationAsRead(String conversationId);
+  Future<Either<Failure, BaseResponse>> markConversationAsRead(
+    String conversationId,
+  );
 }
 
 class ConversationApiServiceImpl extends ConversationApiService {
@@ -26,10 +31,16 @@ class ConversationApiServiceImpl extends ConversationApiService {
   ConversationApiServiceImpl(this.dioClient);
 
   @override
-  Future<Either<Failure, BaseResponse>> getConversations({int? limit, DateTime? lastCreatedAt}) async {
+  Future<Either<Failure, BaseResponse>> getConversations({
+    int? limit,
+    DateTime? lastCreatedAt,
+  }) async {
     try {
       final Map<String, dynamic> queryParameters = {};
-      queryParameters['limit'] = limit ?? RequestDefaults.conversationListLimit.toString();
+      queryParameters['limit'] =
+          limit ?? RequestDefaults.conversationListLimit.toString();
+
+      queryParameters['lastCreatedAt'] = lastCreatedAt?.toIso8601String();
 
       final response = await dioClient.get(
         ApiUrl.getUserConversations,
@@ -38,13 +49,25 @@ class ConversationApiServiceImpl extends ConversationApiService {
       logger.d('response conversations: ${response.data}');
 
       if (response.statusCode == 200 && response.data.isNotEmpty) {
-        final conversationsJson = response.data['data']['conversations'] as List<dynamic>;
-        final conversationModels = conversationsJson
-            .map((json) => ConversationModel.fromJson(json as Map<String, dynamic>))
-            .toList();
-        final conversations = ConversationMapper.toEntityList(conversationModels);
+        final conversationsJson =
+            response.data['data']['conversations'] as List<dynamic>;
+        final conversationModels =
+            conversationsJson
+                .map(
+                  (json) =>
+                      ConversationModel.fromJson(json as Map<String, dynamic>),
+                )
+                .toList();
+        final conversations = ConversationMapper.toEntityList(
+          conversationModels,
+        );
 
-        final data = {'conversations': conversations};
+        final paginationJson = response.data['data']['pagination'];
+
+        final data = {
+          'conversations': conversations,
+          'pagination': paginationJson,
+        };
         logger.d('conversations $data');
 
         final baseResponse = BaseResponse<Map<String, dynamic>>(
@@ -105,10 +128,12 @@ class ConversationApiServiceImpl extends ConversationApiService {
   }
 
   @override
-  Future<Either<Failure, BaseResponse>> getConversation(String conversationId) async {
+  Future<Either<Failure, BaseResponse>> getConversation(
+    String conversationId,
+  ) async {
     try {
       final response = await dioClient.get(
-        ApiUrl.getConversationById(conversationId)
+        ApiUrl.getConversationById(conversationId),
       );
       logger.d('response conversation detail: ${response.data}');
 
@@ -247,9 +272,13 @@ class ConversationApiServiceImpl extends ConversationApiService {
   }
 
   @override
-  Future<Either<Failure, BaseResponse>> markConversationAsRead(String conversationId) async {
+  Future<Either<Failure, BaseResponse>> markConversationAsRead(
+    String conversationId,
+  ) async {
     try {
-      final response = await dioClient.post(ApiUrl.markConversationAsRead(conversationId));
+      final response = await dioClient.post(
+        ApiUrl.markConversationAsRead(conversationId),
+      );
       logger.d('response mark conversation read message: ${response.data}');
 
       if (response.statusCode == 200) {
@@ -277,7 +306,10 @@ class ConversationApiServiceImpl extends ConversationApiService {
         return Left(AuthFailure(message: message, statusCode: statusCode));
       } else if (statusCode == 404) {
         return Left(
-          DataFailure(message: 'conversation not found', statusCode: statusCode),
+          DataFailure(
+            message: 'conversation not found',
+            statusCode: statusCode,
+          ),
         );
       } else if (statusCode == 422) {
         return Left(

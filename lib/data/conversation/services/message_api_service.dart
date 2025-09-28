@@ -4,7 +4,9 @@ import 'package:locket/core/constants/api_url.dart';
 import 'package:locket/core/constants/request_defaults.dart';
 import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/mappers/message_mapper.dart';
+import 'package:locket/core/mappers/pagination_mapper.dart';
 import 'package:locket/core/models/base_response_model.dart';
+import 'package:locket/core/models/pagination_model.dart';
 import 'package:locket/core/network/dio_client.dart';
 import 'package:locket/data/conversation/models/message_model.dart';
 import 'package:logger/logger.dart';
@@ -19,7 +21,6 @@ abstract class MessageApiService {
   Future<Either<Failure, BaseResponse>> sendMessage(
     Map<String, dynamic> payload,
   );
-
 }
 
 class MessageApiServiceImpl extends MessageApiService {
@@ -42,6 +43,8 @@ class MessageApiServiceImpl extends MessageApiService {
       queryParameters['limit'] =
           limit ?? RequestDefaults.messageListLimit.toString();
 
+      queryParameters['lastCreatedAt'] = lastCreatedAt?.toIso8601String();
+
       final response = await dioClient.get(
         ApiUrl.getConversationMessages(conversationId),
         queryParameters: queryParameters,
@@ -54,7 +57,11 @@ class MessageApiServiceImpl extends MessageApiService {
             messagesJson.map((json) => MessageModel.fromJson(json)).toList();
         final messages = MessageMapper.toEntityList(messageModels);
 
-        final data = {'messages': messages};
+        final paginationJson = response.data['data']['pagination'];
+        final paginationModel = PaginationModel.fromJson(paginationJson);
+        final pagination = PaginationMapper.toEntity(paginationModel);
+
+        final data = {'messages': messages, 'pagination': pagination};
         logger.d('messages $data');
 
         final baseResponse = BaseResponse<Map<String, dynamic>>(

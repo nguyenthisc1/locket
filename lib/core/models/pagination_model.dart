@@ -15,9 +15,10 @@ class PaginationModel {
     return PaginationModel(
       limit: json['limit'],
       hasNextPage: json['hasNextPage'],
-      nextCursor: json['nextCursor'] != null
-          ? DateTimeUtils.parseTimestamp(json['nextCursor'])
-          : null,
+      nextCursor:
+          json['nextCursor'] != null
+              ? DateTime.parse(json['nextCursor'])
+              : null,
     );
   }
 }
