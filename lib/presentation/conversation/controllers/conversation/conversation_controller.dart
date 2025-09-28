@@ -5,6 +5,7 @@ import 'package:locket/core/models/pagination_model.dart';
 import 'package:locket/core/services/conversation_cache_service.dart';
 import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
+import 'package:locket/domain/conversation/entities/message_entity.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
 import 'package:locket/domain/conversation/usecases/unread_count_conversations_usecase.dart';
@@ -288,12 +289,14 @@ class ConversationController {
   void _setupSocketListeners() {
     // Listen for update conversation
     _conversationUpdateSubscription = _socketService.conversationUpdateStream.listen(
-      (conversationUpdate) {
-        _logger.d('💬 Received conversation update: ${conversationUpdate.id}');
+      (socketConversationUpdate) {
+        _logger.d(
+          '💬 Socket Received conversation update: ${socketConversationUpdate.id}',
+        );
 
         // Find the index of the conversation to update
         final index = _state.listConversations.indexWhere(
-          (c) => c.id == conversationUpdate.id,
+          (c) => c.id == socketConversationUpdate.id,
         );
 
         if (index != -1) {
@@ -302,35 +305,35 @@ class ConversationController {
 
           // Replace the conversation with updated data, preserving original data
           final updatedConversation = currentConversation.copyWith(
-            lastMessage: conversationUpdate.lastMessage,
+            lastMessage: socketConversationUpdate.lastMessage,
             updatedAt:
-                conversationUpdate.updatedAt ?? currentConversation.updatedAt,
+                socketConversationUpdate.updatedAt ??
+                currentConversation.updatedAt,
           );
 
           _state.replaceConversation(
-            conversationUpdate.id,
+            socketConversationUpdate.id,
             updatedConversation,
           );
           _logger.d(
-            '🔄 Conversation ${conversationUpdate.id} updated with new last message',
+            '🔄 Socket Conversation ${socketConversationUpdate.id} updated with new last message',
           );
 
           // Cache the updated conversations
           _cacheService.cacheConversations(_state.listConversations);
         } else {
           _logger.d(
-            '➕ Conversation ${conversationUpdate.id} not found in current list, skipping update',
+            '➕ Socket Conversation ${socketConversationUpdate.id} not found in current list, skipping update',
           );
         }
       },
       onError: (error) {
-        _logger.e('❌ Error in conversation update stream: $error');
+        _logger.e('❌ Socket Error in conversation update stream: $error');
       },
     );
   }
 
   // -------------------- Socket function --------------------
-
 
   // -------------------- Cleanup --------------------
 

@@ -80,7 +80,7 @@ class SocketService {
     if (_socket == null) return;
 
     // Connection events
-    _socket!.onConnect((_) {
+    _socket!.onConnect((socket) {
       _isConnected = true;
       _logger.d('🔗 Socket connected ${_socket?.id} ${_socket?.auth}');
       _connectionStatusController.add('connected');
@@ -155,6 +155,18 @@ class SocketService {
         }
       } catch (e) {
         _logger.e('❌ Error parsing conversation update: $e');
+      }
+    });
+
+    _socket!.on('conversation:listUpdated', (data) {
+      try {
+        _logger.d('💬 Conversation list updated: $data');
+        final conversation = _parseConversationListUpdate(data);
+        if (conversation != null) {
+          _conversationUpdateController.add(conversation);
+        }
+      } catch (e) {
+        _logger.e('❌ Error parsing conversation list update: $e');
       }
     });
 
@@ -246,7 +258,6 @@ class SocketService {
       _logger.e('❌ Error leaving conversation: $e');
     }
   }
-
   /// Send a message
   Future<void> sendMessage(MessageModel data) async {
     if (_socket == null || !_isConnected) {
@@ -321,7 +332,7 @@ class SocketService {
       if (data is Map<String, dynamic>) {
         // Check if message data is nested under 'message' key or directly in 'data'
         final messageJson = data['data']['message'];
-            
+
         if (messageJson is Map<String, dynamic>) {
           final messageModel = MessageModel.fromJson(messageJson);
           print('_parseMessage ${MessageMapper.toEntity(messageModel)}');
@@ -394,6 +405,70 @@ class SocketService {
     }
   }
 
+  /// Parse conversation list update from socket data
+  ConversationEntity? _parseConversationListUpdate(dynamic data) {
+    try {
+      if (data is Map<String, dynamic>) {
+        _logger.d('📋 Parsing conversation list update: $data');
+
+        final conversationId = data['conversationId'] as String? ?? '';
+        final updateData = data['updateData'] as Map<String, dynamic>?;
+        final timestampStr = data['timestamp'] as String?;
+
+        if (conversationId.isEmpty) {
+          _logger.w('⚠️ No conversationId found in conversation list update');
+          return null;
+        }
+
+        if (updateData == null) {
+          _logger.w('⚠️ No updateData found in conversation list update');
+          return null;
+        }
+
+        // Parse last message from updateData
+        LastMessageEntity? lastMessage;
+        if (updateData['lastMessage'] != null) {
+          final lastMessageData =
+              updateData['lastMessage'] as Map<String, dynamic>?;
+          if (lastMessageData != null) {
+            lastMessage = LastMessageEntity.fromJson(lastMessageData);
+          }
+        }
+
+        // Parse timestamp
+        DateTime? updatedAt;
+        if (timestampStr != null) {
+          updatedAt = DateTime.tryParse(timestampStr);
+        }
+
+        // Create a minimal ConversationEntity for the list update
+        return ConversationEntity(
+          id: conversationId,
+          name: updateData['name'] as String? ?? '',
+          participants:
+              const [], // We don't have participants in the socket update
+          isGroup: updateData['isGroup'] as bool? ?? false,
+          isActive: updateData['isActive'] as bool? ?? true,
+          pinnedMessages: const [],
+          settings: const ConversationSettingsEntity(
+            muteNotifications: false,
+            theme: '',
+          ),
+          readReceipts: const [],
+          createdAt:
+              DateTime.now(),
+          lastMessage: lastMessage,
+          updatedAt: updatedAt ?? DateTime.now(),
+        );
+      }
+      return null;
+    } catch (e) {
+      _logger.e('❌ Error parsing conversation list update: $e');
+      _logger.e('❌ Data: $data');
+      return null;
+    }
+  }
+
   /// Check socket connection status with detailed logging
   void checkConnectionStatus() {
     _logger.d('🔍 Socket status check:');
@@ -402,6 +477,9 @@ class SocketService {
     _logger.d('  - Socket connected: ${_socket?.connected ?? false}');
     _logger.d('  - Current user ID: $_currentUserId');
     _logger.d('  - Auth token: ${_authToken != null ? 'exists' : 'null'}');
+    _logger.d(
+      '  - Expected user room: ${_currentUserId != null ? 'user:$_currentUserId' : 'none'}',
+    );
   }
 
   /// Reconnect socket

@@ -529,29 +529,29 @@ class ConversationDetailController {
   void _setupSocketListeners() {
     // Listen for new messages
     _messageSubscription = _socketService.messageStream.listen(
-      (messageData) {
-        _logger.d('📨 Received real-time message: ${messageData}');
+      (socketMessageData) {
+        _logger.d('📨 Socket Received real-time message: ${socketMessageData}');
 
-        if (messageData.conversationId == _state.conversationId) {
-          final clientMessageId = messageData.metadata?['clientMessageId'];
+        if (socketMessageData.conversationId == _state.conversationId) {
+          final clientMessageId = socketMessageData.metadata?['clientMessageId'];
 
           if (clientMessageId != null) {
             
-            _logger.d('✅ Replace draft message ${_state.listMessages}');
+            _logger.d('✅ Socket Replace draft message ${_state.listMessages}');
 
             final draftMessage = _state.listMessages.firstWhereOrNull(
               (m) => m.metadata?['clientMessageId'] == clientMessageId,
             );
 
-            _logger.d('✅ Replace draft message $draftMessage');
+            _logger.d('✅ Socket Replace draft message $draftMessage');
 
             if (draftMessage != null) {
               // replace draft message response api
-              final newMessage = messageData.copyWith(
+              final newMessage = socketMessageData.copyWith(
                 messageStatus: MessageStatus.delivered,
               );
 
-              _logger.d('✅ Replace draft message $clientMessageId');
+              _logger.d('✅ Socket Replace draft message $clientMessageId');
 
               _state.replaceMessage(draftMessage.id, newMessage);
               _cacheService.updateMessageInCache(
@@ -564,58 +564,56 @@ class ConversationDetailController {
 
           final existingMessage =
               _state.listMessages
-                  .where((m) => m.id == messageData.id)
+                  .where((m) => m.id == socketMessageData.id)
                   .isNotEmpty;
 
           if (existingMessage) {
-            _logger.d('📨 Update message: ${messageData}');
-            _state.updateMessage(messageData);
+            _logger.d('📨 Socket Update message: ${socketMessageData}');
+            _state.updateMessage(socketMessageData);
             _cacheService.updateMessageInCache(
               _state.conversationId,
-              messageData,
+              socketMessageData,
             );
           } else {
-            _logger.d('📨 Add message: ${messageData}');
+            _logger.d('📨 Socket Add message: ${socketMessageData}');
 
-            _state.addMessage(messageData);
-            _cacheService.addMessageToCache(_state.conversationId, messageData);
+            _state.addMessage(socketMessageData);
+            _cacheService.addMessageToCache(_state.conversationId, socketMessageData);
           }
         }
       },
       onError: (error) {
-        _logger.e('❌ Error in message stream: $error');
+        _logger.e('❌ Socket Error in message stream: $error');
       },
     );
     // Listen for conversation updates
     _conversationUpdateSubscription = _socketService.conversationUpdateStream
         .listen(
-          (conversationData) {
-            _logger.d('💬 Received conversation update: ${conversationData}');
+          (socketConversationData) {
+            _logger.d('💬 Socket Received conversation update: ${socketConversationData}');
 
-            if (conversationData.id == _state.conversationId) {
-              if (conversationData.lastMessage != null) {
+            if (socketConversationData.id == _state.conversationId) {
+              if (socketConversationData.lastMessage != null) {
                 // Update List conversations
                 final conversationState = getIt<ConversationControllerState>();
 
                 final updatedListConversation =
                     conversationState.listConversations.map((c) {
-                      if (c.id == conversationData.id) {
+                      if (c.id == socketConversationData.id) {
                         return c.copyWith(
-                          lastMessage: conversationData.lastMessage,
-                          updatedAt: conversationData.updatedAt,
+                          lastMessage: socketConversationData.lastMessage,
+                          updatedAt: socketConversationData.updatedAt,
                         );
                       }
                       return c;
                     }).toList();
 
-                print('updated List conversations: $updatedListConversation');
-
                 conversationState.setListConversations(updatedListConversation);
 
                 // Update detail conversations
                 final updatedConversation = _state.conversation!.copyWith(
-                  lastMessage: conversationData.lastMessage,
-                  updatedAt: conversationData.updatedAt,
+                  lastMessage: socketConversationData.lastMessage,
+                  updatedAt: socketConversationData.updatedAt,
                 );
                 _state.setConversation(updatedConversation);
 
@@ -627,7 +625,7 @@ class ConversationDetailController {
             }
           },
           onError: (error) {
-            _logger.e('❌ Error in conversation update stream: $error');
+            _logger.e('❌ Socket Error in conversation update stream: $error');
           },
         );
 
