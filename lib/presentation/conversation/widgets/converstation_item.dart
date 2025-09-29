@@ -26,18 +26,28 @@ class ConversationItem extends StatelessWidget {
     // Filter out current user from participants
     final isReadReceipts =
         data.participants.where((participant) {
-          return participant.id != currentUserId &&
+          return
+          // Not show seen for current user
+          participant.id != currentUserId &&
+              // Not show seenf for sender last message
+              participant.id != lastMessage?.senderId &&
+              // Show participant seen
               participant.lastReadMessageId == lastMessage?.messageId;
         }).toList();
 
     final int displayCount =
         isReadReceipts.length > 3 ? 3 : isReadReceipts.length;
 
+    final currentUserPaticipant = data.participants.singleWhere((p) {
+      return p.id == currentUserId;
+    });
+
     Widget _buildAvatarWithIndicator() {
       return Stack(
         clipBehavior: Clip.none,
         children: [
-          if (!isMine)
+          if (!isMine &&
+              lastMessage?.messageId != currentUserPaticipant.lastReadMessageId)
             Positioned(
               top: -8,
               left: -8,
@@ -77,10 +87,7 @@ class ConversationItem extends StatelessWidget {
                   lastMessageText,
                   style: AppTypography.headlineLarge.copyWith(
                     fontWeight: FontWeight.w800,
-                    color:
-                        isMine 
-                            ? AppColors.textSecondary
-                            : Colors.white,
+                    color: isMine ? AppColors.textSecondary : Colors.white,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,

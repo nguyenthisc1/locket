@@ -250,21 +250,21 @@ class ConversationDetailController {
             }
           }
 
-          // if (lastCreatedAt != null) {
-          //   // This is load more - merge new messages with existing ones
-          //   final messageList = List<MessageEntity>.from(_state.listMessages);
-          //   final existingIds = messageList.map((m) => m.id).toSet();
-          //   final newMessages =
-          //       messages.where((m) => !existingIds.contains(m.id)).toList();
+          if (lastCreatedAt != null) {
+            // This is load more - merge new messages with existing ones
+            final messageList = List<MessageEntity>.from(_state.listMessages);
+            final existingIds = messageList.map((m) => m.id).toSet();
+            final newMessages =
+                messages.where((m) => !existingIds.contains(m.id)).toList();
 
-          //   messageList.addAll(newMessages);
+            messageList.addAll(newMessages);
 
-          //   _state.setListMessages(messages);
-          // } else {
-          //   // This is initial load - just set the messages
-          //   _state.setListMessages(messages, isFromCache: false);
-          //   _logger.d('📝 Initial fetch: Set ${messages.length} messages');
-          // }
+            _state.setListMessages(messages);
+          } else {
+            // This is initial load - just set the messages
+            _state.setListMessages(messages, isFromCache: false);
+            _logger.d('📝 Initial fetch: Set ${messages.length} messages');
+          }
 
           // Cache the latest list of messages
           _cacheService.cacheMessages(
@@ -415,8 +415,6 @@ class ConversationDetailController {
 
       await _socketService.sendMessage(MessageMapper.toModel(draftMessage));
 
-      // _state.addMessage(draftMessage);
-
       result.fold(
         (failure) {
           _logger.e('Failed to send message: ${failure.message}');
@@ -455,7 +453,7 @@ class ConversationDetailController {
 
       await _socketService.sendReadReceipt(
         conversationId: _state.conversationId,
-        lastReadMessageId: _state.conversation?.lastMessage?.messageId,
+        lastReadMessage: _state.conversation?.lastMessage,
         userId: userService.currentUser!.id,
       );
 
@@ -664,10 +662,10 @@ class ConversationDetailController {
 
     // Listen for read receipts
     _readReceiptSubscription = _socketService.readReceiptStream.listen(
-      (readReceiptData) {
-        _logger.d('👁️ Received read receipt: $readReceiptData');
+      (socketReadReceiptData) {
+        _logger.d('👁️ Received read receipt: $socketReadReceiptData');
 
-        final lastReadMessageJson = readReceiptData['lastReadMessage'];
+        final lastReadMessageJson = socketReadReceiptData['lastReadMessage'];
         LastMessageEntity? lastReadMessage;
 
         if (lastReadMessageJson != null) {
@@ -677,9 +675,9 @@ class ConversationDetailController {
           lastReadMessage = LastMessageMapper.toEntity(lastReadMesseModel);
         }
 
-        final enemyUserId = readReceiptData['userId'] as String;
+        final enemyUserId = socketReadReceiptData['userId'] as String;
 
-        final timestamp = readReceiptData['timestamp'];
+        final timestamp = socketReadReceiptData['timestamp'];
 
         _updateMessageReadStatus(lastReadMessage, enemyUserId, timestamp);
       },
@@ -695,16 +693,6 @@ class ConversationDetailController {
 
   Future<void> sendStopTypingIndicator() async {
     await _socketService.sendStopTyping(_state.conversationId);
-  }
-
-  Future<void> sendReadReceipt(String messageId) async {
-    final userService = getIt<UserService>();
-
-    await _socketService.sendReadReceipt(
-      conversationId: _state.conversationId,
-      lastReadMessageId: _state.conversation?.lastMessage?.messageId,
-      userId: userService.currentUser!.id,
-    );
   }
 
   void _updateMessageReadStatus(

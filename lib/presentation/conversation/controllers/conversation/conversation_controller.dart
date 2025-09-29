@@ -5,7 +5,6 @@ import 'package:locket/core/models/pagination_model.dart';
 import 'package:locket/core/services/conversation_cache_service.dart';
 import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
-import 'package:locket/domain/conversation/entities/message_entity.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
 import 'package:locket/domain/conversation/usecases/unread_count_conversations_usecase.dart';
@@ -22,6 +21,8 @@ class ConversationController {
   final Logger _logger;
 
   StreamSubscription<ConversationEntity>? _conversationUpdateSubscription;
+  StreamSubscription<Map<String, dynamic>>? _readReceiptSubscription;
+
 
   ConversationController({
     required ConversationControllerState state,
@@ -291,7 +292,7 @@ class ConversationController {
     _conversationUpdateSubscription = _socketService.conversationUpdateStream.listen(
       (socketConversationUpdate) {
         _logger.d(
-          '💬 Socket Received conversation update: ${socketConversationUpdate.id}',
+          '💬 Socket Received conversation list update: ${socketConversationUpdate}',
         );
 
         // Find the index of the conversation to update
@@ -303,8 +304,11 @@ class ConversationController {
           // Get the current conversation from state
           final currentConversation = _state.listConversations[index];
 
+          final updatedParticipants = socketConversationUpdate.participants ?? currentConversation.participants;
+
           // Replace the conversation with updated data, preserving original data
           final updatedConversation = currentConversation.copyWith(
+            participants: updatedParticipants,
             lastMessage: socketConversationUpdate.lastMessage,
             updatedAt:
                 socketConversationUpdate.updatedAt ??
@@ -316,7 +320,7 @@ class ConversationController {
             updatedConversation,
           );
           _logger.d(
-            '🔄 Socket Conversation ${socketConversationUpdate.id} updated with new last message',
+            '🔄 Socket Conversation ${socketConversationUpdate} updated with new last message',
           );
 
           // Cache the updated conversations
@@ -331,6 +335,13 @@ class ConversationController {
         _logger.e('❌ Socket Error in conversation update stream: $error');
       },
     );
+
+    // _readReceiptSubscription = _socketService.readReceiptStream.listen(
+    //   (socketReadReceiptData) {
+    //     _logger.d('👁️ Received read receipt: $socketReadReceiptData');
+
+    //   }
+    // );
   }
 
   // -------------------- Socket function --------------------

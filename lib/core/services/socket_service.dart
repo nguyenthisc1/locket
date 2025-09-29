@@ -259,6 +259,7 @@ class SocketService {
       _logger.e('❌ Error leaving conversation: $e');
     }
   }
+
   /// Send a message
   Future<void> sendMessage(MessageModel data) async {
     if (_socket == null || !_isConnected) {
@@ -307,7 +308,7 @@ class SocketService {
   /// Send read receipt
   Future<void> sendReadReceipt({
     required String conversationId,
-    String? lastReadMessageId,
+    LastMessageEntity? lastReadMessage,
     required String userId,
   }) async {
     if (_socket == null || !_isConnected) return;
@@ -315,7 +316,7 @@ class SocketService {
     try {
       final data = {
         'conversationId': conversationId,
-        'lastReadMessageId': lastReadMessageId,
+        'lastReadMessage': lastReadMessage,
         'userId': userId,
       };
 
@@ -436,6 +437,37 @@ class SocketService {
           }
         }
 
+        // Parse participants from updateData, handling map structure with expected fields
+        List<ConversationParticipantEntity> participants = [];
+        if (updateData['participants'] != null) {
+          final participantsData = updateData['participants'];
+          if (participantsData is List) {
+            participants =
+                participantsData.where((p) => p is Map<String, dynamic>).map((
+                  p,
+                ) {
+                  // Defensive: ensure all expected fields are present, fallback to null if missing
+                  final participantMap = p as Map<String, dynamic>;
+                  return ConversationParticipantEntity(
+                    id: participantMap['userId'] as String? ?? '',
+                    username: participantMap['username'] as String? ?? '',
+                    email: participantMap['email'] as String? ?? '',
+                    avatarUrl: participantMap['avatarUrl'] as String?,
+                    lastReadMessageId:
+                        participantMap['lastReadMessageId'] as String?,
+                    lastReadAt:
+                        participantMap['lastReadAt'] != null
+                            ? DateTime.tryParse(participantMap['lastReadAt'])
+                            : null,
+                    joinedAt:
+                        participantMap['joinedAt'] != null
+                            ? DateTime.tryParse(participantMap['joinedAt'])
+                            : null,
+                  );
+                }).toList();
+          }
+        }
+
         // Parse timestamp
         DateTime? updatedAt;
         if (timestampStr != null) {
@@ -446,8 +478,7 @@ class SocketService {
         return ConversationEntity(
           id: conversationId,
           name: updateData['name'] as String? ?? '',
-          participants:
-              const [], // We don't have participants in the socket update
+          participants: participants,
           isGroup: updateData['isGroup'] as bool? ?? false,
           isActive: updateData['isActive'] as bool? ?? true,
           pinnedMessages: const [],
@@ -456,8 +487,7 @@ class SocketService {
             theme: '',
           ),
           readReceipts: const [],
-          createdAt:
-              DateTime.now(),
+          createdAt: DateTime.now(),
           lastMessage: lastMessage,
           updatedAt: updatedAt ?? DateTime.now(),
         );

@@ -96,6 +96,22 @@ class ConversationParticipantEntity extends Equatable {
     this.joinedAt,
   });
 
+  factory ConversationParticipantEntity.fromJson(Map<String, dynamic> json) {
+    return ConversationParticipantEntity(
+      id: json['userId'] ?? json['id'] ?? json['_id'] as String,
+      username: json['username'] as String?,
+      email: json['email'] as String?,
+      avatarUrl: json['avatarUrl'] as String?,
+      lastReadMessageId: json['lastReadMessageId'] as String?,
+      lastReadAt: json['lastReadAt'] != null
+          ? DateTime.tryParse(json['lastReadAt'].toString())
+          : null,
+      joinedAt: json['joinedAt'] != null
+          ? DateTime.tryParse(json['joinedAt'].toString())
+          : null,
+    );
+  }
+
   ConversationParticipantEntity copyWith({
     String? id,
     String? username,
