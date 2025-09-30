@@ -39,16 +39,17 @@ class _HomePageState extends State<HomePage> {
 
     // Initialize both controllers
     _homeController.init();
+    // _conversationController.loadCachedConversations();
+    _conversationController.init();
 
     // Fetch feeds when HomePage is mounted
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
         // Add a small delay to ensure auth and token setup is complete
         await Future.delayed(const Duration(milliseconds: 200));
-        
+
         await _feedController.fetchInitialFeeds();
-        await _conversationController.loadCachedConversations();
-        await _conversationController.fetchUnreadCountConversation();
+        _conversationController.countUnreadConversations();
       }
     });
   }
@@ -67,7 +68,6 @@ class _HomePageState extends State<HomePage> {
       create: (_) => _homeController.state,
       child: Consumer<HomeControllerState>(
         builder: (context, homeState, _) {
-
           if (homeState.isLoadingProfile) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),

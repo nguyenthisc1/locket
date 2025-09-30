@@ -38,16 +38,17 @@ class ConversationItem extends StatelessWidget {
     final int displayCount =
         isReadReceipts.length > 3 ? 3 : isReadReceipts.length;
 
-    final currentUserPaticipant = data.participants.singleWhere((p) {
-      return p.id == currentUserId;
-    });
+    final currentUserParticipant = data.participants.firstWhere(
+      (p) => p.id == currentUserId,
+    );
 
     Widget _buildAvatarWithIndicator() {
       return Stack(
         clipBehavior: Clip.none,
         children: [
           if (!isMine &&
-              lastMessage?.messageId != currentUserPaticipant.lastReadMessageId)
+              lastMessage?.messageId !=
+                  currentUserParticipant.lastReadMessageId)
             Positioned(
               top: -8,
               left: -8,

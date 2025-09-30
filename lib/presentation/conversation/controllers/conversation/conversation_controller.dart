@@ -4,6 +4,8 @@ import 'package:locket/core/mappers/pagination_mapper.dart';
 import 'package:locket/core/models/pagination_model.dart';
 import 'package:locket/core/services/conversation_cache_service.dart';
 import 'package:locket/core/services/socket_service.dart';
+import 'package:locket/core/services/user_service.dart';
+import 'package:locket/di.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
@@ -22,7 +24,6 @@ class ConversationController {
 
   StreamSubscription<ConversationEntity>? _conversationUpdateSubscription;
   StreamSubscription<Map<String, dynamic>>? _readReceiptSubscription;
-
 
   ConversationController({
     required ConversationControllerState state,
@@ -290,7 +291,7 @@ class ConversationController {
   void _setupSocketListeners() {
     // Listen for update conversation
     _conversationUpdateSubscription = _socketService.conversationUpdateStream.listen(
-      (socketConversationUpdate) {
+      (socketConversationUpdate) async {
         _logger.d(
           '💬 Socket Received conversation list update: ${socketConversationUpdate}',
         );
@@ -304,7 +305,10 @@ class ConversationController {
           // Get the current conversation from state
           final currentConversation = _state.listConversations[index];
 
-          final updatedParticipants = socketConversationUpdate.participants ?? currentConversation.participants;
+          final updatedParticipants =
+              (socketConversationUpdate.participants?.isNotEmpty ?? false)
+                  ? socketConversationUpdate.participants!
+                  : currentConversation.participants;
 
           // Replace the conversation with updated data, preserving original data
           final updatedConversation = currentConversation.copyWith(
@@ -325,6 +329,7 @@ class ConversationController {
 
           // Cache the updated conversations
           _cacheService.cacheConversations(_state.listConversations);
+          countUnreadConversations();
         } else {
           _logger.d(
             '➕ Socket Conversation ${socketConversationUpdate.id} not found in current list, skipping update',
@@ -345,6 +350,32 @@ class ConversationController {
   }
 
   // -------------------- Socket function --------------------
+
+  // -------------------- Utils --------------------
+  int countUnreadConversations() {
+    final currentUserId = getIt<UserService>().currentUser?.id;
+
+    int count = 0;
+
+    for (final convo in _state.listConversations) {
+      final me = convo.participants.firstWhere((p) => p.id == currentUserId);
+
+      if (me == null || convo.lastMessage == null) continue;
+
+      final lastMessage = convo.lastMessage!;
+
+      final isUnread =
+          me.lastReadMessageId == null ||
+          me.lastReadMessageId != lastMessage.messageId;
+
+      if (isUnread) {
+        count++;
+      }
+    }
+
+    _state.setUnreadCountConversations(count);
+    return count;
+  }
 
   // -------------------- Cleanup --------------------
 

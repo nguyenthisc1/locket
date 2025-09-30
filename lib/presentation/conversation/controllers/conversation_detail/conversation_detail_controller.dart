@@ -19,6 +19,7 @@ import 'package:locket/domain/conversation/usecases/get_conversation_detail_usec
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
 import 'package:locket/domain/conversation/usecases/mark_conversation_as_read_usecase.dart';
 import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
+import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:logger/logger.dart';
@@ -450,6 +451,7 @@ class ConversationDetailController {
   Future<void> seenMessage() async {
     try {
       final userService = getIt<UserService>();
+    
 
       await _socketService.sendReadReceipt(
         conversationId: _state.conversationId,
@@ -680,6 +682,7 @@ class ConversationDetailController {
         final timestamp = socketReadReceiptData['timestamp'];
 
         _updateMessageReadStatus(lastReadMessage, enemyUserId, timestamp);
+        getIt<ConversationController>().countUnreadConversations();
       },
       onError: (error) {
         _logger.e('❌ Error in read receipt stream: $error');
