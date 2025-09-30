@@ -4,7 +4,7 @@ import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
 
 class FeedUser extends StatelessWidget {
-  final String avatarUrl;
+  final String? avatarUrl;
   final String username;
   final DateTime createdAt;
 
@@ -21,7 +21,7 @@ class FeedUser extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        UserImage(imageUrl: avatarUrl),
+        UserImage(imageUrl: avatarUrl ?? null),
         const SizedBox(width: AppDimensions.sm),
         Text(
           username,

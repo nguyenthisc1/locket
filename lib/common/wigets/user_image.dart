@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/configs/assets/app_images.dart';
 
 class UserImage extends StatelessWidget {
@@ -30,15 +29,10 @@ class UserImage extends StatelessWidget {
               imageUrl != null
                   ? NetworkImage(imageUrl!)
                   : AssetImage(AppImages.user),
-          fit: BoxFit.cover,
+          fit:     imageUrl != null ? BoxFit.cover : BoxFit.fill,
         ),
-        // ignore: deprecated_member_use
-        color: imageUrl == null ? Colors.white.safeOpacity(0.2) : Colors.white,
+        color: Colors.white,
       ),
-      child:
-          imageUrl == null
-              ? Icon(Icons.person, size: 24, color: Colors.white70)
-              : null,
     );
   }
 }

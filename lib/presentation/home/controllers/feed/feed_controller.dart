@@ -337,7 +337,7 @@ class FeedController {
           username: currentUser.username,
           avatarUrl: currentUser.avatarUrl ?? '',
         ),
-        imageUrl: 'local:///$filePath',
+        imageUrl: _createLocalUri(filePath),
         caption: _state.captionFeed,
         isFrontCamera: isFrontCamera,
         mediaType: mediaType,
@@ -495,6 +495,36 @@ class FeedController {
       
       _logger.d('Updated draft feed caption: $caption');
     }
+  }
+
+  /// Create a properly formatted local URI for file paths
+  String _createLocalUri(String filePath) {
+    // Handle case where filePath might already have a prefix
+    String cleanPath = filePath;
+    
+    // Remove any existing prefixes
+    if (cleanPath.startsWith('local:////')) {
+      cleanPath = cleanPath.substring(10);
+    } else if (cleanPath.startsWith('local:///')) {
+      cleanPath = cleanPath.substring(9);
+    } else if (cleanPath.startsWith('file:///')) {
+      cleanPath = cleanPath.substring(8);
+    } else if (cleanPath.startsWith('file://')) {
+      cleanPath = cleanPath.substring(7);
+    }
+    
+    // Handle case where path starts with additional slashes
+    while (cleanPath.startsWith('//')) {
+      cleanPath = cleanPath.substring(1);
+    }
+    
+    // Ensure we have an absolute path
+    if (cleanPath.isNotEmpty && !cleanPath.startsWith('/')) {
+      cleanPath = '/$cleanPath';
+    }
+    
+    // Return with consistent local:// prefix (single slash after colon)
+    return 'local://$cleanPath';
   }
 
   /// Dispose resources

@@ -38,6 +38,16 @@ class _FeedVideoState extends State<FeedVideo> {
     if (_isLocalFilePath(widget.videoUrl)) {
       videoPath = _getActualFilePath(widget.videoUrl);
       print('Loading local video: $videoPath');
+      
+      // Validate that the file path is not empty
+      if (videoPath.isEmpty) {
+        print('Error: Empty video path after processing videoUrl: ${widget.videoUrl}');
+        setState(() {
+          _hasError = true;
+        });
+        return;
+      }
+      
       _controller = VideoPlayerController.file(File(videoPath));
     } else {
       print('Loading network video: $videoPath');
@@ -69,7 +79,10 @@ class _FeedVideoState extends State<FeedVideo> {
 
   bool _isLocalFilePath(String path) {
     // Check if it's a local file path or has local prefix
-    return path.startsWith('local:///') ||
+    // Accepts various local prefixes for compatibility
+    return path.startsWith('local://') || // New format
+        path.startsWith('local:///') ||
+        path.startsWith('local:////') ||
         path.startsWith('/') ||
         path.startsWith('file://') ||
         path.contains('/var/mobile/') ||
@@ -78,10 +91,33 @@ class _FeedVideoState extends State<FeedVideo> {
   }
 
   String _getActualFilePath(String path) {
-    if (path.startsWith('local:///')) {
-      return path.substring(9);
+    // Remove prefixes and handle malformed URIs
+    String cleanPath = path;
+    
+    // Handle various local prefix formats
+    if (cleanPath.startsWith('local:////')) {
+      cleanPath = cleanPath.substring(10); // Remove 'local:////' prefix
+    } else if (cleanPath.startsWith('local:///')) {
+      cleanPath = cleanPath.substring(9); // Remove 'local:///' prefix
+    } else if (cleanPath.startsWith('local://')) {
+      cleanPath = cleanPath.substring(8); // Remove 'local://' prefix (new format)
+    } else if (cleanPath.startsWith('file:///')) {
+      cleanPath = cleanPath.substring(8); // Remove 'file:///' prefix
+    } else if (cleanPath.startsWith('file://')) {
+      cleanPath = cleanPath.substring(7); // Remove 'file://' prefix
     }
-    return path;
+    
+    // Handle case where path starts with additional slashes
+    while (cleanPath.startsWith('//')) {
+      cleanPath = cleanPath.substring(1);
+    }
+    
+    // Ensure we have an absolute path
+    if (cleanPath.isNotEmpty && !cleanPath.startsWith('/')) {
+      cleanPath = '/$cleanPath';
+    }
+    
+    return cleanPath;
   }
 
   @override

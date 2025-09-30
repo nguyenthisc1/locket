@@ -6,7 +6,7 @@ import 'package:locket/core/models/share_with_user_model.dart';
 class FeedUser extends Equatable {
   final String id;
   final String username;
-  final String avatarUrl;
+  final String? avatarUrl;
 
   const FeedUser({
     required this.id,

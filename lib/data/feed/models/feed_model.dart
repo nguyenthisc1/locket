@@ -70,7 +70,7 @@ class FeedModel extends Equatable {
         final id = userField['_id'] as String? ?? userField['id'] as String?;
         final username = userField['username'] as String? ?? '';
         final email = userField['email'] as String? ?? ''; // Add email field
-        final avatarUrl = userField['avatarUrl'] as String? ?? '';
+        final avatarUrl = userField['avatarUrl'] as String?;
         if (id != null) {
           return FeedUser(id: id, username: username, avatarUrl: avatarUrl);
         }
