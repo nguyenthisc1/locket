@@ -8,6 +8,7 @@ import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/feed_cache_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
 import 'package:locket/core/services/socket_service.dart';
+import 'package:locket/core/services/token_validation_service.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/data/auth/repositories/auth_repository_impl.dart';
@@ -76,6 +77,11 @@ void setupDependencies() {
   );
   getIt.registerLazySingleton<MessageCacheService>(() => MessageCacheService());
   getIt.registerLazySingleton<SocketService>(() => SocketService());
+  getIt.registerLazySingleton<TokenValidationService>(
+    () => TokenValidationService(
+      tokenStorage: getIt<TokenStorage<AuthTokenPair>>(),
+    ),
+  );
   getIt.registerLazySingleton<Middleware>(() => Middleware());
 
   // API Services
@@ -207,8 +213,8 @@ void setupDependencies() {
   );
 
   // Auth controller dependencies
-  getIt.registerLazySingleton<AuthController>(
-    () => AuthController(
+  getIt.registerSingleton<AuthController>(
+    AuthController(
       state: getIt<AuthControllerState>(),
       loginUsecase: getIt<LoginUsecase>(),
       userService: getIt<UserService>(),

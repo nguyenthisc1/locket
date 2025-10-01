@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:locket/core/routes/middleware.dart';
+import 'package:locket/core/services/token_validation_service.dart';
 import 'package:locket/di.dart';
 import 'package:locket/presentation/auth/pages/email_login_page.dart';
 import 'package:locket/presentation/auth/pages/phone_login_page.dart';
@@ -13,6 +14,7 @@ import 'package:locket/presentation/home/pages/home_page.dart';
 import 'package:locket/presentation/splash/pages/onboarding_page.dart';
 import 'package:locket/presentation/splash/pages/splash_page.dart';
 import 'package:logging/logging.dart';
+import 'package:logger/logger.dart' as logger;
 
 // Global RouteObserver for GoRouter
 final RouteObserver<ModalRoute> goRouterObserver = RouteObserver<ModalRoute>();
@@ -22,6 +24,10 @@ class AppRouter {
 
   static final AppRouter instance = AppRouter._();
   static final Middleware _middleware = getIt<Middleware>();
+  static final TokenValidationService _tokenValidationService = getIt<TokenValidationService>();
+  static final logger.Logger _logger = logger.Logger(
+    printer: logger.PrettyPrinter(colors: true, printEmojis: true),
+  );
 
   final GoRouter router = GoRouter(
     initialLocation: '/splash',
@@ -33,11 +39,32 @@ class AppRouter {
     ],
     redirect: (context, state) async {
       try {
+        _logger.d('🧭 Router redirect called for: ${state.fullPath}');
+        
+        // Get token info for debugging
+        final tokenInfo = await _tokenValidationService.getTokenInfo();
+        _logger.d('🔍 Token status: ${tokenInfo['status']}');
+        
         final redirectPath = await _middleware.routeMiddleware(state);
-        print('rediectPath: $redirectPath');
+        
+        if (redirectPath != null) {
+          _logger.d('🔄 Redirecting from ${state.fullPath} to $redirectPath');
+        } else {
+          _logger.d('✅ No redirect needed for ${state.fullPath}');
+        }
+        
         return redirectPath;
       } catch (e) {
-        print('❌ Error in router redirect: $e');
+        _logger.e('❌ Error in router redirect: $e');
+        
+        // Clear potentially corrupted tokens on router error
+        try {
+          await _middleware.clearTokens();
+          _logger.d('🗑️ Cleared tokens due to router error');
+        } catch (clearError) {
+          _logger.e('❌ Failed to clear tokens: $clearError');
+        }
+        
         return '/onboarding';
       }
     },
@@ -129,6 +156,39 @@ class AppRouter {
       ),
     ],
   );
+
+  /// Handle token expiration by clearing tokens and redirecting to onboarding
+  static Future<void> handleTokenExpiration() async {
+    try {
+      _logger.w('⚠️ Handling token expiration...');
+      
+      // Clear expired tokens
+      await _middleware.clearTokens();
+      
+      // Navigate to onboarding
+      instance.router.go('/onboarding');
+      
+      _logger.d('✅ Token expiration handled successfully');
+    } catch (e) {
+      _logger.e('❌ Error handling token expiration: $e');
+    }
+  }
+
+  /// Check if current tokens are valid
+  static Future<bool> areTokensValid() async {
+    try {
+      final validTokens = await _tokenValidationService.getValidTokens();
+      return validTokens != null;
+    } catch (e) {
+      _logger.e('❌ Error checking token validity: $e');
+      return false;
+    }
+  }
+
+  /// Get current token information for debugging
+  static Future<Map<String, dynamic>> getTokenInfo() async {
+    return await _tokenValidationService.getTokenInfo();
+  }
 }
 
 /// Custom NavigatorObserver for logging navigation events.
@@ -138,34 +198,51 @@ class NavObserver extends NavigatorObserver {
   }
 
   final log = Logger('NavObserver');
+  final logger.Logger _logger = logger.Logger(
+    printer: logger.PrettyPrinter(colors: true, printEmojis: true),
+  );
 
   @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
-      log.info('didPush: ${route.str}, previousRoute= ${previousRoute?.str}');
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    log.info('didPush: ${route.str}, previousRoute= ${previousRoute?.str}');
+    _logger.d('🚀 Navigation: didPush ${route.str}');
+  }
 
   @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) =>
-      log.info('didPop: ${route.str}, previousRoute= ${previousRoute?.str}');
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    log.info('didPop: ${route.str}, previousRoute= ${previousRoute?.str}');
+    _logger.d('⬅️ Navigation: didPop ${route.str}');
+  }
 
   @override
-  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) =>
-      log.info('didRemove: ${route.str}, previousRoute= ${previousRoute?.str}');
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    log.info('didRemove: ${route.str}, previousRoute= ${previousRoute?.str}');
+    _logger.d('🗑️ Navigation: didRemove ${route.str}');
+  }
 
   @override
-  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) =>
-      log.info('didReplace: new= ${newRoute?.str}, old= ${oldRoute?.str}');
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    log.info('didReplace: new= ${newRoute?.str}, old= ${oldRoute?.str}');
+    _logger.d('🔄 Navigation: didReplace ${newRoute?.str}');
+  }
 
   @override
   void didStartUserGesture(
     Route<dynamic> route,
     Route<dynamic>? previousRoute,
-  ) => log.info(
-    'didStartUserGesture: ${route.str}, '
-    'previousRoute= ${previousRoute?.str}',
-  );
+  ) {
+    log.info(
+      'didStartUserGesture: ${route.str}, '
+      'previousRoute= ${previousRoute?.str}',
+    );
+    _logger.d('👆 Navigation: didStartUserGesture ${route.str}');
+  }
 
   @override
-  void didStopUserGesture() => log.info('didStopUserGesture');
+  void didStopUserGesture() {
+    log.info('didStopUserGesture');
+    _logger.d('🛑 Navigation: didStopUserGesture');
+  }
 }
 
 extension on Route<dynamic> {

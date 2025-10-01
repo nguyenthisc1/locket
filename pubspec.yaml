@@ -63,6 +63,7 @@ dependencies:
   go_router: ^16.0.0
   keyboard_dismisser: ^3.0.0
   socket_io_client: ^3.1.2
+  jwt_decoder: ^2.0.1
 
 dev_dependencies:
   flutter_test:

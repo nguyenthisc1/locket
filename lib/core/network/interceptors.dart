@@ -45,6 +45,7 @@ class LoggerInterceptor extends Interceptor {
 ///
 /// Adds the Authorization header with the Bearer token to outgoing requests.
 /// Handles missing or empty tokens gracefully and logs issues for debugging.
+/// Also validates token expiration and clears expired tokens.
 class AuthorizationInterceptor extends Interceptor {
   final TokenStorage<AuthTokenPair> _tokenStorage;
   final Logger _logger = Logger(
@@ -63,15 +64,55 @@ class AuthorizationInterceptor extends Interceptor {
       final tokenPair = await _tokenStorage.read();
 
       if (tokenPair?.accessToken != null && tokenPair!.accessToken.isNotEmpty) {
-        options.headers['Authorization'] = 'Bearer ${tokenPair.accessToken}';
-        _logger.d('🔐 AuthorizationInterceptor: Added Authorization header');
+        // Check if access token is expired
+        if (tokenPair.isAccessTokenExpired) {
+          _logger.w('⚠️ Access token is expired, clearing storage');
+          await _tokenStorage.delete();
+          _logger.d(
+            '🔐 AuthorizationInterceptor: Proceeding without Authorization header (token expired)',
+          );
+        } else {
+          // Token is valid, add to headers
+          options.headers['Authorization'] = 'Bearer ${tokenPair.accessToken}';
+          _logger.d('🔐 AuthorizationInterceptor: Added Authorization header');
+
+          // Log remaining time for debugging
+          final remainingTime = tokenPair.accessTokenRemainingTime;
+          if (remainingTime != null) {
+            _logger.d('🕒 Token expires in: ${_formatDuration(remainingTime)}');
+
+            // Warn if token will expire soon
+            if (remainingTime.inMinutes < 10) {
+              _logger.w(
+                '⚠️ Token will expire soon: ${_formatDuration(remainingTime)}',
+              );
+            }
+          }
+        }
       } else {
         _logger.w('🔐 AuthorizationInterceptor: No token found in storage');
       }
       handler.next(options); // continue with the Request
     } catch (e) {
       _logger.e('🔐 AuthorizationInterceptor error: $e');
+      // Clear potentially corrupted tokens
+      try {
+        await _tokenStorage.delete();
+      } catch (deleteError) {
+        _logger.e('Failed to clear tokens after error: $deleteError');
+      }
       handler.next(options); // continue without Authorization header
+    }
+  }
+
+  /// Format duration for logging
+  String _formatDuration(Duration duration) {
+    if (duration.inDays > 0) {
+      return '${duration.inDays}d ${duration.inHours % 24}h';
+    } else if (duration.inHours > 0) {
+      return '${duration.inHours}h ${duration.inMinutes % 60}m';
+    } else {
+      return '${duration.inMinutes}m';
     }
   }
 }
@@ -92,71 +133,96 @@ class TokenRefreshInterceptor extends Interceptor {
     final Logger logger = Logger(
       printer: PrettyPrinter(colors: true, printEmojis: true),
     );
-    
+
     logger.d('🔧 Creating Fresh interceptor instance');
-    
+
     return Fresh<AuthTokenPair>(
       tokenStorage: _tokenStorage,
       tokenHeader: (token) {
         // Add the access token to the Authorization header for each request.
-        logger.d('🔑 TokenHeader called with token: Token exists (${token.accessToken.length} chars)');
-        
-        if (token.accessToken.isEmpty) {
-          // Defensive: Do not add header if token is missing.
-          logger.w('⚠️ No access token available, skipping Authorization header');
-          return <String, String>{};
-        }
-        
-        logger.d('✅ Adding Authorization header with token');
-        return {'Authorization': 'Bearer ${token.accessToken}'};
-      },
-    refreshToken: (token, client) async {
-      // Attempt to refresh the token when a 401 is encountered.
-      final Logger logger = Logger(
-        printer: PrettyPrinter(colors: true, printEmojis: true),
-      );
-      
-      logger.d('🔄 Refresh token called');
-      
-      if (token == null ||
-          token.refreshToken.isEmpty ||
-          token.accessToken.isEmpty) {
-        // Defensive: If tokens are missing, trigger logout.
-        logger.e('❌ Token refresh failed: Missing tokens');
-        throw RevokeTokenException();
-      }
-      try {
-        final response = await client.post(
-          ApiUrl.refreshToken,
-          data: {
-            'refreshToken': token.refreshToken,
-            'accessToken': token.accessToken,
-          },
+        logger.d(
+          '🔑 TokenHeader called with token: Token exists (${token.accessToken.length} chars)',
         );
 
-        final newTokens = response.data;
-        if (newTokens == null ||
-            newTokens['accessToken'] == null ||
-            newTokens['refreshToken'] == null) {
-          // Defensive: If response is malformed, trigger logout.
+        if (token.accessToken.isEmpty) {
+          // Defensive: Do not add header if token is missing.
+          logger.w(
+            '⚠️ No access token available, skipping Authorization header',
+          );
+          return <String, String>{};
+        }
+
+        // Check if token is expired before adding header
+        if (token.isAccessTokenExpired) {
+          logger.w('⚠️ Access token is expired, skipping Authorization header');
+          return <String, String>{};
+        }
+
+        logger.d('✅ Adding Authorization header with token');
+
+        // Log remaining time for debugging
+        final remainingTime = token.accessTokenRemainingTime;
+        if (remainingTime != null && remainingTime.inMinutes < 10) {
+          logger.w('⚠️ Token will expire soon: ${remainingTime.inMinutes}m');
+        }
+
+        return {'Authorization': 'Bearer ${token.accessToken}'};
+      },
+      refreshToken: (token, client) async {
+        // Attempt to refresh the token when a 401 is encountered.
+        final Logger logger = Logger(
+          printer: PrettyPrinter(colors: true, printEmojis: true),
+        );
+
+        logger.d('🔄 Refresh token called');
+
+        if (token == null ||
+            token.refreshToken.isEmpty ||
+            token.accessToken.isEmpty) {
+          // Defensive: If tokens are missing, trigger logout.
+          logger.e('❌ Token refresh failed: Missing tokens');
           throw RevokeTokenException();
         }
 
-        return AuthTokenPair(
-          accessToken: newTokens['accessToken'] as String,
-          refreshToken: newTokens['refreshToken'] as String,
+        // Check if refresh token is expired
+        if (token.isRefreshTokenExpired) {
+          logger.e('❌ Token refresh failed: Refresh token is expired');
+          throw RevokeTokenException();
+        }
+        try {
+          final response = await client.post(
+            ApiUrl.refreshToken,
+            data: {
+              'refreshToken': token.refreshToken,
+              'accessToken': token.accessToken,
+            },
+          );
+
+          final newTokens = response.data;
+          if (newTokens == null ||
+              newTokens['accessToken'] == null ||
+              newTokens['refreshToken'] == null) {
+            // Defensive: If response is malformed, trigger logout.
+            throw RevokeTokenException();
+          }
+
+          return AuthTokenPair(
+            accessToken: newTokens['accessToken'] as String,
+            refreshToken: newTokens['refreshToken'] as String,
+          );
+        } catch (e) {
+          // If refresh fails, throw to trigger logout.
+          throw RevokeTokenException();
+        }
+      },
+      shouldRefresh: (response) {
+        // Only attempt refresh on HTTP 401 Unauthorized.
+        final shouldRefresh = response?.statusCode == 401;
+        logger.d(
+          '🔄 ShouldRefresh called: ${response?.statusCode} -> $shouldRefresh',
         );
-      } catch (e) {
-        // If refresh fails, throw to trigger logout.
-        throw RevokeTokenException();
-      }
-    },
-    shouldRefresh: (response) {
-      // Only attempt refresh on HTTP 401 Unauthorized.
-      final shouldRefresh = response?.statusCode == 401;
-      logger.d('🔄 ShouldRefresh called: ${response?.statusCode} -> $shouldRefresh');
-      return shouldRefresh;
-    },
-  );
+        return shouldRefresh;
+      },
+    );
   }
 }

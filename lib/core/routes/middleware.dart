@@ -1,5 +1,6 @@
 import 'package:fresh_dio/fresh_dio.dart';
 import 'package:go_router/go_router.dart';
+import 'package:locket/core/services/token_validation_service.dart';
 import 'package:locket/data/auth/models/token_model.dart';
 import 'package:locket/di.dart';
 import 'package:logger/logger.dart';
@@ -10,30 +11,31 @@ class Middleware {
   );
 
   final _tokenStorage = getIt<TokenStorage<AuthTokenPair>>();
+  final _tokenValidationService = getIt<TokenValidationService>();
 
   Future<bool> _hasValidTokens() async {
     try {
-      _logger.d('Checking for tokens in storage...');
-      final tokenPair = await _tokenStorage.read();
-
-      if (tokenPair == null) {
-        _logger.d('No tokens found in storage');
+      _logger.d('🔍 Middleware: Checking for valid tokens...');
+      
+      // Use TokenValidationService to check for valid, non-expired tokens
+      final validTokens = await _tokenValidationService.getValidTokens();
+      
+      if (validTokens == null) {
+        _logger.d('❌ No valid tokens found');
         return false;
       }
-
-      final hasAccessToken = tokenPair.accessToken.isNotEmpty;
-      final hasRefreshToken = tokenPair.refreshToken.isNotEmpty;
-
-      _logger.d('Token check - Access: $hasAccessToken, Refresh: $hasRefreshToken');
-
-      if (hasAccessToken && hasRefreshToken) {
-        _logger.d('Access Token: ${tokenPair.accessToken.substring(0, 10)}...');
-        _logger.d('Refresh Token: ${tokenPair.refreshToken.substring(0, 10)}...');
+      
+      // Log token status for debugging
+      final tokenInfo = await _tokenValidationService.getTokenInfo();
+      _logger.d('✅ Valid tokens found: ${tokenInfo['status']}');
+      
+      if (tokenInfo['access_token_remaining'] != null) {
+        _logger.d('⏰ Access token expires in: ${tokenInfo['access_token_remaining']} minutes');
       }
-
-      return hasAccessToken && hasRefreshToken;
+      
+      return true;
     } catch (e) {
-      _logger.e('Error checking tokens: $e');
+      _logger.e('❌ Error checking tokens: $e');
       return false;
     }
   }
@@ -84,26 +86,26 @@ class Middleware {
       // _logger.d('Is protected route: ${_isProtectedRoute(path)}');
 
       final hasValidTokens = await _hasValidTokens();
-      // _logger.d('Has valid tokens: $hasValidTokens');
+      _logger.d('🔐 Has valid tokens: $hasValidTokens');
 
       if (_isPublicRoute(path)) {
-        _logger.d('Public route accessed: $path');
+        _logger.d('🌐 Public route accessed: $path');
         return null;
       }
 
       if (_isProtectedRoute(path) && !hasValidTokens) {
-        _logger.d('Protected route accessed without tokens: $path');
-        _logger.d('Redirecting to /onboarding');
+        _logger.d('🔒 Protected route accessed without valid tokens: $path');
+        _logger.d('🔄 Redirecting to /onboarding');
         return '/onboarding';
       }
 
       if (hasValidTokens && _isAuthOnlyRoute(path)) {
-        _logger.d('Authenticated user accessing auth page: $path');
-        _logger.d('Redirecting to /home');
+        _logger.d('✅ Authenticated user accessing auth page: $path');
+        _logger.d('🏠 Redirecting to /home');
         return '/home';
       }
 
-      _logger.d('Route access granted: $path');
+      _logger.d('✅ Route access granted: $path');
       return null;
     } catch (e) {
       _logger.e('Error in middleware: $e');
@@ -127,18 +129,24 @@ class Middleware {
   Future<void> clearTokens() async {
     try {
       await _tokenStorage.delete();
-      _logger.d('Tokens cleared successfully');
+      _logger.d('🗑️ Tokens cleared successfully');
     } catch (e) {
-      _logger.e('Error clearing tokens: $e');
+      _logger.e('❌ Error clearing tokens: $e');
     }
   }
 
   Future<AuthTokenPair?> getCurrentTokens() async {
     try {
-      return await _tokenStorage.read();
+      // Use token validation service to get valid tokens only
+      return await _tokenValidationService.getValidTokens();
     } catch (e) {
-      _logger.e('Error getting current tokens: $e');
+      _logger.e('❌ Error getting current tokens: $e');
       return null;
     }
+  }
+
+  /// Get detailed token information for debugging
+  Future<Map<String, dynamic>> getTokenInfo() async {
+    return await _tokenValidationService.getTokenInfo();
   }
 }
