@@ -4,20 +4,13 @@ import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
-import 'package:locket/core/services/conversation_detail_cache_service.dart';
-import 'package:locket/core/services/message_cache_service.dart';
-import 'package:locket/core/services/socket_service.dart';
+import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
-import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
-import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
-import 'package:locket/domain/conversation/usecases/mark_conversation_as_read_usecase.dart';
-import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/conversation_detail_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:locket/presentation/conversation/widgets/message.dart';
 import 'package:locket/presentation/conversation/widgets/typing_indicator.dart';
-import 'package:locket/core/services/user_service.dart';
 
 class ConversationDetailPage extends StatefulWidget {
   final String conversationId;
@@ -34,17 +27,8 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
   @override
   void initState() {
     super.initState();
-    _state = ConversationDetailControllerState();
-    _controller = ConversationDetailController(
-      state: _state,
-      cacheService: getIt<MessageCacheService>(),
-      conversationDetailCacheService: getIt<ConversationDetailCacheService>(),
-      getMessagesUsecase: getIt<GetMessagesConversationUsecase>(),
-      sendMessageUsecase: getIt<SendMessageUsecase>(),
-      getConversationDetailUsecase: getIt<GetConversationDetailUsecase>(),
-      markConversationAsReadUsecase: getIt<MarkConversationAsReadUsecase>(),
-      socketService: getIt<SocketService>(),
-    );
+    _state = getIt<ConversationDetailControllerState>();
+    _controller = getIt<ConversationDetailController>();
     _controller.init(widget.conversationId);
     _state.scrollController.addListener(_onScroll);
   }

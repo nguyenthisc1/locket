@@ -36,12 +36,11 @@ class _HomePageState extends State<HomePage> {
 
     // // Initialize both controllers
     _homeController.init();
-    // _conversationController.loadCachedConversations();
 
-    // Fetch feeds when HomePage is mounted
+    // Fetch when HomePage is mounted
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        _conversationController.init();
+        await _conversationController.init();
         // Add a small delay to ensure auth and token setup is complete
         await Future.delayed(const Duration(milliseconds: 200));
 

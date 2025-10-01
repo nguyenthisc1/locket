@@ -25,6 +25,7 @@ import 'package:locket/domain/auth/repositories/auth_repository.dart';
 import 'package:locket/domain/auth/usecase/login_usecase.dart';
 import 'package:locket/domain/conversation/repositories/conversation_repository.dart';
 import 'package:locket/domain/conversation/repositories/message_repository.dart';
+import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_conversations_usecase.dart';
 import 'package:locket/domain/conversation/usecases/get_messages_conversation_usecase.dart';
 import 'package:locket/domain/conversation/usecases/mark_conversation_as_read_usecase.dart';
@@ -39,6 +40,8 @@ import 'package:locket/presentation/auth/controllers/auth/auth_controller.dart';
 import 'package:locket/presentation/auth/controllers/auth/auth_controller_state.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
+import 'package:locket/presentation/conversation/controllers/conversation_detail/conversation_detail_controller.dart';
+import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
@@ -47,8 +50,6 @@ import 'package:locket/presentation/home/controllers/home/home_controller.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller_state.dart';
 import 'package:locket/presentation/user/controllers/user/user_controller.dart';
 import 'package:locket/presentation/user/controllers/user/user_controller_state.dart';
-import 'package:locket/domain/conversation/usecases/get_conversation_detail_usecase.dart';
-
 
 final getIt = GetIt.instance;
 
@@ -67,8 +68,12 @@ void setupDependencies() {
   // Services
   getIt.registerLazySingleton<UserService>(() => UserService());
   getIt.registerLazySingleton<FeedCacheService>(() => FeedCacheService());
-  getIt.registerLazySingleton<ConversationCacheService>(() => ConversationCacheService());
-  getIt.registerLazySingleton<ConversationDetailCacheService>(() => ConversationDetailCacheService());
+  getIt.registerLazySingleton<ConversationCacheService>(
+    () => ConversationCacheService(),
+  );
+  getIt.registerLazySingleton<ConversationDetailCacheService>(
+    () => ConversationDetailCacheService(),
+  );
   getIt.registerLazySingleton<MessageCacheService>(() => MessageCacheService());
   getIt.registerLazySingleton<SocketService>(() => SocketService());
   getIt.registerLazySingleton<Middleware>(() => Middleware());
@@ -120,13 +125,13 @@ void setupDependencies() {
   getIt.registerFactory<GetConversationsUsecase>(
     () => GetConversationsUsecase(getIt<ConversationRepository>()),
   );
-   getIt.registerFactory<GetConversationDetailUsecase>(
+  getIt.registerFactory<GetConversationDetailUsecase>(
     () => GetConversationDetailUsecase(getIt<ConversationRepository>()),
   );
   getIt.registerFactory<UnreadCountConversationsUsecase>(
     () => UnreadCountConversationsUsecase(getIt<ConversationRepository>()),
   );
-   getIt.registerFactory<MarkConversationAsReadUsecase>(
+  getIt.registerFactory<MarkConversationAsReadUsecase>(
     () => MarkConversationAsReadUsecase(getIt<ConversationRepository>()),
   );
 
@@ -148,11 +153,18 @@ void setupDependencies() {
 
   // Controller States
   getIt.registerLazySingleton<HomeControllerState>(() => HomeControllerState());
-  getIt.registerLazySingleton<ConversationControllerState>(() => ConversationControllerState());
+  getIt.registerLazySingleton<ConversationControllerState>(
+    () => ConversationControllerState(),
+  );
+  getIt.registerFactory<ConversationDetailControllerState>(
+    () => ConversationDetailControllerState(),
+  );
   // ConversationDetailControllerState NOT registered in DI - created locally to avoid shared state
   getIt.registerLazySingleton<AuthControllerState>(() => AuthControllerState());
   getIt.registerLazySingleton<UserControllerState>(() => UserControllerState());
-  getIt.registerLazySingleton<CameraControllerState>(() => CameraControllerState());
+  getIt.registerLazySingleton<CameraControllerState>(
+    () => CameraControllerState(),
+  );
   getIt.registerLazySingleton<FeedControllerState>(() => FeedControllerState());
 
   // Controllers
@@ -176,7 +188,19 @@ void setupDependencies() {
     ),
   );
 
-  // ConversationDetailController NOT registered in DI - created locally to avoid shared state between conversations
+  // Conversation Detail Controller dependencies
+  getIt.registerFactory<ConversationDetailController>(
+    () => ConversationDetailController(
+      state: getIt<ConversationDetailControllerState>(),
+      cacheService: getIt<MessageCacheService>(),
+      conversationDetailCacheService: getIt<ConversationDetailCacheService>(),
+      getMessagesUsecase: getIt<GetMessagesConversationUsecase>(),
+      sendMessageUsecase: getIt<SendMessageUsecase>(),
+      getConversationDetailUsecase: getIt<GetConversationDetailUsecase>(),
+      markConversationAsReadUsecase: getIt<MarkConversationAsReadUsecase>(),
+      socketService: getIt<SocketService>(),
+    ),
+  );
 
   // Auth controller dependencies
   getIt.registerLazySingleton<AuthController>(

@@ -370,8 +370,8 @@ class ConversationController {
       if (isUnread) {
         count++;
       }
-    }
-
+    } 
+    _logger.d('➕ Count unread conversation $count ${ _state.listConversations}');
     _state.setUnreadCountConversations(count);
     return count;
   }
