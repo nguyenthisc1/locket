@@ -189,9 +189,13 @@ void setupDependencies() {
   );
 
   // Conversation Detail Controller dependencies
-  getIt.registerFactory<ConversationDetailController>(
-    () => ConversationDetailController(
-      state: getIt<ConversationDetailControllerState>(),
+  getIt.registerFactoryParam<
+    ConversationDetailController,
+    ConversationDetailControllerState,
+    void
+  >(
+    (state, _) => ConversationDetailController(
+      state: state,
       cacheService: getIt<MessageCacheService>(),
       conversationDetailCacheService: getIt<ConversationDetailCacheService>(),
       getMessagesUsecase: getIt<GetMessagesConversationUsecase>(),

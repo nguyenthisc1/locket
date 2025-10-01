@@ -28,7 +28,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
   void initState() {
     super.initState();
     _state = getIt<ConversationDetailControllerState>();
-    _controller = getIt<ConversationDetailController>();
+    _controller = getIt<ConversationDetailController>(param1: _state);
     _controller.init(widget.conversationId);
     _state.scrollController.addListener(_onScroll);
   }
