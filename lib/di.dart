@@ -157,7 +157,7 @@ void setupDependencies() {
 
   // Controllers
   // Home controller dependencies
-  getIt.registerLazySingleton<HomeController>(
+  getIt.registerFactory<HomeController>(
     () => HomeController(
       state: getIt<HomeControllerState>(),
       getProfileUsecase: getIt<GetProfileUsecase>(),

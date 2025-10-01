@@ -4,16 +4,13 @@ import 'package:locket/common/wigets/appbar/appbar.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/di.dart';
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller.dart';
-import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
-import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller.dart';
 import 'package:locket/presentation/home/controllers/home/home_controller_state.dart';
-import 'package:locket/presentation/home/pages/feed_page.dart';
-import 'package:locket/presentation/home/widgets/camera/index.dart';
 import 'package:locket/presentation/home/widgets/friend_select.dart';
 import 'package:locket/presentation/home/widgets/friend_topbar.dart';
-import 'package:locket/presentation/home/widgets/history_feed.dart';
+import 'package:locket/presentation/home/widgets/home/camera_section.dart';
+import 'package:locket/presentation/home/widgets/home/feed_section.dart';
 import 'package:locket/presentation/home/widgets/mess_button.dart';
 import 'package:locket/presentation/home/widgets/user_info.dart';
 import 'package:provider/provider.dart';
@@ -37,14 +34,14 @@ class _HomePageState extends State<HomePage> {
     _feedController = getIt<FeedController>();
     _conversationController = getIt<ConversationController>();
 
-    // Initialize both controllers
+    // // Initialize both controllers
     _homeController.init();
     // _conversationController.loadCachedConversations();
-    _conversationController.init();
 
     // Fetch feeds when HomePage is mounted
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
+        _conversationController.init();
         // Add a small delay to ensure auth and token setup is complete
         await Future.delayed(const Duration(milliseconds: 200));
 
@@ -56,16 +53,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    // Don't dispose the controller as it's a singleton managed by DI
-    // Just clean up the PageControllers and listeners
     _homeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<HomeControllerState>(
-      create: (_) => _homeController.state,
+    return ChangeNotifierProvider<HomeControllerState>.value(
+      value: _homeController.state,
       child: Consumer<HomeControllerState>(
         builder: (context, homeState, _) {
           if (homeState.isLoadingProfile) {
@@ -94,11 +89,11 @@ class _HomePageState extends State<HomePage> {
               controller: _homeController.outerController,
               scrollDirection: Axis.vertical,
               children: [
-                _CameraSection(
+                CameraSection(
                   onHistoryFeedTap:
                       () => _homeController.handleScrollPageViewOuter(1),
                 ),
-                _FeedSection(
+                FeedSection(
                   innerController: _homeController.innerController,
                   outerController: _homeController.outerController,
                   onScrollFeedToTop:
@@ -126,67 +121,6 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _CameraSection extends StatelessWidget {
-  final VoidCallback onHistoryFeedTap;
-
-  const _CameraSection({required this.onHistoryFeedTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<CameraControllerState>.value(
-          value: getIt<CameraControllerState>(),
-        ),
-        Provider<CameraController>.value(value: getIt<CameraController>()),
-      ],
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(
-              left: AppDimensions.md,
-              right: AppDimensions.md,
-              top: AppDimensions.appBarHeight + AppDimensions.xl,
-            ),
-            child: const Camera(),
-          ),
-          Positioned(
-            bottom: AppDimensions.xl,
-            left: 0,
-            right: 0,
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: onHistoryFeedTap,
-              child: const Center(child: HistoryFeed()),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FeedSection extends StatelessWidget {
-  final PageController innerController;
-  final PageController outerController;
-  final VoidCallback onScrollFeedToTop;
-
-  const _FeedSection({
-    required this.innerController,
-    required this.outerController,
-    required this.onScrollFeedToTop,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FeedPage(
-      innerController: innerController,
-      outerController: outerController,
-      handleScrollFeedToTop: onScrollFeedToTop,
     );
   }
 }

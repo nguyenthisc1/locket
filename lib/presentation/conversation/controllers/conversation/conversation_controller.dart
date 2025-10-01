@@ -23,7 +23,6 @@ class ConversationController {
   final Logger _logger;
 
   StreamSubscription<ConversationEntity>? _conversationUpdateSubscription;
-  StreamSubscription<Map<String, dynamic>>? _readReceiptSubscription;
 
   ConversationController({
     required ConversationControllerState state,

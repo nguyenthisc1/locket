@@ -29,6 +29,12 @@ class _ConversationPageState extends State<ConversationPage> {
   }
 
   @override
+  void dispose() {
+    _conversationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<ConversationControllerState>(
       builder: (context, conversationState, _) {
