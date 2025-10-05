@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:locket/common/wigets/message_field.dart';
 import 'package:locket/core/configs/theme/index.dart';
+import 'package:locket/core/services/user_service.dart';
+import 'package:locket/di.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/presentation/home/widgets/feed/feed_caption.dart';
@@ -50,8 +52,10 @@ class _FeedListState extends State<FeedList> {
 
   @override
   Widget build(BuildContext context) {
+    int feedIndex = 0;
     final feedController = context.read<FeedController>();
     final feedState = context.watch<FeedControllerState>();
+    final currentUserId = getIt<UserService>().currentUser?.id;
 
     // Show loading state
     if (feedState.isLoading && !feedState.hasInitialized) {
@@ -105,6 +109,9 @@ class _FeedListState extends State<FeedList> {
           controller: widget.innerController,
           scrollDirection: Axis.vertical,
           itemCount: feedState.listFeed.length,
+          onPageChanged: (index) {
+            feedIndex = index;
+          },
           itemBuilder: (context, index) {
             final feed = feedState.listFeed[index];
 
@@ -159,17 +166,21 @@ class _FeedListState extends State<FeedList> {
             );
           },
         ),
-        AnimatedPadding(
-          duration: const Duration(milliseconds: 0),
-          curve: Curves.linear,
-          padding: EdgeInsets.only(
-            bottom:
-                feedState.isKeyboardOpen
-                    ? MediaQuery.of(context).viewInsets.bottom
-                    : MediaQuery.of(context).viewInsets.bottom + 96,
+
+        if (currentUserId != feedState.listFeed[feedIndex].user.id)
+          AnimatedPadding(
+            duration: const Duration(milliseconds: 0),
+            curve: Curves.linear,
+            padding: EdgeInsets.only(
+              bottom:
+                  feedState.isKeyboardOpen
+                      ? MediaQuery.of(context).viewInsets.bottom
+                      : MediaQuery.of(context).viewInsets.bottom + 96,
+            ),
+            child: MessageField(
+              focusNode: feedController.messageFieldFocusNode,
+            ),
           ),
-          child: MessageField(focusNode: feedController.messageFieldFocusNode),
-        ),
       ],
     );
   }
