@@ -11,18 +11,24 @@ class TokenValidationService {
     required TokenStorage<AuthTokenPair> tokenStorage,
     Logger? logger,
   }) : _tokenStorage = tokenStorage,
-       _logger = logger ?? Logger(
-         printer: PrettyPrinter(colors: true, printEmojis: true),
-       );
+       _logger =
+           logger ??
+           Logger(printer: PrettyPrinter(colors: true, printEmojis: true));
 
   /// Check if stored tokens are valid and not expired
   /// Returns null if tokens are invalid or expired
   Future<AuthTokenPair?> getValidTokens() async {
     try {
       final tokenPair = await _tokenStorage.read();
-      
+
       if (tokenPair == null) {
         _logger.d('🔍 No tokens found in storage');
+        return null;
+      }
+
+      if (tokenPair.isAccessTokenExpired) {
+        _logger.d('🔍 Tokens is expired');
+        await _tokenStorage.delete();
         return null;
       }
 
@@ -34,10 +40,11 @@ class TokenValidationService {
       }
 
       // Log token status
-      final accessTokenRemaining = tokenPair.accessTokenRemainingTime;
-      if (accessTokenRemaining != null) {
-        _logger.d('✅ Access token valid for: ${_formatDuration(accessTokenRemaining)}');
-      }
+      // if (accessTokenRemaining != null) {
+      //   _logger.d(
+      //     '✅ Access token valid for: ${_formatDuration(accessTokenRemaining)}',
+      //   );
+      // }
 
       return tokenPair;
     } catch (e) {
@@ -52,19 +59,21 @@ class TokenValidationService {
   Future<bool> shouldRefreshToken() async {
     try {
       final tokenPair = await _tokenStorage.read();
-      
+
       if (tokenPair == null) {
         return false; // No token to refresh
       }
 
       // Check if access token will expire within 5 minutes
       const refreshThreshold = Duration(minutes: 5);
-      final shouldRefresh = tokenPair.willAccessTokenExpireWithin(refreshThreshold);
-      
+      final shouldRefresh = tokenPair.willAccessTokenExpireWithin(
+        refreshThreshold,
+      );
+
       if (shouldRefresh) {
         _logger.d('🔄 Access token will expire soon, should refresh');
       }
-      
+
       return shouldRefresh;
     } catch (e) {
       _logger.e('❌ Error checking token refresh need: $e');
@@ -83,7 +92,7 @@ class TokenValidationService {
   Future<Map<String, dynamic>> getTokenInfo() async {
     try {
       final tokenPair = await _tokenStorage.read();
-      
+
       if (tokenPair == null) {
         return {'status': 'no_tokens'};
       }
@@ -92,16 +101,15 @@ class TokenValidationService {
         'status': 'tokens_found',
         'access_token_expired': tokenPair.isAccessTokenExpired,
         'refresh_token_expired': tokenPair.isRefreshTokenExpired,
-        'access_token_expiration': tokenPair.accessTokenExpirationDate?.toIso8601String(),
-        'refresh_token_expiration': tokenPair.refreshTokenExpirationDate?.toIso8601String(),
+        'access_token_expiration':
+            tokenPair.accessTokenExpirationDate?.toIso8601String(),
+        'refresh_token_expiration':
+            tokenPair.refreshTokenExpirationDate?.toIso8601String(),
         'access_token_remaining': tokenPair.accessTokenRemainingTime?.inMinutes,
         'tokens_valid': tokenPair.areTokensValid,
       };
     } catch (e) {
-      return {
-        'status': 'error',
-        'error': e.toString(),
-      };
+      return {'status': 'error', 'error': e.toString()};
     }
   }
 

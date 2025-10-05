@@ -17,7 +17,7 @@ class EmailLoginForm extends StatefulWidget {
 }
 
 class _EmailLoginFormState extends State<EmailLoginForm> {
-  final _emailController = TextEditingController(text: 'admin@gmail.com');
+  final _emailController = TextEditingController(text: 'user@gmail.com');
   final _passwordController = TextEditingController(text: 'User123');
   final _formKey = GlobalKey<FormState>();
   late final AuthController _authController;

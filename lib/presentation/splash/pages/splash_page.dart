@@ -109,7 +109,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       
       if (!mounted) return;
       
-      AppNavigator.pushReplacement(context, '/onboarding');
+      AppNavigator.pushReplacement(context, '/email-login');
     } catch (e) {
       _logger.e('❌ Error during app initialization: $e');
       
@@ -118,7 +118,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       
       if (!mounted) return;
       
-      AppNavigator.pushReplacement(context, '/onboarding');
+      AppNavigator.pushReplacement(context, '/email-login');
     }
   }
 

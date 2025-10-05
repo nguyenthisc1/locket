@@ -65,7 +65,7 @@ class AppRouter {
           _logger.e('❌ Failed to clear tokens: $clearError');
         }
         
-        return '/onboarding';
+        return '/email-login';
       }
     },
     routes: [
@@ -171,17 +171,6 @@ class AppRouter {
       _logger.d('✅ Token expiration handled successfully');
     } catch (e) {
       _logger.e('❌ Error handling token expiration: $e');
-    }
-  }
-
-  /// Check if current tokens are valid
-  static Future<bool> areTokensValid() async {
-    try {
-      final validTokens = await _tokenValidationService.getValidTokens();
-      return validTokens != null;
-    } catch (e) {
-      _logger.e('❌ Error checking token validity: $e');
-      return false;
     }
   }
 

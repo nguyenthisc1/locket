@@ -80,7 +80,7 @@ class Middleware {
   Future<String?> routeMiddleware(GoRouterState state) async {
     try {
       // print('state Go ${state.path}');
-      final path = state.fullPath ?? '/onboarding';
+      final path = state.fullPath ?? '/email-login';
       // _logger.d('Middleware checking path: $path ${state.path}');
       // _logger.d('Is public route: ${_isPublicRoute(path)}');
       // _logger.d('Is protected route: ${_isProtectedRoute(path)}');
@@ -93,10 +93,10 @@ class Middleware {
         return null;
       }
 
-      if (_isProtectedRoute(path) && !hasValidTokens) {
+      if (!hasValidTokens) {
         _logger.d('🔒 Protected route accessed without valid tokens: $path');
-        _logger.d('🔄 Redirecting to /onboarding');
-        return '/onboarding';
+        _logger.d('🔄 Redirecting to /email-login');
+        return '/email-login';
       }
 
       if (hasValidTokens && _isAuthOnlyRoute(path)) {
@@ -109,7 +109,7 @@ class Middleware {
       return null;
     } catch (e) {
       _logger.e('Error in middleware: $e');
-      return '/onboarding';
+      return '/email-login';
     }
   }
 
