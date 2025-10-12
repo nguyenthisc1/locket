@@ -23,6 +23,7 @@ class ConversationDetailPage extends StatefulWidget {
 class _ConversationDetailPageState extends State<ConversationDetailPage> {
   late final ConversationDetailControllerState _state;
   late final ConversationDetailController _controller;
+  bool isShowGallery = false;
 
   @override
   void initState() {
@@ -60,6 +61,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       animation: _state,
       builder: (context, _) {
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(kToolbarHeight),
             child: _buildAppBar(),
@@ -81,6 +83,44 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
                   else
                     _buildMessageList(),
                   if (_state.typingUsers.isNotEmpty) _buildTypingIndicator(),
+
+                  // if (_state.pickImagesGallery != null)
+                  // Positioned(
+                  //   right: AppDimensions.md,
+                  //   bottom: 100,
+                  //   width: 200,
+                  //   child: Stack(
+                  //     alignment: AlignmentDirectional.centerEnd,
+                  //     children: [
+                  //       if (_state.pickImagesGallery!.length > 1)
+                  //         Positioned.fill(
+                  //           left: AppDimensions.xl,
+                  //           child: ClipRRect(
+                  //             borderRadius: BorderRadius.circular(
+                  //               AppDimensions.radiusLg,
+                  //             ),
+                  //             child: Image.file(
+                  //               _state.pickImagesGallery![1],
+                  //               width: 150,
+                  //               height: 200,
+                  //               fit: BoxFit.cover,
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ClipRRect(
+                  //         borderRadius: BorderRadius.circular(
+                  //           AppDimensions.radiusLg,
+                  //         ),
+                  //         child: Image.file(
+                  //           _state.pickImagesGallery!.first,
+                  //           width: 150,
+                  //           height: 200,
+                  //           fit: BoxFit.cover,
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                   _buildMessageField(),
                 ],
               ),
@@ -247,6 +287,10 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
       right: 0,
       bottom: 0,
       child: MessageField(
+        isShowPickImagesGalleryIcon: true,
+
+        // onPickimagesGallery: _controller.pickImage,
+        // photos: _state.photos,
         onChanged: (text) {
           if (text.isNotEmpty) {
             _controller.sendTypingIndicator();

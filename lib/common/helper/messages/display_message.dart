@@ -15,7 +15,7 @@ class DisplayMessage {
     var snackbar = SnackBar(
       content: Text(message),
       behavior: SnackBarBehavior.floating,
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.background,
     );
     ScaffoldMessenger.of(context).showSnackBar(snackbar);
   }

@@ -195,10 +195,11 @@ class AppTheme {
 
     return light().copyWith(
       brightness: Brightness.dark,
-      colorScheme: const ColorScheme.dark(
+      colorScheme: light().colorScheme.copyWith(
+        brightness: Brightness.dark,
         primary: AppColors.primary,
         secondary: AppColors.secondary,
-        surface: Color(0xFF1E1E1E),
+        surface: const Color(0xFF1E1E1E),
         error: AppColors.error,
       ),
       scaffoldBackgroundColor: Colors.black,

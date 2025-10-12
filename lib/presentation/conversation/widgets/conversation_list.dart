@@ -52,6 +52,11 @@ class _ConversationListState extends State<ConversationList> {
     final conversationController = context.read<ConversationController>();
     final conversationState = context.watch<ConversationControllerState>();
 
+    if (conversationState.isLoadingConversations &&
+        !conversationState.hasInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     if (conversationState.errorMessage != null &&
         conversationState.listConversations.isEmpty) {
       return Center(
@@ -77,7 +82,6 @@ class _ConversationListState extends State<ConversationList> {
 
     return Stack(
       children: [
-
         // Conversation list
         Positioned.fill(
           child: ListView.separated(

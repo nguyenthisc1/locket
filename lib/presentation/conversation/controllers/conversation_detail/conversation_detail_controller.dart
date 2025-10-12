@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
 import 'package:locket/core/mappers/last_message_mapper.dart';
@@ -23,6 +26,7 @@ import 'package:locket/presentation/conversation/controllers/conversation/conver
 import 'package:locket/presentation/conversation/controllers/conversation/conversation_controller_state.dart';
 import 'package:locket/presentation/conversation/controllers/conversation_detail/converstion_detail_controller_state.dart';
 import 'package:logger/logger.dart';
+import 'package:photo_manager/photo_manager.dart';
 
 class ConversationDetailController {
   final ConversationDetailControllerState _state;
@@ -451,7 +455,6 @@ class ConversationDetailController {
   Future<void> seenMessage() async {
     try {
       final userService = getIt<UserService>();
-    
 
       await _socketService.sendReadReceipt(
         conversationId: _state.conversationId,

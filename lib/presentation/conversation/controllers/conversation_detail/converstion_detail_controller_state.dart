@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
+import 'package:photo_manager/photo_manager.dart';
 
 class ConversationDetailControllerState extends ChangeNotifier {
   // Loading and error state
@@ -28,6 +31,9 @@ class ConversationDetailControllerState extends ChangeNotifier {
   bool _isSendingMessage = false;
   String? _pendingMessageText;
   String? _pendingAttachmentPath;
+
+  // Image state
+  List<AssetEntity>? _photos;
 
   // UI state
   final ScrollController scrollController = ScrollController();
@@ -58,6 +64,7 @@ class ConversationDetailControllerState extends ChangeNotifier {
   String? get pendingAttachmentPath => _pendingAttachmentPath;
   int get currentGradientIndex => _currentGradientIndex;
   Set<String> get typingUsers => Set.from(_typingUsers);
+  List<AssetEntity>? get photos => _photos;
 
   // Setters
   void setConversationId(String value) {
@@ -223,6 +230,11 @@ class ConversationDetailControllerState extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
     }
+  }
+
+  void setPickPhotosGallery(List<AssetEntity> photosPicked) {
+      _photos = List.from(photosPicked);
+      notifyListeners();
   }
 
   bool shouldShowTimestamp(int index, List<MessageEntity> data) {
