@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:locket/common/wigets/message_field.dart';
+import 'package:locket/common/wigets/field/message_field.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/di.dart';

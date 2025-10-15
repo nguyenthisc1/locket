@@ -5,7 +5,7 @@ class MessageModel {
   final String id;
   final String conversationId;
   final String senderId;
-  final String text;
+  final String? text;
   final String type;
   final List<Map<String, dynamic>> attachments;
   final String? replyTo;

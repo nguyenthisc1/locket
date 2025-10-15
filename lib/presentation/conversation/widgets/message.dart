@@ -6,8 +6,6 @@ import 'package:locket/common/wigets/photo_preview.dart';
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
-import 'package:locket/core/services/user_service.dart';
-import 'package:locket/di.dart';
 import 'package:locket/domain/conversation/entities/conversation_entity.dart';
 import 'package:locket/domain/conversation/entities/message_entity.dart';
 
@@ -50,7 +48,6 @@ class Message extends StatelessWidget {
           data.attachments.isNotEmpty
               ? _buildMessageImage(context, data)
               : _messageText(context, data),
-
       ],
     );
   }
@@ -83,7 +80,7 @@ class Message extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      data.text,
+                      data.text!,
                       style: AppTypography.headlineLarge.copyWith(
                         color: data.isMe ? AppColors.dark : Colors.white,
                         fontWeight: FontWeight.w600,
@@ -159,7 +156,7 @@ class Message extends StatelessWidget {
                         ),
                         const SizedBox(width: AppDimensions.sm),
                         Text(
-                          // data.senderName, 
+                          // data.senderName,
                           '',
                           style: AppTypography.bodyMedium.copyWith(
                             color: Colors.white,
@@ -200,7 +197,7 @@ class Message extends StatelessWidget {
                         color: Colors.black.safeOpacity(0.3),
                       ),
                       child: Text(
-                        data.text,
+                        data.text!,
                         style: AppTypography.bodyLarge.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -376,5 +373,4 @@ class Message extends StatelessWidget {
       ),
     );
   }
-
 }

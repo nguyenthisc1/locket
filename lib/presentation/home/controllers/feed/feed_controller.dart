@@ -1,10 +1,14 @@
 // lib/presentation/home/controllers/feed_controller.dart
 
 import 'package:flutter/material.dart';
+import 'package:locket/core/mappers/media_feed_mapper.dart';
 import 'package:locket/core/services/feed_cache_service.dart';
+import 'package:locket/core/services/media_service.dart';
 import 'package:locket/domain/feed/entities/feed_entity.dart';
+import 'package:locket/domain/feed/usecases/create_feed_usecase.dart';
 import 'package:locket/domain/feed/usecases/get_feed_usecase.dart';
 import 'package:locket/domain/feed/usecases/upload_feed_usecase.dart';
+import 'package:locket/domain/media/entities/media_feed_entity.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/core/models/pagination_model.dart';
@@ -18,7 +22,9 @@ class FeedController {
   final FeedControllerState _state;
   final FeedCacheService _cacheService;
   final GetFeedsUsecase _getFeedsUsecase;
+  final CreateFeedUsecase _createFeedUsecase;
   final UploadFeedUsecase _uploadFeedUsecase;
+  final MediaService _mediaService;
   final Logger _logger;
   final FocusNode _messageFieldFocusNode;
   // Upload and media state
@@ -28,11 +34,15 @@ class FeedController {
     required FeedCacheService cacheService,
     required GetFeedsUsecase getFeedsUsecase,
     required UploadFeedUsecase uploadFeedUsecase,
+    required CreateFeedUsecase createFeedUsecase,
+    required MediaService mediaService,
     Logger? logger,
   }) : _state = state,
        _cacheService = cacheService,
        _getFeedsUsecase = getFeedsUsecase,
        _uploadFeedUsecase = uploadFeedUsecase,
+       _createFeedUsecase = createFeedUsecase,
+       _mediaService = mediaService,
        _logger =
            logger ??
            Logger(printer: PrettyPrinter(colors: true, printEmojis: true)),
@@ -349,12 +359,95 @@ class FeedController {
       );
 
       _state.setNewFeed(draftFeed);
-      
+
       // Immediately add the draft feed to the list for preview
       _state.addFeed(draftFeed);
       _logger.d('Draft feed created and added to list: ${draftFeed.id}');
     } catch (e) {
       _logger.e('Error creating draft feed: $e');
+    }
+  }
+
+  Future<void> createFeed(
+    String filePath,
+    String fileName,
+    String mediaType,
+    bool isFrontCamera,
+  ) async {
+    if (_state.newFeed == null) {
+      _logger.e('No media to upload - no draft feed found');
+      _state.setError('No media captured to upload');
+      return;
+    }
+
+    _state.clearError();
+    _state.clearUploadStatus();
+    _state.setUploading(true);
+
+    try {
+      final file = File(filePath);
+
+      final payload = <String, dynamic>{
+        'filePath': file.path,
+        'fileName': fileName,
+        'mediaType': mediaType,
+        'isFrontCamera': isFrontCamera,
+        'caption': _state.captionFeed,
+      };
+
+      _logger.d('Uploading $mediaType: $fileName');
+      _logger.d('Caption: ${_state.captionFeed ?? 'No caption'}');
+
+      final mediaResult = await _mediaService.uploadMediaFeed(payload);
+
+      if (mediaResult is! MediaFeedEntity) {
+        _logger.e('Failed to upload media: unexpected result');
+        _state.setError('Failed to upload media');
+        _state.setUploading(false);
+        return;
+      }
+
+      final media = mediaResult as MediaFeedEntity;
+
+      final payloadCreate = <String, dynamic>{
+        'url': media.url,
+        'publicId': media.publicId,
+        'location': media.location,
+        'duration': media.duration,
+        'format': media.format,
+        'width': media.width,
+        'height': media.height,
+        'fileSize': media.fileSize,
+        'mediaType': media.mediaType,
+        'isFrontCamera': isFrontCamera,
+        'caption': _state.captionFeed,
+      };
+
+      final createResult = await _createFeedUsecase(payloadCreate);
+
+      if (createResult.isLeft()) {
+        final failure = createResult.fold((l) => l, (r) => null);
+        _logger.e('Create feed failed: ${failure?.message}');
+        _state.setError('Create feed failed: ${failure?.message}');
+        _state.setUploading(false);
+        return;
+      }
+
+      _logger.d('Feed successfully created');
+      _state.setUploadSuccess(true);
+
+      addNewFeedToList();
+
+      // Reset after delay (but keep the feed in the list)
+      Future.delayed(const Duration(seconds: 2), () {
+        resetUploadStateAfterSuccess();
+      });
+    } catch (e) {
+      _logger.e('Upload exception: $e');
+      _state.setError('Upload exception: $e');
+      _state.setUploading(false);
+    } finally {
+      _state.setUploading(false);
     }
   }
 
@@ -380,7 +473,7 @@ class FeedController {
       final file = File(filePath);
 
       // Prepare payload with conditional key based on mediaType
-      final payload = <String, dynamic>{
+      final payloadUpload = <String, dynamic>{
         'filePath': file.path,
         'fileName': fileName,
         'mediaType': mediaType,
@@ -392,7 +485,7 @@ class FeedController {
       _logger.d('Caption: ${_state.captionFeed ?? 'No caption'}');
 
       // Upload via use case
-      final result = await _uploadFeedUsecase.call(payload);
+      final result = await _uploadFeedUsecase.call(payloadUpload);
 
       result.fold(
         (failure) {
@@ -426,8 +519,10 @@ class FeedController {
   void addNewFeedToList() {
     if (_state.newFeed != null) {
       // Check if the draft feed is already in the list
-      final existingIndex = _state.listFeed.indexWhere((feed) => feed.id == _state.newFeed!.id);
-      
+      final existingIndex = _state.listFeed.indexWhere(
+        (feed) => feed.id == _state.newFeed!.id,
+      );
+
       if (existingIndex == -1) {
         // Feed not in list yet, add it
         _logger.d('Adding new feed to list: ${_state.newFeed!.id}');
@@ -480,19 +575,21 @@ class FeedController {
   void setCaption(String caption) {
     _state.setCaption(caption);
     _logger.d('Caption updated: $caption');
-    
+
     // Update the draft feed with the new caption if it exists
     if (_state.newFeed != null) {
       final updatedDraftFeed = _state.newFeed!.copyWith(caption: caption);
       _state.setNewFeed(updatedDraftFeed);
-      
+
       // Also update the feed in the list if it's already there
-      final draftIndex = _state.listFeed.indexWhere((feed) => feed.id == _state.newFeed!.id);
+      final draftIndex = _state.listFeed.indexWhere(
+        (feed) => feed.id == _state.newFeed!.id,
+      );
       if (draftIndex != -1) {
         _state.updateFeedAtIndex(draftIndex, updatedDraftFeed);
         _logger.d('Updated draft feed caption in list at index $draftIndex');
       }
-      
+
       _logger.d('Updated draft feed caption: $caption');
     }
   }
@@ -501,7 +598,7 @@ class FeedController {
   String _createLocalUri(String filePath) {
     // Handle case where filePath might already have a prefix
     String cleanPath = filePath;
-    
+
     // Remove any existing prefixes
     if (cleanPath.startsWith('local:////')) {
       cleanPath = cleanPath.substring(10);
@@ -512,17 +609,17 @@ class FeedController {
     } else if (cleanPath.startsWith('file://')) {
       cleanPath = cleanPath.substring(7);
     }
-    
+
     // Handle case where path starts with additional slashes
     while (cleanPath.startsWith('//')) {
       cleanPath = cleanPath.substring(1);
     }
-    
+
     // Ensure we have an absolute path
     if (cleanPath.isNotEmpty && !cleanPath.startsWith('/')) {
       cleanPath = '/$cleanPath';
     }
-    
+
     // Return with consistent local:// prefix (single slash after colon)
     return 'local://$cleanPath';
   }

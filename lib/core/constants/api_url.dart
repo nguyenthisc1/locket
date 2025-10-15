@@ -1,7 +1,7 @@
 
 class  ApiUrl {
   // static const String baseUrl = 'https://locket-backend.onrender.com/api/v1';
-  static const String baseIp = '172.16.16.145';
+  static const String baseIp = '192.168.1.155';
   static const String baseUrl = 'http://$baseIp:8080/api/v1';
   static const String socketUrl = 'http://$baseIp:8080';
 
@@ -54,15 +54,15 @@ class  ApiUrl {
   static const String getPhotos = '/feed';
   static String getPhotoById(String photoId) => '/feed/$photoId';
   static String getUserPhotos(String userId) => '/feed/user/$userId';
-  static const String createPhoto = '/feed';
+  static const String createFeed = '/feed';
   static String updatePhoto(String photoId) => '/feed/$photoId';
   static String deletePhoto(String photoId) => '/feed/$photoId';
   static String addPhotoReaction(String photoId) => '/feed/$photoId/reactions';
   static String removePhotoReaction(String photoId) =>
       '/feed/$photoId/reactions';
 
-  static const String uploadPhoto = '/upload';
-  static const String uploadMultiplePhotos = '/upload/upload-multiple';
+  static const String uploadFeed = '/upload/feed';
+  static const String uploadMultipleMedias = '/upload/upload-multiple';
   static String deletePhotoWithCloudinary(String photoId) => '/upload/$photoId';
   static String getImageUrls(String photoId) => '/upload/$photoId/urls';
 

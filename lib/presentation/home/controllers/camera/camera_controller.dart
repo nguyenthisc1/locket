@@ -312,10 +312,10 @@ class CameraController {
       );
 
       // Upload via feed controller
-      await _state.feedController.uploadMedia(
+      await _state.feedController.createFeed(
         mediaFile.path,
-        fileName,
         mediaType,
+        fileName,
         isFrontCamera,
       );
 

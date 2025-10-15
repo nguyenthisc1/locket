@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import 'package:camera/camera.dart' as cam;
 import 'package:flutter/material.dart';
-import 'package:locket/common/wigets/message_field.dart';
+import 'package:locket/common/wigets/field/message_field.dart';
 import 'package:locket/core/configs/theme/index.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller.dart';
 import 'package:locket/presentation/home/controllers/camera/camera_controller_state.dart';

@@ -37,7 +37,7 @@ class LocationEntity extends Equatable {
   }
 }
 
-class ImageEntity extends Equatable {
+class MediaEntity extends Equatable {
   final String id;
   final String userId;
   final String imageUrl;
@@ -49,7 +49,7 @@ class ImageEntity extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  const ImageEntity({
+  const MediaEntity({
     required this.id,
     required this.userId,
     required this.imageUrl,
@@ -76,7 +76,7 @@ class ImageEntity extends Equatable {
     updatedAt,
   ];
 
-  ImageEntity copyWith({
+  MediaEntity copyWith({
     String? id,
     String? userId,
     String? imageUrl,
@@ -88,7 +88,7 @@ class ImageEntity extends Equatable {
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
-    return ImageEntity(
+    return MediaEntity(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       imageUrl: imageUrl ?? this.imageUrl,

@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/entities/last_message_entity.dart';
 import 'package:locket/core/mappers/last_message_mapper.dart';
@@ -379,77 +376,75 @@ class ConversationDetailController {
     }
   }
 
-  Future<void> sendMessage({
-    required String text,
-    String? replyTo,
-    List<Map<String, dynamic>>? attachments,
-  }) async {
-    if (text.trim().isEmpty) return;
+  Future<void> sendMessage({String? text, List<AssetEntity>? photos}) async {
+    if (text == null && photos == null) return;
 
     _state.setSendingMessage(true);
 
-    try {
-      final now = DateTime.now();
-      final tempId = UniqueKey().toString();
+    // try {
+    //   if (photos!.isNotEmpty) {}
 
-      final payload = <String, dynamic>{
-        'conversationId': _state.conversationId,
-        'text': text,
-        'replyTo': replyTo,
-        'metadata': {'clientMessageId': tempId},
-        'attachments': attachments,
-      };
+    //   final now = DateTime.now();
+    //   final tempId = UniqueKey().toString();
 
-      final result = await _sendMessageUsecase(payload);
-      final userService = getIt<UserService>();
+    //   final payload = <String, dynamic>{
+    //     'conversationId': _state.conversationId,
+    //     'text': text,
+    //     // 'replyTo': replyTo,
+    //     'metadata': {'clientMessageId': tempId},
+    //     // 'attachments': attachments,
+    //   };
 
-      final draftMessage = MessageEntity(
-        id: tempId,
-        conversationId: _state.conversationId,
-        senderId: userService.currentUser!.id,
-        messageStatus: MessageStatus.sent,
-        text: text,
-        type:
-            (attachments != null && attachments.isNotEmpty) ? "media" : "text",
-        attachments: attachments ?? [],
-        metadata: {'clientMessageId': tempId},
-        replyTo: replyTo,
-        createdAt: now,
-        timestamp: now.toIso8601String(),
-      );
+    //   final result = await _sendMessageUsecase(payload);
+    //   final userService = getIt<UserService>();
 
-      await _socketService.sendMessage(MessageMapper.toModel(draftMessage));
+    //   final draftMessage = MessageEntity(
+    //     id: tempId,
+    //     conversationId: _state.conversationId,
+    //     senderId: userService.currentUser!.id,
+    //     messageStatus: MessageStatus.sent,
+    //     text: text,
+    //     type:
+    //         (attachments != null && attachments.isNotEmpty) ? "media" : "text",
+    //     attachments: attachments ?? [],
+    //     metadata: {'clientMessageId': tempId},
+    //     replyTo: replyTo,
+    //     createdAt: now,
+    //     timestamp: now.toIso8601String(),
+    //   );
 
-      result.fold(
-        (failure) {
-          _logger.e('Failed to send message: ${failure.message}');
+    //   await _socketService.sendMessage(MessageMapper.toModel(draftMessage));
 
-          final failedMessage = draftMessage.copyWith(
-            messageStatus: MessageStatus.failed,
-          );
+    //   result.fold(
+    //     (failure) {
+    //       _logger.e('Failed to send message: ${failure.message}');
 
-          _state.replaceMessage(tempId, failedMessage);
-        },
-        (response) {
-          _logger.d('send message successfully');
-          _state.clearError();
+    //       final failedMessage = draftMessage.copyWith(
+    //         messageStatus: MessageStatus.failed,
+    //       );
 
-          final messageData = response.data['message'] as MessageEntity;
-          final newMessage = messageData.copyWith(
-            messageStatus: MessageStatus.delivered,
-          );
+    //       _state.replaceMessage(tempId, failedMessage);
+    //     },
+    //     (response) {
+    //       _logger.d('send message successfully');
+    //       _state.clearError();
 
-          _state.replaceMessage(tempId, newMessage);
-        },
-      );
+    //       final messageData = response.data['message'] as MessageEntity;
+    //       final newMessage = messageData.copyWith(
+    //         messageStatus: MessageStatus.delivered,
+    //       );
 
-      _logger.d('📤 Message sent via Socket.IO');
-    } catch (e) {
-      _logger.e('❌ Error sending message: $e');
-      _state.setError('Failed to send message');
-    } finally {
-      _state.setSendingMessage(false);
-    }
+    //       _state.replaceMessage(tempId, newMessage);
+    //     },
+    //   );
+
+    //   _logger.d('📤 Message sent via Socket.IO');
+    // } catch (e) {
+    //   _logger.e('❌ Error sending message: $e');
+    //   _state.setError('Failed to send message');
+    // } finally {
+    //   _state.setSendingMessage(false);
+    // }
   }
 
   Future<void> seenMessage() async {

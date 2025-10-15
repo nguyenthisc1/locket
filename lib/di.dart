@@ -6,6 +6,7 @@ import 'package:locket/core/routes/middleware.dart';
 import 'package:locket/core/services/conversation_cache_service.dart';
 import 'package:locket/core/services/conversation_detail_cache_service.dart';
 import 'package:locket/core/services/feed_cache_service.dart';
+import 'package:locket/core/services/media_service.dart';
 import 'package:locket/core/services/message_cache_service.dart';
 import 'package:locket/core/services/socket_service.dart';
 import 'package:locket/core/services/token_validation_service.dart';
@@ -20,6 +21,8 @@ import 'package:locket/data/conversation/services/conversation_api_service.dart'
 import 'package:locket/data/conversation/services/message_api_service.dart';
 import 'package:locket/data/feed/respositories/feed_repository_impl.dart';
 import 'package:locket/data/feed/services/feed_api_service.dart';
+import 'package:locket/data/media/repositories/media_repository_impl.dart';
+import 'package:locket/data/media/services/media_api_service.dart';
 import 'package:locket/data/user/repositories/user_repository_impl.dart';
 import 'package:locket/data/user/services/user_api_service.dart';
 import 'package:locket/domain/auth/repositories/auth_repository.dart';
@@ -33,8 +36,11 @@ import 'package:locket/domain/conversation/usecases/mark_conversation_as_read_us
 import 'package:locket/domain/conversation/usecases/send_message_usecase.dart';
 import 'package:locket/domain/conversation/usecases/unread_count_conversations_usecase.dart';
 import 'package:locket/domain/feed/repositories/feed_repository.dart';
+import 'package:locket/domain/feed/usecases/create_feed_usecase.dart';
 import 'package:locket/domain/feed/usecases/get_feed_usecase.dart';
 import 'package:locket/domain/feed/usecases/upload_feed_usecase.dart';
+import 'package:locket/domain/media/repositories/media_repository.dart';
+import 'package:locket/domain/media/usecases/media_upload_usecase.dart';
 import 'package:locket/domain/user/repositories/user_repository.dart';
 import 'package:locket/domain/user/usecase/get_profile_usecase.dart';
 import 'package:locket/presentation/auth/controllers/auth/auth_controller.dart';
@@ -83,6 +89,9 @@ void setupDependencies() {
     ),
   );
   getIt.registerLazySingleton<Middleware>(() => Middleware());
+  getIt.registerLazySingleton<MediaService>(
+    () => MediaService(getIt<MediaUploadFeedUsecase>()),
+  );
 
   // API Services
   getIt.registerLazySingleton<AuthApiService>(
@@ -99,6 +108,9 @@ void setupDependencies() {
   );
   getIt.registerLazySingleton<MessageApiService>(
     () => MessageApiServiceImpl(getIt<DioClient>()),
+  );
+  getIt.registerLazySingleton<MediaApiService>(
+    () => MediaApiServiceImpl(getIt<DioClient>()),
   );
 
   // Repositories
@@ -117,16 +129,27 @@ void setupDependencies() {
   getIt.registerLazySingleton<MessageRepository>(
     () => MessageRepositoryImpl(getIt<MessageApiService>()),
   );
+  getIt.registerLazySingleton<MediaRepository>(
+    () => MediaRepositoryImpl(getIt<MediaApiService>()),
+  );
 
   // Use Cases
+  getIt.registerFactory<MediaUploadFeedUsecase>(
+    () => MediaUploadFeedUsecase(getIt<MediaRepository>()),
+  );
+
+  // Media use cases
+
   // Auth use cases
   getIt.registerFactory<LoginUsecase>(
     () => LoginUsecase(getIt<AuthRepository>()),
   );
+
   // User use cases
   getIt.registerFactory<GetProfileUsecase>(
     () => GetProfileUsecase(getIt<UserRepository>()),
   );
+
   // Conversation use cases
   getIt.registerFactory<GetConversationsUsecase>(
     () => GetConversationsUsecase(getIt<ConversationRepository>()),
@@ -156,6 +179,9 @@ void setupDependencies() {
   getIt.registerFactory<UploadFeedUsecase>(
     () => UploadFeedUsecase(getIt<FeedRepository>()),
   );
+  getIt.registerFactory<CreateFeedUsecase>(
+    () => CreateFeedUsecase(getIt<FeedRepository>()),
+  );
 
   // Controller States
   getIt.registerLazySingleton<AuthControllerState>(() => AuthControllerState());
@@ -182,7 +208,7 @@ void setupDependencies() {
       userService: getIt<UserService>(),
     ),
   );
-  
+
   // Conversation controller dependencies
   getIt.registerLazySingleton<ConversationController>(
     () => ConversationController(
@@ -241,6 +267,8 @@ void setupDependencies() {
       cacheService: getIt<FeedCacheService>(),
       getFeedsUsecase: getIt<GetFeedsUsecase>(),
       uploadFeedUsecase: getIt<UploadFeedUsecase>(),
+      createFeedUsecase: getIt<CreateFeedUsecase>(),
+      mediaService: getIt<MediaService>(),
     ),
   );
 }

@@ -56,6 +56,24 @@ class FeedRepositoryImpl extends FeedRepository {
     );
   }
 
+    @override
+  Future<Either<Failure, BaseResponse>> createFeed(
+    Map<String, dynamic> payload,
+  ) async {
+    final result = await _feedApiService.createFeed(payload);
+
+    return result.fold(
+      (failure) {
+        logger.e('Repository Create Feed failed: ${failure.toString()}');
+        return Left(failure);
+      },
+      (result) {
+        logger.d('Repository Create Feed successful for: ${result.data}');
+        return Right(result);
+      },
+    );
+  }
+
   // @override
   // Future<Either<Failure, void>> refreshFeed() {
   //   // TODO: implement refreshFeed

@@ -9,7 +9,7 @@ class MessageField extends StatefulWidget {
   final FocusNode? focusNode;
   final EdgeInsetsGeometry? padding;
   final ValueChanged<String>? onChanged;
-  final ValueChanged<String>? onSubmitted;
+  final void Function(String? text, List<AssetEntity> photos)? onSubmitted;
   final bool? isShowPickImagesGalleryIcon;
   final bool? isShowGallery;
   final bool? isVisibleBackdrop;
@@ -46,14 +46,15 @@ class _MessageFieldState extends State<MessageField>
 
   bool isShowGallery = false;
   List<AssetEntity> photos = [];
-
-  /// Use a [ValueNotifier] for selected photos to optimize and control rerenders.
   late ValueNotifier<List<AssetEntity>> _selectedPhotosNotifier;
 
   bool isKeyboardVisible = false;
 
   late AnimationController _animationController;
+  late AnimationController _showMessageFieldGalleryController;
+
   late Animation<double> _opacityAnimation;
+  late Animation<Offset> _slideTransition;
 
   @override
   void initState() {
@@ -76,6 +77,24 @@ class _MessageFieldState extends State<MessageField>
     _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.linear),
     );
+
+    _showMessageFieldGalleryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    // By default, the message field (in gallery) should be hidden
+    _showMessageFieldGalleryController.value = 1.0;
+
+    _slideTransition = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(0.0, 1),
+    ).animate(
+      CurvedAnimation(
+        parent: _showMessageFieldGalleryController,
+        curve: Curves.ease,
+      ),
+    );
   }
 
   @override
@@ -87,8 +106,10 @@ class _MessageFieldState extends State<MessageField>
       widget.focusNode?.removeListener(_handleFocusChange);
       // Do not dispose external focusNode
     }
+
     _textController.dispose();
     _animationController.dispose();
+    _showMessageFieldGalleryController.dispose();
     _selectedPhotosNotifier.dispose();
     super.dispose();
   }
@@ -120,24 +141,37 @@ class _MessageFieldState extends State<MessageField>
 
   void _handleSubmit() {
     final text = _textController.text.trim();
-    if (text.isNotEmpty) {
-      widget.onSubmitted?.call(text);
-      _textController.clear();
-    }
+
+    widget.onSubmitted?.call(text, photos);
+    _textController.clear();
+    _selectedPhotosNotifier.value = [];
   }
 
   void _handleToggleSelect(AssetEntity photo) {
-    final current = List<AssetEntity>.of(_selectedPhotosNotifier.value);
-    if (current.contains(photo)) {
-      current.remove(photo);
+    final currentSelectedPhotos = List<AssetEntity>.of(
+      _selectedPhotosNotifier.value,
+    );
+    if (currentSelectedPhotos.contains(photo)) {
+      currentSelectedPhotos.remove(photo);
     } else {
-      current.add(photo);
+      currentSelectedPhotos.add(photo);
     }
-    _selectedPhotosNotifier.value = current;
+
+    // If there are more than 1 selected photo, show message field.
+    // If 1 or fewer, hide it.
+    if (currentSelectedPhotos.isNotEmpty) {
+      _showMessageFieldGalleryController.reverse();
+    } else {
+      _showMessageFieldGalleryController.forward();
+    }
+
+    _selectedPhotosNotifier.value = currentSelectedPhotos;
   }
 
   void _showGalleryBottomSheet(BuildContext context) {
     if (!mounted) return;
+
+    _showMessageFieldGalleryController.value = 1.0;
 
     showModalBottomSheet(
       context: context,
@@ -171,7 +205,7 @@ class _MessageFieldState extends State<MessageField>
                             padding: const EdgeInsets.only(
                               left: AppDimensions.sm,
                               right: AppDimensions.sm,
-                              bottom: AppDimensions.md,
+                              bottom: 80,
                             ),
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
@@ -192,7 +226,7 @@ class _MessageFieldState extends State<MessageField>
                                   _handleToggleSelect(photo);
                                   final file = await photo.file;
                                   if (file != null) {
-                                    print('Selected image: ${file.path}');
+                                    // print('Selected image: ${file.path}');
                                   }
                                 },
                                 child: ClipRRect(
@@ -245,191 +279,226 @@ class _MessageFieldState extends State<MessageField>
                             },
                           ),
                         ),
-                        // Add some space at the bottom to avoid gridView being fully under the TextField
-                        SizedBox(height: 72),
                       ],
                     ),
+
                     Positioned(
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(color: Colors.white),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppDimensions.sm,
-                          vertical: AppDimensions.sm,
-                        ),
-                        child: Row(
-                          spacing: AppDimensions.md,
-                          children: [
-                            SizedBox(
-                              width: 48,
-                              height: 48,
-                              child: Stack(
-                                alignment: AlignmentDirectional.center,
-                                children: [
-                                  if (selectedPhotos.isNotEmpty) ...[
-                                    if (selectedPhotos.length > 2)
-                                      Positioned(
-                                        child: Transform(
-                                          alignment: Alignment.center,
-                                          transform:
-                                              Matrix4.identity()
-                                                ..translate(8.0, 0.0)
-                                                ..rotateZ(
-                                                  12 * 3.141592653589793 / 180,
-                                                )
-                                                ..scale(
-                                                  0.6,
-                                                ), // -30 degrees in radians
 
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                color: Colors.white,
-                                                width: 2,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    AppDimensions.radiusMd,
-                                                  ),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    AppDimensions.radiusMd,
-                                                  ),
-                                              child: Image(
-                                                width: 48,
-                                                height: 48,
-                                                image: AssetEntityImageProvider(
-                                                  selectedPhotos[2],
-                                                  isOriginal: false,
+                      child: SlideTransition(
+                        position: _slideTransition,
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(color: Colors.white),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: AppDimensions.sm,
+                            vertical: AppDimensions.sm,
+                          ),
+                          child: Row(
+                            spacing: AppDimensions.md,
+                            children: [
+                              SizedBox(
+                                width: 48,
+                                height: 48,
+                                child: Stack(
+                                  alignment: AlignmentDirectional.center,
+                                  children: [
+                                    if (selectedPhotos.isNotEmpty) ...[
+                                      if (selectedPhotos.length > 2)
+                                        Positioned(
+                                          child: Transform(
+                                            alignment: Alignment.center,
+                                            transform:
+                                                Matrix4.identity()
+                                                  ..translate(8.0, 0.0)
+                                                  ..rotateZ(
+                                                    12 *
+                                                        3.141592653589793 /
+                                                        180,
+                                                  )
+                                                  ..scale(
+                                                    0.6,
+                                                  ), // -30 degrees in radians
+
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: Colors.white,
+                                                  width: 2,
                                                 ),
-                                                fit: BoxFit.cover,
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      AppDimensions.radiusMd,
+                                                    ),
                                               ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    if (selectedPhotos.length > 1)
-                                      Positioned(
-                                        child: Transform(
-                                          alignment: Alignment.center,
-                                          transform:
-                                              Matrix4.identity()
-                                                ..translate(-8.0, 0.0)
-                                                ..rotateZ(
-                                                  -12 * 3.141592653589793 / 180,
-                                                )
-                                                ..scale(
-                                                  0.6,
-                                                ), // -30 degrees in radians
-
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                color: Colors.white,
-                                                width: 2,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    AppDimensions.radiusMd,
-                                                  ),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    AppDimensions.radiusMd,
-                                                  ),
-                                              child: Image(
-                                                width: 48,
-                                                height: 48,
-                                                image: AssetEntityImageProvider(
-                                                  selectedPhotos[1],
-                                                  isOriginal: false,
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      AppDimensions.radiusMd,
+                                                    ),
+                                                child: Image(
+                                                  width: 48,
+                                                  height: 48,
+                                                  image:
+                                                      AssetEntityImageProvider(
+                                                        selectedPhotos[2],
+                                                        isOriginal: false,
+                                                      ),
+                                                  fit: BoxFit.cover,
                                                 ),
-                                                fit: BoxFit.cover,
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    Transform(
-                                      alignment: Alignment.center,
-                                      transform:
-                                          Matrix4.identity()..scale(
-                                            selectedPhotos.length > 1
-                                                ? 0.7
-                                                : 1.0,
-                                          ),
+                                      if (selectedPhotos.length > 1)
+                                        Positioned(
+                                          child: Transform(
+                                            alignment: Alignment.center,
+                                            transform:
+                                                Matrix4.identity()
+                                                  ..translate(-8.0, 0.0)
+                                                  ..rotateZ(
+                                                    -12 *
+                                                        3.141592653589793 /
+                                                        180,
+                                                  )
+                                                  ..scale(
+                                                    0.6,
+                                                  ), // -30 degrees in radians
 
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: Colors.white,
-                                            width: 2,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            AppDimensions.radiusMd,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: Colors.white,
+                                                  width: 2,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      AppDimensions.radiusMd,
+                                                    ),
+                                              ),
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      AppDimensions.radiusMd,
+                                                    ),
+                                                child: Image(
+                                                  width: 48,
+                                                  height: 48,
+                                                  image:
+                                                      AssetEntityImageProvider(
+                                                        selectedPhotos[1],
+                                                        isOriginal: false,
+                                                      ),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            AppDimensions.radiusMd,
-                                          ),
-                                          child: Image(
-                                            width: 48,
-                                            height: 48,
-                                            image: AssetEntityImageProvider(
-                                              selectedPhotos.first,
-                                              isOriginal: false,
+                                      Transform(
+                                        alignment: Alignment.center,
+                                        transform:
+                                            Matrix4.identity()..scale(
+                                              selectedPhotos.length > 1
+                                                  ? 0.7
+                                                  : 1.0,
                                             ),
-                                            fit: BoxFit.cover,
+
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 2,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              AppDimensions.radiusMd,
+                                            ),
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              AppDimensions.radiusMd,
+                                            ),
+                                            child: Image(
+                                              width: 48,
+                                              height: 48,
+                                              image: AssetEntityImageProvider(
+                                                selectedPhotos.first,
+                                                isOriginal: false,
+                                              ),
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
+
+                                      if (selectedPhotos.length > 3)
+                                        Positioned(
+                                          right: 0,
+                                          top: 0,
+                                          child: Container(
+                                            width: 20,
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primary,
+                                              borderRadius:
+                                                  BorderRadius.circular(100),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                selectedPhotos.length
+                                                    .toString(),
+                                                style: AppTypography.bodyLarge
+                                                    .copyWith(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ],
-                                ],
+                                ),
                               ),
-                            ),
 
-                            Flexible(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  AppDimensions.radiusXl,
-                                ),
-                                child: TextField(
-                                  controller: _textController,
-                                  focusNode: _effectiveFocusNode,
-                                  onChanged: widget.onChanged,
-                                  onSubmitted: (_) => _handleSubmit(),
-                                  decoration: InputDecoration(
-                                    hintText: 'Gửi tin nhắn...',
-                                    filled: true,
-                                    hintStyle: TextStyle(color: Colors.black),
-                                    fillColor: Colors.white.safeOpacity(0.2),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        AppDimensions.radiusXxl,
-                                      ),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    suffixIcon: IconButton(
-                                      icon: const Icon(
-                                        Icons.send,
-                                        color: Colors.black,
-                                      ),
-                                      onPressed: _handleSubmit,
-                                    ),
+                              Flexible(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusXl,
                                   ),
-                                  style: AppTypography.headlineMedium,
+                                  child: TextField(
+                                    controller: _textController,
+                                    focusNode: _effectiveFocusNode,
+                                    onChanged: widget.onChanged,
+                                    onSubmitted: (_) => _handleSubmit(),
+                                    decoration: InputDecoration(
+                                      hintText: 'Gửi tin nhắn...',
+                                      filled: true,
+                                      hintStyle: TextStyle(color: Colors.black),
+                                      fillColor: AppColors.background,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          AppDimensions.radiusXxl,
+                                        ),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      suffixIcon: IconButton(
+                                        icon: const Icon(
+                                          Icons.send,
+                                          color: Colors.black,
+                                        ),
+                                        onPressed: _handleSubmit,
+                                      ),
+                                    ),
+                                    style: AppTypography.headlineMedium,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -440,7 +509,10 @@ class _MessageFieldState extends State<MessageField>
           },
         );
       },
-    );
+    ).whenComplete(() {
+      _selectedPhotosNotifier.value = [];
+      _showMessageFieldGalleryController.value = 1.0;
+    });
   }
 
   Future<void> _loadPhotos() async {
