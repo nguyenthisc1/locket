@@ -2,15 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:locket/common/helper/utils.dart' as Utils;
-import 'package:locket/core/error/failures.dart';
-import 'package:locket/core/mappers/media_feed_mapper.dart';
 import 'package:locket/core/services/feed_cache_service.dart';
 import 'package:locket/core/services/media_service.dart';
 import 'package:locket/domain/feed/entities/feed_entity.dart';
 import 'package:locket/domain/feed/usecases/create_feed_usecase.dart';
 import 'package:locket/domain/feed/usecases/get_feed_usecase.dart';
 import 'package:locket/domain/feed/usecases/upload_feed_usecase.dart';
-import 'package:locket/domain/media/entities/media_feed_entity.dart';
 import 'package:locket/presentation/home/controllers/feed/feed_controller_state.dart';
 import 'package:locket/core/services/user_service.dart';
 import 'package:locket/core/models/pagination_model.dart';
@@ -358,6 +355,7 @@ class FeedController {
         width: 0,
         height: 0,
         fileSize: 0,
+        status: FeedStatus.draft,
       );
 
       _state.setNewFeed(draftFeed);
@@ -461,6 +459,21 @@ class FeedController {
     _state.clearError();
     _state.clearUploadStatus();
     _state.setUploading(true);
+    
+    // Update draft feed status to uploading
+    if (_state.newFeed != null) {
+      final uploadingFeed = _state.newFeed!.copyWith(status: FeedStatus.uploading);
+      _state.setNewFeed(uploadingFeed);
+      
+      // Update the feed in the list if it's already there
+      final draftIndex = _state.listFeed.indexWhere(
+        (feed) => feed.id == _state.newFeed!.id,
+      );
+      if (draftIndex != -1) {
+        _state.updateFeedAtIndex(draftIndex, uploadingFeed);
+        _logger.d('Updated draft feed status to uploading at index $draftIndex');
+      }
+    }
 
     try {
       // Create multipart file
@@ -486,10 +499,40 @@ class FeedController {
           _logger.e('Upload failed: ${failure.message}');
           _state.setError('Upload failed: ${failure.message}');
           _state.setUploading(false);
+          
+          // Update feed status to failed
+          if (_state.newFeed != null) {
+            final failedFeed = _state.newFeed!.copyWith(status: FeedStatus.failed);
+            _state.setNewFeed(failedFeed);
+            
+            // Update the feed in the list if it's already there
+            final draftIndex = _state.listFeed.indexWhere(
+              (feed) => feed.id == _state.newFeed!.id,
+            );
+            if (draftIndex != -1) {
+              _state.updateFeedAtIndex(draftIndex, failedFeed);
+              _logger.d('Updated draft feed status to failed at index $draftIndex');
+            }
+          }
         },
         (success) {
           _logger.d('Upload successful! Response: ${success.message}');
           _state.setUploadSuccess(true);
+          
+          // Update feed status to uploaded
+          if (_state.newFeed != null) {
+            final uploadedFeed = _state.newFeed!.copyWith(status: FeedStatus.uploaded);
+            _state.setNewFeed(uploadedFeed);
+            
+            // Update the feed in the list if it's already there
+            final draftIndex = _state.listFeed.indexWhere(
+              (feed) => feed.id == _state.newFeed!.id,
+            );
+            if (draftIndex != -1) {
+              _state.updateFeedAtIndex(draftIndex, uploadedFeed);
+              _logger.d('Updated draft feed status to uploaded at index $draftIndex');
+            }
+          }
 
           // Add the draft feed to the feed list
           addNewFeedToList();
@@ -504,6 +547,21 @@ class FeedController {
       _logger.e('Upload exception: $e');
       _state.setError('Upload exception: $e');
       _state.setUploading(false);
+      
+      // Update feed status to failed on exception
+      if (_state.newFeed != null) {
+        final failedFeed = _state.newFeed!.copyWith(status: FeedStatus.failed);
+        _state.setNewFeed(failedFeed);
+        
+        // Update the feed in the list if it's already there
+        final draftIndex = _state.listFeed.indexWhere(
+          (feed) => feed.id == _state.newFeed!.id,
+        );
+        if (draftIndex != -1) {
+          _state.updateFeedAtIndex(draftIndex, failedFeed);
+          _logger.d('Updated draft feed status to failed at index $draftIndex due to exception');
+        }
+      }
     } finally {
       _state.setUploading(false);
     }
@@ -587,6 +645,7 @@ class FeedController {
       _logger.d('Updated draft feed caption: $caption');
     }
   }
+
 
   /// Dispose resources
   void dispose() {

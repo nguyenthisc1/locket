@@ -198,6 +198,16 @@ class FeedControllerState extends ChangeNotifier {
     return feed.id.startsWith('draft_') || feed.imageUrl.startsWith('local://');
   }
 
+  /// Check if a feed is in uploading state
+  bool _isUploadingFeed(FeedEntity feed) {
+    return feed.status == FeedStatus.uploading;
+  }
+
+  /// Check if a feed upload failed
+  bool _isFailedFeed(FeedEntity feed) {
+    return feed.status == FeedStatus.failed;
+  }
+
   /// Get only server feeds (non-draft feeds)
   List<FeedEntity> get serverFeeds {
     return _listFeed.where((feed) => !_isDraftFeed(feed)).toList();
@@ -206,6 +216,21 @@ class FeedControllerState extends ChangeNotifier {
   /// Get only draft feeds
   List<FeedEntity> get draftFeeds {
     return _listFeed.where((feed) => _isDraftFeed(feed)).toList();
+  }
+
+  /// Get feeds that are currently uploading
+  List<FeedEntity> get uploadingFeeds {
+    return _listFeed.where((feed) => _isUploadingFeed(feed)).toList();
+  }
+
+  /// Get feeds that failed to upload
+  List<FeedEntity> get failedFeeds {
+    return _listFeed.where((feed) => _isFailedFeed(feed)).toList();
+  }
+
+  /// Get feeds that are successfully uploaded
+  List<FeedEntity> get uploadedFeeds {
+    return _listFeed.where((feed) => feed.status == FeedStatus.uploaded).toList();
   }
 
   /// Replace server feeds while preserving draft feeds at the top
@@ -242,6 +267,25 @@ class FeedControllerState extends ChangeNotifier {
     if (hasChanges) {
       notifyListeners();
     }
+  }
+
+  /// Update feed status by ID
+  void updateFeedStatus(String feedId, FeedStatus status) {
+    final index = _listFeed.indexWhere((feed) => feed.id == feedId);
+    if (index != -1) {
+      _listFeed[index] = _listFeed[index].copyWith(status: status);
+      notifyListeners();
+    }
+  }
+
+  /// Get feeds by status
+  List<FeedEntity> getFeedsByStatus(FeedStatus status) {
+    return _listFeed.where((feed) => feed.status == status).toList();
+  }
+
+  /// Check if there are any feeds with a specific status
+  bool hasFeedsWithStatus(FeedStatus status) {
+    return _listFeed.any((feed) => feed.status == status);
   }
 
   void reset() {

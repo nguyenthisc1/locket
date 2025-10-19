@@ -6,7 +6,7 @@ import 'package:locket/domain/feed/entities/feed_entity.dart';
 
 class FeedModel extends Equatable {
   final String id;
-  final FeedUser? user;
+  final FeedUser user;
   final String imageUrl;
   final String? publicId;
   final String? caption;
@@ -24,6 +24,9 @@ class FeedModel extends Equatable {
   final int height;
   final int fileSize;
   final double? duration; // Duration field for videos
+
+  // Upload status
+  final FeedStatus status;
 
   const FeedModel({
     required this.id,
@@ -43,6 +46,7 @@ class FeedModel extends Equatable {
     this.height = 0,
     this.fileSize = 0,
     this.duration,
+    this.status = FeedStatus.uploaded,
   });
 
   factory FeedModel.fromJson(Map<String, dynamic> json) {
@@ -53,7 +57,7 @@ class FeedModel extends Equatable {
     // Null safety: handle case where user can be missing at root or set to null
     FeedUser extractUser(dynamic userField) {
       if (userField == null) {
-        return FeedUser(id: userField, username: '', avatarUrl: '');
+        return FeedUser(id: '', username: '', avatarUrl: '');
       }
       if (userField is String) {
         return FeedUser(id: userField, username: '', avatarUrl: '');
@@ -80,6 +84,22 @@ class FeedModel extends Equatable {
         case 'image':
         default:
           return MediaType.image;
+      }
+    }
+
+    // Parse feed status
+    FeedStatus parseStatus(String? status) {
+      switch (status?.toLowerCase()) {
+        case 'draft':
+          return FeedStatus.draft;
+        case 'uploading':
+          return FeedStatus.uploading;
+        case 'uploaded':
+          return FeedStatus.uploaded;
+        case 'failed':
+          return FeedStatus.failed;
+        default:
+          return FeedStatus.uploaded; // Default to uploaded for server feeds
       }
     }
 
@@ -151,23 +171,17 @@ class FeedModel extends Equatable {
               : (json['duration'] != null
                   ? double.tryParse('${json['duration']}')
                   : null),
+      status: parseStatus(json['status']?.toString()),
     );
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    // user is allowed to be null - handle that
-    'user':
-        user == null
-            ? null
-            : user?.id == null
-            // If user object exists but id is null, fallback to sending null
-            ? null
-            : {
-              '_id': user?.id,
-              'username': user?.username,
-              'avatarUrl': user?.avatarUrl,
-            },
+    'user': {
+      '_id': user.id,
+      'username': user.username,
+      'avatarUrl': user.avatarUrl,
+    },
     'imageUrl': imageUrl,
     'caption': caption,
     'isFrontCamera': isFrontCamera,
@@ -180,6 +194,7 @@ class FeedModel extends Equatable {
     'height': height,
     'fileSize': fileSize,
     'duration': duration,
+    'status': status.name,
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt?.toIso8601String(),
   };
@@ -203,5 +218,6 @@ class FeedModel extends Equatable {
     height,
     fileSize,
     duration,
+    status,
   ];
 }

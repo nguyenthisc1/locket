@@ -20,6 +20,7 @@ class FeedMapper {
       height: model.height,
       fileSize: model.fileSize,
       duration: model.duration,
+      status: model.status,
     );
   }
 
@@ -41,6 +42,7 @@ class FeedMapper {
       height: entity.height,
       fileSize: entity.fileSize,
       duration: entity.duration,
+      status: entity.status,
     );
   }
 

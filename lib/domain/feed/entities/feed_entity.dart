@@ -20,6 +20,8 @@ class FeedUser extends Equatable {
 
 enum MediaType { image, video }
 
+enum FeedStatus { draft, uploading, uploaded, failed }
+
 class FeedEntity extends Equatable {
   final String id;
   final FeedUser user;
@@ -40,6 +42,9 @@ class FeedEntity extends Equatable {
   final int height;
   final int fileSize;
   final double? duration;
+  
+  // Upload status
+  final FeedStatus status;
 
   const FeedEntity({
     required this.id,
@@ -58,7 +63,8 @@ class FeedEntity extends Equatable {
     this.width = 0,
     this.height = 0,
     this.fileSize = 0,
-    this.duration, 
+    this.duration,
+    this.status = FeedStatus.uploaded,
   });
 
   /// Helper getters for media type detection
@@ -90,6 +96,7 @@ class FeedEntity extends Equatable {
     int? height,
     int? fileSize,
     double? duration,
+    FeedStatus? status,
   }) {
     return FeedEntity(
       id: id ?? this.id,
@@ -109,6 +116,7 @@ class FeedEntity extends Equatable {
       height: height ?? this.height,
       fileSize: fileSize ?? this.fileSize,
       duration: duration ?? this.duration,
+      status: status ?? this.status,
     );
   }
 
@@ -130,6 +138,7 @@ class FeedEntity extends Equatable {
         width,
         height,
         fileSize,
-        duration
+        duration,
+        status,
       ];
 }
