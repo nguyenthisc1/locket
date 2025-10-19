@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart' as Utils;
 import 'package:locket/common/wigets/user_image.dart';
 import 'package:locket/core/configs/theme/app_dimensions.dart';
 import 'package:locket/core/configs/theme/app_typography.dart';
@@ -22,7 +25,7 @@ class _HistoryFeedState extends State<HistoryFeed> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final feedState = context.watch<FeedControllerState>();
-    // Only select first 3 items that are images (not videos)
+
     final feeds =
         feedState.listFeed
             .where(
@@ -78,6 +81,10 @@ class _HistoryFeedState extends State<HistoryFeed> {
       return const SizedBox.shrink();
     }
 
+    final currentFeed = _feeds[_currentIndex];
+
+    final isLocal = Utils.isLocalFilePath(currentFeed.imageUrl);
+
     return Column(
       children: [
         Row(
@@ -92,12 +99,34 @@ class _HistoryFeedState extends State<HistoryFeed> {
                 transitionBuilder: (Widget child, Animation<double> animation) {
                   return FadeTransition(opacity: animation, child: child);
                 },
-                child: UserImage(
-                  key: ValueKey(_feeds[_currentIndex].id),
-                  imageUrl: _feeds[_currentIndex].imageUrl,
-                  size: AppDimensions.avatarSm,
-                  borderRadius: AppDimensions.radiusMd,
-                ),
+                child:
+                    isLocal
+                        ? ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusMd,
+                          ),
+                          child: Image.file(
+                            File(Utils.getActualFilePath(currentFeed.imageUrl)),
+                            fit: BoxFit.cover,
+                            width: 40,
+                            height: 40,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Icon(
+                                  Icons.error,
+                                  color: Colors.red,
+                                  size: 40,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                        : UserImage(
+                          key: ValueKey(currentFeed.id),
+                          imageUrl: currentFeed.imageUrl,
+                          size: AppDimensions.avatarSm,
+                          borderRadius: AppDimensions.radiusMd,
+                        ),
               ),
             ),
             const SizedBox(width: AppDimensions.sm),

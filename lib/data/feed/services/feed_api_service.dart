@@ -192,10 +192,10 @@ class FeedApiServiceImpl extends FeedApiService {
   Future<Either<Failure, BaseResponse<dynamic>>> createFeed(
     Map<String, dynamic> payload,
   ) async {
-    logger.d('FormData: $payload');
+    logger.d('payload: $payload');
 
     try {
-      final formData = FormData.fromMap({
+      final payloadData = {
         'url': payload['url'],
         'publicId': payload['publicId'],
         'location': payload['location'],
@@ -208,17 +208,27 @@ class FeedApiServiceImpl extends FeedApiService {
         'shareWith': payload['shareWith'],
         'mediaType': payload['mediaType'],
         'isFrontCamera': payload['isFrontCamera'] ?? true,
-      });
+      };
 
-      final response = await dioClient.post(ApiUrl.createFeed, data: formData);
+      final response = await dioClient.post(
+        ApiUrl.createFeed,
+        data: payloadData,
+      );
 
       // Handle different status codes since validateStatus < 500 treats them as successful
       if ((response.statusCode == 200 || response.statusCode == 201) &&
           response.data.isNotEmpty) {
+        final newFeedJson = response.data['data'];
+        final newFeedModel = FeedModel.fromJson(newFeedJson);
+        final newFeedEntity = FeedMapper.toEntity(newFeedModel);
+
+        final data = {'feed': newFeedEntity};
+        logger.d('feed $data');
+
         final baseResponse = BaseResponse<dynamic>(
           success: response.data['success'],
           message: response.data['message'],
-          data: response.data['data'],
+          data: data,
           errors: response.data['errors'],
         );
         return Right(baseResponse);

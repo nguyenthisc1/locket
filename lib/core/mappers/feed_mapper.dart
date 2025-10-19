@@ -5,7 +5,7 @@ class FeedMapper {
   static FeedEntity toEntity(FeedModel model) {
     return FeedEntity(
       id: model.id,
-      user: model.user,
+      user: model.user!,
       imageUrl: model.imageUrl,
       publicId: model.publicId,
       caption: model.caption,

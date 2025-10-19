@@ -25,6 +25,23 @@ class MediaFeedModel extends Equatable {
     this.fileSize,
   });
 
+  factory MediaFeedModel.fromJson(Map<String, dynamic> json) {
+    return MediaFeedModel(
+      url: json['url'] as String,
+      publicId: json['publicId'] as String,
+      mediaType: json['mediaType'] as String,
+      isFrontCamera: json['isFrontCamera'] is bool
+          ? json['isFrontCamera'] as bool
+          : true, // Default to true if not present or not a bool
+      location: json['location'] as String?,
+      duration: json['duration'] as num?,
+      format: json['format'] as String?,
+      width: json['width'] as int?,
+      height: json['height'] as int?,
+      fileSize: json['fileSize'] as int?,
+    );
+  }
+
   @override
   List<Object?> get props => [
     url,

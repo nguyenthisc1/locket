@@ -1,6 +1,8 @@
 // lib/presentation/home/controllers/feed_controller.dart
 
 import 'package:flutter/material.dart';
+import 'package:locket/common/helper/utils.dart' as Utils;
+import 'package:locket/core/error/failures.dart';
 import 'package:locket/core/mappers/media_feed_mapper.dart';
 import 'package:locket/core/services/feed_cache_service.dart';
 import 'package:locket/core/services/media_service.dart';
@@ -347,7 +349,7 @@ class FeedController {
           username: currentUser.username,
           avatarUrl: currentUser.avatarUrl ?? '',
         ),
-        imageUrl: _createLocalUri(filePath),
+        imageUrl: Utils.createLocalUri(filePath),
         caption: _state.captionFeed,
         isFrontCamera: isFrontCamera,
         mediaType: mediaType,
@@ -384,71 +386,63 @@ class FeedController {
     _state.clearUploadStatus();
     _state.setUploading(true);
 
-    try {
-      final file = File(filePath);
+    final file = File(filePath);
 
-      final payload = <String, dynamic>{
-        'filePath': file.path,
-        'fileName': fileName,
-        'mediaType': mediaType,
-        'isFrontCamera': isFrontCamera,
-        'caption': _state.captionFeed,
-      };
+    final payload = <String, dynamic>{
+      'filePath': file.path,
+      'fileName': fileName,
+      'mediaType': mediaType,
+      'isFrontCamera': isFrontCamera,
+      'caption': _state.captionFeed,
+    };
 
-      _logger.d('Uploading $mediaType: $fileName');
-      _logger.d('Caption: ${_state.captionFeed ?? 'No caption'}');
+    _logger.d('Uploading $mediaType: $fileName');
+    _logger.d('Caption: ${_state.captionFeed ?? 'No caption'}');
 
-      final mediaResult = await _mediaService.uploadMediaFeed(payload);
+    final mediaResult = await _mediaService.uploadMediaFeed(payload);
 
-      if (mediaResult is! MediaFeedEntity) {
-        _logger.e('Failed to upload media: unexpected result');
-        _state.setError('Failed to upload media');
-        _state.setUploading(false);
-        return;
-      }
-
-      final media = mediaResult as MediaFeedEntity;
-
-      final payloadCreate = <String, dynamic>{
-        'url': media.url,
-        'publicId': media.publicId,
-        'location': media.location,
-        'duration': media.duration,
-        'format': media.format,
-        'width': media.width,
-        'height': media.height,
-        'fileSize': media.fileSize,
-        'mediaType': media.mediaType,
-        'isFrontCamera': isFrontCamera,
-        'caption': _state.captionFeed,
-      };
-
-      final createResult = await _createFeedUsecase(payloadCreate);
-
-      if (createResult.isLeft()) {
-        final failure = createResult.fold((l) => l, (r) => null);
-        _logger.e('Create feed failed: ${failure?.message}');
-        _state.setError('Create feed failed: ${failure?.message}');
-        _state.setUploading(false);
-        return;
-      }
-
-      _logger.d('Feed successfully created');
-      _state.setUploadSuccess(true);
-
-      addNewFeedToList();
-
-      // Reset after delay (but keep the feed in the list)
-      Future.delayed(const Duration(seconds: 2), () {
-        resetUploadStateAfterSuccess();
-      });
-    } catch (e) {
-      _logger.e('Upload exception: $e');
-      _state.setError('Upload exception: $e');
-      _state.setUploading(false);
-    } finally {
-      _state.setUploading(false);
+    if (!mediaResult.success) {
+      _logger.e('Upload media feed failed: ${mediaResult.message}');
     }
+
+    final media = mediaResult.data['media'];
+
+    final payloadCreate = <String, dynamic>{
+      'url': media.url,
+      'publicId': media.publicId,
+      'location': media.location,
+      'duration': media.duration,
+      'format': media.format,
+      'width': media.width,
+      'height': media.height,
+      'fileSize': media.fileSize,
+      'mediaType': media.mediaType,
+      'isFrontCamera': isFrontCamera,
+      'caption': _state.captionFeed,
+    };
+
+    final createResult = await _createFeedUsecase(payloadCreate);
+
+    createResult.fold(
+      ((failure) {
+        _logger.e('Create feed failed: ${failure.message}');
+        _state.setError('Create feed failed: ${failure.message}');
+        _state.setUploading(false);
+        return;
+      }),
+      (response) {
+        _logger.d('Feed successfully created $createResult');
+        _state.setUploadSuccess(true);
+
+        addNewFeedToList();
+
+        // Reset after delay (but keep the feed in the list)
+        Future.delayed(const Duration(seconds: 2), () {
+          resetUploadStateAfterSuccess();
+        });
+        _state.setUploading(false);
+      },
+    );
   }
 
   /// Upload captured media (photo or video)
@@ -592,36 +586,6 @@ class FeedController {
 
       _logger.d('Updated draft feed caption: $caption');
     }
-  }
-
-  /// Create a properly formatted local URI for file paths
-  String _createLocalUri(String filePath) {
-    // Handle case where filePath might already have a prefix
-    String cleanPath = filePath;
-
-    // Remove any existing prefixes
-    if (cleanPath.startsWith('local:////')) {
-      cleanPath = cleanPath.substring(10);
-    } else if (cleanPath.startsWith('local:///')) {
-      cleanPath = cleanPath.substring(9);
-    } else if (cleanPath.startsWith('file:///')) {
-      cleanPath = cleanPath.substring(8);
-    } else if (cleanPath.startsWith('file://')) {
-      cleanPath = cleanPath.substring(7);
-    }
-
-    // Handle case where path starts with additional slashes
-    while (cleanPath.startsWith('//')) {
-      cleanPath = cleanPath.substring(1);
-    }
-
-    // Ensure we have an absolute path
-    if (cleanPath.isNotEmpty && !cleanPath.startsWith('/')) {
-      cleanPath = '/$cleanPath';
-    }
-
-    // Return with consistent local:// prefix (single slash after colon)
-    return 'local://$cleanPath';
   }
 
   /// Dispose resources

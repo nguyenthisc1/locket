@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:locket/common/helper/utils.dart';
 import 'package:locket/core/models/location_model.dart';
 import 'package:locket/core/models/reaction_model.dart';
 import 'package:locket/core/models/share_with_user_model.dart';
@@ -7,7 +6,7 @@ import 'package:locket/domain/feed/entities/feed_entity.dart';
 
 class FeedModel extends Equatable {
   final String id;
-  final FeedUser user;
+  final FeedUser? user;
   final String imageUrl;
   final String? publicId;
   final String? caption;
@@ -17,14 +16,14 @@ class FeedModel extends Equatable {
   final List<ReactionModel> reactions;
   final DateTime createdAt;
   final DateTime? updatedAt;
-  
-  // New media properties
+
+  // Media properties
   final MediaType mediaType;
   final String format;
   final int width;
   final int height;
   final int fileSize;
-  final double? duration; // Add duration field for videos
+  final double? duration; // Duration field for videos
 
   const FeedModel({
     required this.id,
@@ -43,49 +42,38 @@ class FeedModel extends Equatable {
     this.width = 0,
     this.height = 0,
     this.fileSize = 0,
-    this.duration, // Add duration parameter
+    this.duration,
   });
 
   factory FeedModel.fromJson(Map<String, dynamic> json) {
-    // Handle both nested and simple photo structure
-    Map<String, dynamic>? photoData;
-    
-    // Check if it's the new simple structure (direct photo object)
-    if (json.containsKey('id') && json.containsKey('userId')) {
-      photoData = json;
-    } else {
-      // Old nested structure
-      photoData = json['photo']?['photo'] as Map<String, dynamic>?;
-    }
-    
-    if (photoData == null) {
-      throw Exception('Invalid feed format: missing photo data');
-    }
+    // Defensive checks for required fields
+    final idVal = json['id']?.toString() ?? '';
+    final imageUrlVal = json['imageUrl']?.toString() ?? '';
 
-    // Extract user information
+    // Null safety: handle case where user can be missing at root or set to null
     FeedUser extractUser(dynamic userField) {
+      if (userField == null) {
+        return FeedUser(id: userField, username: '', avatarUrl: '');
+      }
       if (userField is String) {
         return FeedUser(id: userField, username: '', avatarUrl: '');
       } else if (userField is Map<String, dynamic>) {
-        final id = userField['_id'] as String? ?? userField['id'] as String?;
+        final id =
+            userField['_id'] as String? ?? userField['id'] as String? ?? '';
         final username = userField['username'] as String? ?? '';
-        final email = userField['email'] as String? ?? ''; // Add email field
         final avatarUrl = userField['avatarUrl'] as String?;
-        if (id != null) {
-          return FeedUser(id: id, username: username, avatarUrl: avatarUrl);
-        }
+        return FeedUser(id: id, username: username, avatarUrl: avatarUrl);
       }
       throw Exception('Invalid user format');
     }
 
     // Parse media type - check format since API mediaType is inconsistent
     MediaType parseMediaType(String? type, String? format) {
-      // First check format since it's more reliable
-      if (format?.toLowerCase() == 'mp4' || format?.toLowerCase() == 'mov' || format?.toLowerCase() == 'avi') {
+      if (format?.toLowerCase() == 'mp4' ||
+          format?.toLowerCase() == 'mov' ||
+          format?.toLowerCase() == 'avi') {
         return MediaType.video;
       }
-      
-      // Fallback to mediaType field
       switch (type?.toLowerCase()) {
         case 'video':
           return MediaType.video;
@@ -96,83 +84,124 @@ class FeedModel extends Equatable {
     }
 
     return FeedModel(
-      id: photoData['id'] as String? ?? photoData['_id'] as String,
-      user: extractUser(photoData['userId']),
-      imageUrl: photoData['imageUrl'] as String,
-      publicId: photoData['publicId'] as String?,
-      caption: photoData['caption'] as String?,
-      isFrontCamera: photoData['isFrontCamera'] as bool,
-      sharedWith: (photoData['sharedWith'] as List<dynamic>?)
-              ?.map((e) => SharedWithUser.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      location: photoData['location'] != null
-          ? LocationModel.fromJson(photoData['location'] as Map<String, dynamic>)
-          : null,
-      reactions: (photoData['reactions'] as List<dynamic>?)
-              ?.map((e) => ReactionModel.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      createdAt: DateTimeUtils.parseTimestamp(photoData['createdAt'] as String),
-      updatedAt: photoData['updatedAt'] != null
-          ? DateTimeUtils.parseTimestampNullable(photoData['updatedAt'] as String)
-          : null,
-      format: photoData['format'] as String? ??  'jpg',
-      mediaType: parseMediaType(photoData['mediaType'] as String?, photoData['format'] as String?),
-      width: photoData['width'] as int? ?? 0,
-      height: photoData['height'] as int? ?? 0,
-      fileSize: photoData['fileSize'] as int? ?? 0,
-      duration: photoData['duration'] as double?, // Add duration parsing
+      id: idVal,
+      user: extractUser(json['user']),
+      imageUrl: imageUrlVal,
+      publicId: json['publicId']?.toString(),
+      caption: json['caption']?.toString(),
+      isFrontCamera:
+          json['isFrontCamera'] is bool
+              ? json['isFrontCamera'] as bool
+              : json['isFrontCamera']?.toString().toLowerCase() == 'true',
+      sharedWith:
+          (json['sharedWith'] as List<dynamic>? ?? [])
+              .map(
+                (u) =>
+                    u is Map<String, dynamic>
+                        ? SharedWithUser.fromJson(u)
+                        : SharedWithUser.fromJson(
+                          Map<String, dynamic>.from(u as Map),
+                        ),
+              ) // fallback
+              .toList(),
+      location:
+          json['location'] != null
+              ? LocationModel.fromJson(
+                Map<String, dynamic>.from(json['location']),
+              )
+              : null,
+      reactions:
+          (json['reactions'] as List<dynamic>? ?? [])
+              .map(
+                (r) =>
+                    r is Map<String, dynamic>
+                        ? ReactionModel.fromJson(r)
+                        : ReactionModel.fromJson(
+                          Map<String, dynamic>.from(r as Map),
+                        ),
+              ) // fallback
+              .toList(),
+      createdAt:
+          DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          json['updatedAt'] != null
+              ? DateTime.tryParse(json['updatedAt'].toString())
+              : null,
+      mediaType: parseMediaType(
+        json['mediaType']?.toString(),
+        json['format']?.toString(),
+      ),
+      format: json['format']?.toString() ?? 'jpg',
+      width:
+          json['width'] is int
+              ? json['width'] as int
+              : int.tryParse('${json['width'] ?? "0"}') ?? 0,
+      height:
+          json['height'] is int
+              ? json['height'] as int
+              : int.tryParse('${json['height'] ?? "0"}') ?? 0,
+      fileSize:
+          json['fileSize'] is int
+              ? json['fileSize'] as int
+              : int.tryParse('${json['fileSize'] ?? "0"}') ?? 0,
+      duration:
+          json['duration'] is double
+              ? json['duration'] as double
+              : (json['duration'] != null
+                  ? double.tryParse('${json['duration']}')
+                  : null),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'photo': {
-          'photo': {
-            'id': id,
-            'userId': {
-              '_id': user.id,
-              'username': user.username,
-              'avatarUrl': user.avatarUrl,
+    'id': id,
+    // user is allowed to be null - handle that
+    'user':
+        user == null
+            ? null
+            : user?.id == null
+            // If user object exists but id is null, fallback to sending null
+            ? null
+            : {
+              '_id': user?.id,
+              'username': user?.username,
+              'avatarUrl': user?.avatarUrl,
             },
-            'imageUrl': imageUrl,
-            'caption': caption,
-            'isFrontCamera': isFrontCamera,
-            'sharedWith': sharedWith.map((u) => u.toJson()).toList(),
-            'location': location?.toJson(),
-            'reactions': reactions.map((r) => r.toJson()).toList(),
-            'mediaType': mediaType == MediaType.video ? 'video' : 'image',
-            'format': format,
-            'width': width,
-            'height': height,
-            'fileSize': fileSize,
-            'duration': duration, // Add duration to JSON
-            'createdAt': createdAt.toIso8601String(),
-            'updatedAt': updatedAt?.toIso8601String(),
-          },
-          'user': null,
-        },
-     
-      };
+    'imageUrl': imageUrl,
+    'caption': caption,
+    'isFrontCamera': isFrontCamera,
+    'sharedWith': sharedWith.map((u) => u.toJson()).toList(),
+    'location': location?.toJson(),
+    'reactions': reactions.map((r) => r.toJson()).toList(),
+    'mediaType': mediaType == MediaType.video ? 'video' : 'image',
+    'format': format,
+    'width': width,
+    'height': height,
+    'fileSize': fileSize,
+    'duration': duration,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt?.toIso8601String(),
+  };
 
   @override
   List<Object?> get props => [
-        id,
-        user,
-        imageUrl,
-        publicId,
-        caption,
-        isFrontCamera,
-        sharedWith,
-        location,
-        reactions,
-        createdAt,
-        updatedAt,
-        mediaType,
-        format,
-        width,
-        height,
-        fileSize,
-        duration, 
-      ];
+    id,
+    user,
+    imageUrl,
+    publicId,
+    caption,
+    isFrontCamera,
+    sharedWith,
+    location,
+    reactions,
+    createdAt,
+    updatedAt,
+    mediaType,
+    format,
+    width,
+    height,
+    fileSize,
+    duration,
+  ];
 }

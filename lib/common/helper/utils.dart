@@ -14,7 +14,7 @@ extension SafeOpacity on Color {
 class DateTimeUtils {
   /// Safely parses a dynamic value to DateTime and converts to local time.
   /// Returns the parsed DateTime if successful, otherwise returns the fallback.
-  /// 
+  ///
   /// Supports:
   /// - DateTime objects (converted to local time)
   /// - String values (parsed using DateTime.tryParse and converted to local)
@@ -24,11 +24,11 @@ class DateTimeUtils {
     if (value == null) {
       return fallback ?? DateTime.now();
     }
-    
+
     if (value is DateTime) {
       return value.toLocal();
     }
-    
+
     if (value is String) {
       if (value.isEmpty) {
         return fallback ?? DateTime.now();
@@ -38,7 +38,7 @@ class DateTimeUtils {
         return parsed.toLocal();
       }
     }
-    
+
     if (value is int) {
       try {
         return DateTime.fromMillisecondsSinceEpoch(value).toLocal();
@@ -46,7 +46,7 @@ class DateTimeUtils {
         // Invalid timestamp
       }
     }
-    
+
     if (value is double) {
       try {
         return DateTime.fromMillisecondsSinceEpoch(value.toInt()).toLocal();
@@ -54,22 +54,22 @@ class DateTimeUtils {
         // Invalid timestamp
       }
     }
-    
+
     // If all parsing attempts fail, return fallback
     return fallback ?? DateTime.now();
   }
-  
+
   /// Safely parses a dynamic value to nullable DateTime and converts to local time.
   /// Returns null if parsing fails or value is null/empty.
   static DateTime? parseDateTimeNullable(dynamic value) {
     if (value == null) {
       return null;
     }
-    
+
     if (value is DateTime) {
       return value.toLocal();
     }
-    
+
     if (value is String) {
       if (value.isEmpty) {
         return null;
@@ -77,7 +77,7 @@ class DateTimeUtils {
       final parsed = DateTime.tryParse(value);
       return parsed?.toLocal();
     }
-    
+
     if (value is int) {
       try {
         return DateTime.fromMillisecondsSinceEpoch(value).toLocal();
@@ -85,7 +85,7 @@ class DateTimeUtils {
         return null;
       }
     }
-    
+
     if (value is double) {
       try {
         return DateTime.fromMillisecondsSinceEpoch(value.toInt()).toLocal();
@@ -93,10 +93,10 @@ class DateTimeUtils {
         return null;
       }
     }
-    
+
     return null;
   }
-  
+
   /// Safely converts DateTime to ISO 8601 string.
   /// Returns null if the DateTime is null.
   static String? toIsoString(DateTime? dateTime) {
@@ -139,7 +139,7 @@ class DateTimeUtils {
 /// - Today: returns "HH:mm"
 /// - Yesterday: returns "Hôm qua, HH:mm"
 /// - Other: returns "dd thg x, HH:mm"
-/// 
+///
 /// Automatically converts to local time for proper display
 String formatVietnameseTimestamp(DateTime dateTime) {
   // Ensure we're working with local time
@@ -147,7 +147,11 @@ String formatVietnameseTimestamp(DateTime dateTime) {
   final now = DateTime.now().toLocal();
   final today = DateTime(now.year, now.month, now.day);
   final yesterday = today.subtract(const Duration(days: 1));
-  final messageDay = DateTime(localDateTime.year, localDateTime.month, localDateTime.day);
+  final messageDay = DateTime(
+    localDateTime.year,
+    localDateTime.month,
+    localDateTime.day,
+  );
 
   const vietnameseMonths = [
     '', // 0 index not used
@@ -167,4 +171,76 @@ String formatVietnameseTimestamp(DateTime dateTime) {
     final month = vietnameseMonths[localDateTime.month];
     return '$hourMinute $day $month';
   }
+}
+
+String createLocalUri(String filePath) {
+  // Handle case where filePath might already have a prefix
+  String cleanPath = filePath;
+
+  // Remove any existing prefixes
+  if (cleanPath.startsWith('local:////')) {
+    cleanPath = cleanPath.substring(10);
+  } else if (cleanPath.startsWith('local:///')) {
+    cleanPath = cleanPath.substring(9);
+  } else if (cleanPath.startsWith('file:///')) {
+    cleanPath = cleanPath.substring(8);
+  } else if (cleanPath.startsWith('file://')) {
+    cleanPath = cleanPath.substring(7);
+  }
+
+  // Handle case where path starts with additional slashes
+  while (cleanPath.startsWith('//')) {
+    cleanPath = cleanPath.substring(1);
+  }
+
+  // Ensure we have an absolute path
+  if (cleanPath.isNotEmpty && !cleanPath.startsWith('/')) {
+    cleanPath = '/$cleanPath';
+  }
+
+  // Return with consistent local:// prefix (single slash after colon)
+  return 'local://$cleanPath';
+}
+
+String getActualFilePath(String path) {
+  // Remove prefixes and handle malformed URIs
+  String cleanPath = path;
+
+  // Handle various local prefix formats
+  if (cleanPath.startsWith('local:////')) {
+    cleanPath = cleanPath.substring(10); // Remove 'local:////' prefix
+  } else if (cleanPath.startsWith('local:///')) {
+    cleanPath = cleanPath.substring(9); // Remove 'local:///' prefix
+  } else if (cleanPath.startsWith('local://')) {
+    cleanPath = cleanPath.substring(8); // Remove 'local://' prefix (new format)
+  } else if (cleanPath.startsWith('file:///')) {
+    cleanPath = cleanPath.substring(8); // Remove 'file:///' prefix
+  } else if (cleanPath.startsWith('file://')) {
+    cleanPath = cleanPath.substring(7); // Remove 'file://' prefix
+  }
+
+  // Handle case where path starts with additional slashes
+  while (cleanPath.startsWith('//')) {
+    cleanPath = cleanPath.substring(1);
+  }
+
+  // Ensure we have an absolute path
+  if (cleanPath.isNotEmpty && !cleanPath.startsWith('/')) {
+    cleanPath = '/$cleanPath';
+  }
+
+  return cleanPath;
+}
+
+bool isLocalFilePath(String path) {
+  // Check if it's a local file path or has our local prefix
+  // Accepts various local prefixes for compatibility
+  return path.startsWith('local://') || // New format
+      path.startsWith('local:///') ||
+      path.startsWith('local:////') ||
+      path.startsWith('/') ||
+      path.startsWith('file://') ||
+      path.contains('/var/mobile/') ||
+      path.contains('/Documents/') ||
+      !path.startsWith('http');
 }

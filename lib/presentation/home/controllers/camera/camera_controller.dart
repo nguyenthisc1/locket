@@ -158,9 +158,9 @@ class CameraController {
       _state.setPictureTaken(true, DateTime.now());
 
       // Create draft feed via feed controller
-      final isFrontCamera =
-          _state.controller?.description.lensDirection ==
-          cam.CameraLensDirection.front;
+      // final isFrontCamera =
+      //     _state.controller?.description.lensDirection ==
+      //     cam.CameraLensDirection.front;
       // _state.feedController.createDraftFeed(
       //   image.path,
       //   MediaType.image,
@@ -221,9 +221,9 @@ class CameraController {
       _state.setPictureTaken(true, endTime); // Mark as media captured
 
       // Create draft feed via feed controller
-      final isFrontCamera =
-          _state.controller?.description.lensDirection ==
-          cam.CameraLensDirection.front;
+      // final isFrontCamera =
+      //     _state.controller?.description.lensDirection ==
+      //     cam.CameraLensDirection.front;
       // _state.feedController.createDraftFeed(
       //   video.path,
       //   MediaType.video,
@@ -314,8 +314,8 @@ class CameraController {
       // Upload via feed controller
       await _state.feedController.createFeed(
         mediaFile.path,
-        mediaType,
         fileName,
+        mediaType,
         isFrontCamera,
       );
 

@@ -2,12 +2,16 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:locket/core/constants/api_url.dart';
 import 'package:locket/core/error/failures.dart';
+import 'package:locket/core/mappers/media_feed_mapper.dart';
 import 'package:locket/core/models/base_response_model.dart';
 import 'package:locket/core/network/dio_client.dart';
+import 'package:locket/data/media/models/media_feed.dart';
 import 'package:logger/logger.dart';
 
 abstract class MediaApiService {
-  Future<Either<Failure, BaseResponse>> uploadFeed(Map<String, dynamic> payload);
+  Future<Either<Failure, BaseResponse>> uploadFeed(
+    Map<String, dynamic> payload,
+  );
 }
 
 class MediaApiServiceImpl extends MediaApiService {
@@ -37,6 +41,12 @@ class MediaApiServiceImpl extends MediaApiService {
         data: formData,
         options: Options(contentType: 'multipart/form-data'),
       );
+      final mediaJson = response.data['data'];
+      final mediaModel = MediaFeedModel.fromJson(mediaJson);
+      final mediaEntity = MediaFeedMapper.toEntity(mediaModel);
+
+      final data = {'media': mediaEntity};
+      logger.d('media $data');
 
       // Handle different status codes since validateStatus < 500 treats them as successful
       if ((response.statusCode == 200 || response.statusCode == 201) &&
@@ -44,7 +54,7 @@ class MediaApiServiceImpl extends MediaApiService {
         final baseResponse = BaseResponse<dynamic>(
           success: response.data['success'],
           message: response.data['message'],
-          data: response.data['data'],
+          data: data,
           errors: response.data['errors'],
         );
         return Right(baseResponse);

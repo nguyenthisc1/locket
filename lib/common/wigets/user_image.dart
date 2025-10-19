@@ -26,10 +26,10 @@ class UserImage extends StatelessWidget {
             borderRadius != null ? BorderRadius.circular(borderRadius!) : null,
         image: DecorationImage(
           image:
-              imageUrl != null
+              imageUrl != null && imageUrl!.isNotEmpty
                   ? NetworkImage(imageUrl!)
                   : AssetImage(AppImages.user),
-          fit:     imageUrl != null ? BoxFit.cover : BoxFit.fill,
+          fit:     imageUrl != null && imageUrl!.isNotEmpty ? BoxFit.cover : BoxFit.fill,
         ),
         color: Colors.white,
       ),
